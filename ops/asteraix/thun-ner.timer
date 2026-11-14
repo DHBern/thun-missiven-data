@@ -1,0 +1,9 @@
+[Unit]
+Description=Thun Missiven NER, every 3 hours from 19.11. (the script waits for its inputs)
+
+[Timer]
+OnCalendar=*-*-* 00/3:40
+Persistent=true
+
+[Install]
+WantedBy=timers.target

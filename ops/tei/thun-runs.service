@@ -1,0 +1,9 @@
+[Unit]
+Description=Thun Missiven: start the next reading run (thun_runs.sh)
+After=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=%h/thun-runs/thun_runs.sh
+Environment=PATH=/usr/local/bin:/usr/bin:/bin
+TimeoutStartSec=5min

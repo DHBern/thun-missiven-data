@@ -1,0 +1,8 @@
+[Unit]
+Description=Thun Missiven: NER training + tagging + linking (thun_ner.sh, runs once)
+
+[Service]
+Type=oneshot
+ExecStart=%h/thun-ner/thun_ner.sh
+TimeoutStartSec=12h
+Nice=5
