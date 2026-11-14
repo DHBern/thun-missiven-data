@@ -1,0 +1,11 @@
+[Unit]
+Description=Thun Missiven pipeline, twice a day (08:00 and 20:00, half an hour after St. Gallen's 07:30 and 19:30)
+
+[Timer]
+OnCalendar=*-*-* 08:00
+OnCalendar=*-*-* 20:00
+Persistent=true
+RandomizedDelaySec=5min
+
+[Install]
+WantedBy=timers.target

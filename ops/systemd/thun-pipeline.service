@@ -1,0 +1,13 @@
+[Unit]
+Description=Thun Missiven: collect the readings and publish them (docs/PIPELINE.md)
+After=network-online.target
+
+[Service]
+Type=oneshot
+# the script lives in the checkout it resets; run a copy of main's version, so the reset cannot
+# change it mid-run and a fix merged to main is used at once (not a cycle later)
+ExecStartPre=/bin/sh -c 'mkdir -p %h/thun-pipeline && git -C %h/thun-missiven-data fetch -q origin && git -C %h/thun-missiven-data show origin/main:scripts/pipeline.sh > %h/thun-pipeline/pipeline.sh && chmod 755 %h/thun-pipeline/pipeline.sh'
+ExecStart=%h/thun-pipeline/pipeline.sh
+Environment=PATH=/usr/local/bin:/usr/bin:/bin
+Nice=10
+TimeoutStartSec=1h

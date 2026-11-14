@@ -1,0 +1,7 @@
+.DS_Store
+.claude/
+
+# readings viewer: built by scripts/build_site.py
+site/data/
+__pycache__/
+*.pyc

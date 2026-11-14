@@ -1,0 +1,23 @@
+{
+ "about": "Where the pipeline finds the readings on tei (docs/PIPELINE.md). Paths are tei's. 'transkribus' is the ingest of Transkribus collection 2329424, imported by scripts/import_transkribus.py (it writes readings/pages.tsv, the list of pages, and the PyLaia reading). A run directory is an atr-batch run (<run>/<model>/<page key>.json); a jsonl glob holds {key, text} per line; with \"reader\": null the reader is the name of the file's folder (UBELIX writes ubelix/<model>/shard-*.jsonl). Collected pages are merged into readings/<reader>.jsonl, never removed. A source that does not exist yet is skipped.",
+ "transkribus": {
+  "manifest": "/mnt/wbkolleg_dh_1/tei/datasets/thun-missiven-images/manifest.jsonl",
+  "pagexml": "/mnt/wbkolleg_dh_1/tei/datasets/thun-missiven-images/pagexml"
+ },
+ "vlm_test": "/home/dh/agentic_historian/agentic_historian/data/vlm_test",
+ "runs": [
+  "thun-missiven-gemini-v1/gemini-4-argon",
+  "thun-missiven-gemini-v1/gemini-3.8-flash",
+  "thun-missiven-vlm-v1/qwen3.5-4b-german-kurrent-xvi-xix-page-v1",
+  "thun-missiven-kraken-v1/kraken-bern-combined-v1",
+  "thun-missiven-kraken-v1/kraken-cursive_inzigkofen",
+  "thun-missiven-trocr-v1/trocr-medieval-escriptmask",
+  "thun-missiven-trocr-v1/trocr-kurrent-xvi-xvii"
+ ],
+ "jsonl": [
+  {
+   "glob": "/mnt/wbkolleg_dh_1/tei/thun-readings/ubelix/*/*.jsonl",
+   "reader": null
+  }
+ ]
+}
