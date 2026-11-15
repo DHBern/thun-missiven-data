@@ -19,9 +19,9 @@ so no joint reading, no tagging and no regests yet. Written 14.11.2026.
 Everything the pipeline reads is on tei's disk or on the research share
 (`/mnt/wbkolleg_dh_1`). UBELIX jobs write to
 `tei/thun-readings/ubelix/<model>/*.jsonl` there, so collecting them needs no
-login to UBELIX. The page images stay on the share
-(`tei/datasets/thun-missiven-images/`): they are not public and never enter the
-repository.
+login to UBELIX. The engines' working copies of the page images
+stay on the share (`tei/datasets/thun-missiven-images/`) and never enter the
+repository; the viewer shows the images from Transkribus (IIIF).
 
 ## Sources (`readings/sources.json`)
 

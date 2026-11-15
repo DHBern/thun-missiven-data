@@ -1,17 +1,20 @@
 /* Thun Missives — readings viewer. No build step, no framework.
-   Forked from the St. Gallen Missives viewer (DHBern/sg-missiven-data) and cut
-   down: no edition, no scores, no registers, no images. The unit is the page,
-   grouped by Transkribus document in shelfmark order. */
+   Forked from the St. Gallen Missives viewer (DHBern/sg-missiven-data): no
+   edition, no scores, no registers. The unit is the letter (readings/letters.tsv,
+   split by the scan file names), with its pages, their machine readings, the
+   page images from Transkribus (IIIF) and, where one exists, a regest drafted
+   by a language model. */
 (() => {
   "use strict";
   const app = document.getElementById("app");
-  const state = { index: null, readers: null, chunks: new Map(), filter: "" };
+  const state = { index: null, readers: null, chunks: new Map(), filter: "", osd: null, pagekeys: null };
   const store = {
     get(k, d) { try { const v = localStorage.getItem("thm:" + k); return v === null ? d : JSON.parse(v); } catch { return d; } },
     set(k, v) { try { localStorage.setItem("thm:" + k, JSON.stringify(v)); } catch { /* private mode */ } },
   };
   state.reader = store.get("reader", "");
   state.mode = store.get("mode", "plain");
+  const IIIF = "https://files.transkribus.eu/iiif/2/";
 
   /* Language: ?lang=de|en, else the viewer's last choice, else the browser's. */
   const urlLang = new URLSearchParams(location.search).get("lang");
@@ -25,7 +28,7 @@
   function applyLang() {
     document.documentElement.lang = LANG;
     document.title = T("Thun Missives Readings", "Thuner Missiven: Lesungen");
-    const nav = { docs: T("Documents", "Dokumente"), search: T("Search", "Suche"), readers: T("Readers", "Leser"), about: T("About", "Über") };
+    const nav = { letters: T("Letters", "Briefe"), search: T("Search", "Suche"), readers: T("Readers", "Leser"), about: T("About", "Über") };
     document.querySelectorAll("[data-nav]").forEach((a) => { a.textContent = nav[a.dataset.nav]; });
     const brand = document.querySelector(".brand");
     if (brand) brand.innerHTML = `${T("Thun Missives", "Thuner Missiven")} <span>· ${T("readings", "Lesungen")}</span>`;
@@ -41,19 +44,31 @@
     u.searchParams.set("lang", l);
     history.replaceState(null, "", u);
     applyLang();
+    destroyOsd();
     route();
   }
 
   const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
   const pct = (x) => (x == null ? "–" : (x * 100).toFixed(1).replace(".", LANG === "de" ? "," : ".") + " %");
   const json = (p) => fetch(p).then((r) => { if (!r.ok) throw new Error(p + ": " + r.status); return r.json(); });
-  const docById = (id) => state.index.docs.find((d) => d.id === id);
-  /* "BAT 663.1, Nr. 350–399" */
-  const docLabel = (d) => `BAT ${d.shelf}${d.range ? `, ${T("no.", "Nr.")} ${d.range}` : ""}`;
-  const readerLabel = (id) => { const r = state.readers.find((x) => x.id === id); return r ? loc(r, "label") : id; };
+  const readerLabel = (id) => { const r = (state.readers || []).find((x) => x.id === id); return r ? loc(r, "label") : (id || T("a machine reading", "einer maschinellen Lesung")); };
+  /* "BAT 663.1, Nr. 500" / "BAT 663.1, no. 500" */
+  const titleOf = (l) => `BAT ${l.shelf}, ${T("no.", "Nr.")} ${l.nr}`;
+  const thumb = (tk) => `${IIIF}${encodeURIComponent(tk)}/full/200,/0/default.jpg`;
+  /* r, v, r2, v1 … -> Recto, Verso, Recto 2, Verso 1 */
+  function sideLabel(s) {
+    const m = /^([rv])(\d*)$/i.exec(s || "");
+    if (!m) return s || "";
+    return (m[1].toLowerCase() === "r" ? "Recto" : "Verso") + (m[2] ? " " + m[2] : "");
+  }
+  const noteLabel = (n) => ({ aufgeklappt: T("opened out", "aufgeklappt"), "weitere Aufnahme": T("further scan", "weitere Aufnahme") }[n] || n || "");
+  const pageLabel = (p) => sideLabel(p.side) + (p.note && !p.extra ? ` (${noteLabel(p.note)})` : "");
+  const DIGI = () => T("The letters were digitised by the University of Zurich (Chair of Prof. Simon Teuscher); the images are served by Transkribus.",
+    "Die Digitalisierung erfolgte durch die Universität Zürich (Lehrstuhl Prof. Simon Teuscher); die Bilder liefert Transkribus.");
 
   async function boot() {
     [state.index, state.readers] = await Promise.all([json("data/index.json"), json("data/readers.json")]);
+    state.pos = new Map(state.index.letters.map((l, i) => [l.id, i]));
     if (!state.readers.some((r) => r.id === state.reader)) state.reader = state.readers.length ? state.readers[0].id : "";
     window.addEventListener("hashchange", route);
     document.querySelectorAll("[data-lang]").forEach((b) => b.addEventListener("click", () => setLang(b.dataset.lang)));
@@ -71,59 +86,87 @@
     hideTip();
     const [path, qs] = location.hash.replace(/^#\/?/, "").split("?");
     const parts = path.split("/").map(decodeURIComponent);
+    if (parts[0] !== "letter") { destroyOsd(); cur = null; }
     if (parts[0] === "search") return showSearch(new URLSearchParams(qs || ""));
-    if (parts[0] === "doc" && parts[1]) return showPage(parts[1], +(parts[2] || 0), parts[3]);
+    if (parts[0] === "letter" && parts[1]) return showLetter(parts[1], +(parts[2] || 1), parts[3]);
+    /* old links: #/doc/<Transkribus document>/<page>/<reader>, and #/page/<page key> */
+    if (parts[0] === "doc" && parts[1]) return toPageKey(`${parts[1]}_p${String(+(parts[2] || 1)).padStart(4, "0")}`, parts[3]);
+    if (parts[0] === "page" && parts[1]) return toPageKey(parts[1], parts[2]);
     if (parts[0] === "readers") return showReaders();
     if (parts[0] === "about") return showAbout();
     return showList();
   }
 
-  /* ---------- documents ---------- */
-  function noImages() {
-    return T(`The page images were digitised by the University of Zurich (Chair of Prof. Simon Teuscher). The viewer shows the machines' text only.`,
-      `Die Digitalisierung erfolgte durch die Universität Zürich (Lehrstuhl Prof. Simon Teuscher). Der Viewer zeigt nur den Text der Maschinen.`);
+  async function toPageKey(key, reader) {
+    if (!state.pagekeys) state.pagekeys = json("data/pagekeys.json");
+    const hit = (await state.pagekeys)[key];
+    if (!hit) { app.innerHTML = `<p>${T("No page", "Keine Seite")} ${esc(key)}. <a href="#/">${T("All letters", "Alle Briefe")}</a></p>`; return; }
+    location.replace(`#/letter/${encodeURIComponent(hit[0])}/${hit[1]}${reader ? "/" + encodeURIComponent(reader) : ""}`);
+  }
+
+  /* ---------- letters ---------- */
+  const draftMark = () => `<span class="badge auto" title="${T("Drafted by a language model from an uncorrected machine reading", "Von einem Sprachmodell aus einer unkorrigierten maschinellen Lesung entworfen")}">${T("machine draft", "Maschinenentwurf")}</span>`;
+
+  function letterRow(l, extra = "", href = `#/letter/${encodeURIComponent(l.id)}/1`) {
+    return `<div class="row lrow">
+      <span class="th">${l.tk ? `<img src="${thumb(l.tk)}" alt="" loading="lazy" width="44" height="60">` : ""}</span>
+      <span class="num">${T("No.", "Nr.")} ${esc(l.nr)}</span>
+      <span class="body"><a class="who" href="${href}">${esc(titleOf(l))}</a>
+        <span class="small muted">${num(l.n)} ${P(l.n, "page", "pages", "Seite", "Seiten")}${l.x ? ` + ${num(l.x)} ${P(l.x, "further scan", "further scans", "weitere Aufnahme", "weitere Aufnahmen")}` : ""}</span>
+        ${l.h ? `<span class="reg">${esc(l.h)} ${draftMark()}</span>` : ""}${extra}</span>
+    </div>`;
   }
 
   function showList() {
-    setNav("docs");
-    const docs = state.index.docs;
-    const shelves = [...new Set(docs.map((d) => d.shelf))];
+    setNav("letters");
+    const letters = state.index.letters;
+    const shelves = [...new Set(letters.map((l) => l.shelf))];
+    const drafted = letters.filter((l) => l.h).length;
     app.innerHTML = `
       <section class="intro">
         <h1>${T("The Thun Missives, read by machines", "Die Thuner Missiven, von Maschinen gelesen")}</h1>
         <p>${T(`Letters received by the town of Thun in the 15th and 16th centuries, many from the Schultheiss and council of Bern,
-          kept in the Burgerarchiv Thun: ${num(state.index.pages)} pages in ${docs.length} volumes and bundles. Every page is shown with ${machineReaders()}.
+          kept in the Burgerarchiv Thun: ${num(letters.length)} letters on ${num(state.index.pages)} pages, each page with its image and ${machineReaders()}.
           There is no edition: nothing here is a checked transcription, and no reading is scored.`,
           `Briefe an die Stadt Thun aus dem 15. und 16. Jahrhundert, viele von Schultheiss und Rat von Bern, im Burgerarchiv Thun:
-          ${num(state.index.pages)} Seiten in ${docs.length} Bänden und Faszikeln. Jede Seite erscheint mit ${machineReaders()}.
+          ${num(letters.length)} Briefe auf ${num(state.index.pages)} Seiten, jede Seite mit ihrem Bild und ${machineReaders()}.
           Es gibt keine Edition: Nichts hier ist eine geprüfte Transkription, und keine Lesung wird bewertet.`)}</p>
-        <p class="caveat">${noImages()} ${T("Where a page begins or ends a letter is not known; the unit is the page.", "Wo ein Brief beginnt oder endet, ist nicht bekannt; die Einheit ist die Seite.")}</p>
+        <p class="small muted">${DIGI()} ${T("The letters were told apart by the file names of the scans, which carry the shelfmark and number.",
+          "Die Briefe sind nach den Dateinamen der Aufnahmen getrennt, die Signatur und Nummer tragen.")}
+          ${drafted ? T(`${num(drafted)} letters have a heading and regest drafted by a language model: machine drafts, unchecked.`,
+            `${num(drafted)} Briefe haben eine von einem Sprachmodell entworfene Überschrift und ein Regest: Maschinenentwürfe, ungeprüft.`) : ""}</p>
       </section>
       <div class="filters">
-        <input id="q" type="search" placeholder="${T("Filter by shelfmark or number…", "Nach Signatur oder Nummer filtern…")}" value="${esc(state.filter)}" aria-label="${T("Filter documents", "Dokumente filtern")}">
+        <input id="q" type="search" placeholder="${T("Filter by shelfmark, number, sender, recipient…", "Nach Signatur, Nummer, Absender, Empfänger filtern…")}" value="${esc(state.filter)}" aria-label="${T("Filter letters", "Briefe filtern")}">
         <span id="count" class="muted small"></span>
         <a class="small" href="#/search">${T("Search the text →", "Im Text suchen →")}</a>
       </div>
+      <nav class="shelves small" aria-label="${T("Shelfmarks", "Signaturen")}">${shelves.map((s) => `<a href="#/" data-shelf="${esc(s)}">BAT ${esc(s)}</a>`).join("")}</nav>
       <div id="list"></div>`;
     const q = document.getElementById("q");
     const draw = () => {
       state.filter = q.value;
       const words = q.value.toLowerCase().split(/\s+/).filter(Boolean);
-      const rows = docs.filter((d) => words.every((w) => [d.id, docLabel(d)].join(" ").toLowerCase().includes(w)));
-      document.getElementById("count").textContent = `${rows.length} ${P(rows.length, "document", "documents", "Dokument", "Dokumente")}, ${num(rows.reduce((s, d) => s + d.pages.length, 0))} ${T("pages", "Seiten")}`;
+      const rows = words.length ? letters.filter((l) => {
+        const hay = [l.id, titleOf(l), `BAT ${l.shelf}, Nr. ${l.nr}`, l.h || "", l.s || "", l.r || "", l.y || ""].join(" ").toLowerCase();
+        return words.every((w) => hay.includes(w));
+      }) : letters;
+      document.getElementById("count").textContent = `${num(rows.length)} ${P(rows.length, "letter", "letters", "Brief", "Briefe")}`;
       document.getElementById("list").innerHTML = shelves.map((s) => {
-        const ds = rows.filter((d) => d.shelf === s);
-        if (!ds.length) return "";
-        return `<h2 class="shelf">BAT ${esc(s)}</h2><div class="list">${ds.map((d) => `
-          <a class="row doc" href="#/doc/${encodeURIComponent(d.id)}/${d.pages[0]}">
-            <span class="num">${d.range ? esc(d.range) : "–"}</span>
-            <span class="date">${num(d.pages.length)} ${P(d.pages.length, "page", "pages", "Seite", "Seiten")}</span>
-            <span><span class="who">${esc(docLabel(d))}</span>
-            <span class="reg">${esc(d.id)} · ${state.readers.map((r) => `${esc(loc(r, "label"))}: ${num(d.read[r.id] || 0)}`).join(" · ")}</span></span>
-          </a>`).join("")}</div>`;
-      }).join("") || `<p class="empty">${T("No document matches.", "Kein Dokument passt.")}</p>`;
+        const ls = rows.filter((l) => l.shelf === s);
+        if (!ls.length) return "";
+        return `<h2 class="shelf" id="shelf-${esc(s)}">BAT ${esc(s)} <span class="muted small">${num(ls.length)} ${P(ls.length, "letter", "letters", "Brief", "Briefe")}</span></h2>
+          <div class="list">${ls.map((l) => letterRow(l)).join("")}</div>`;
+      }).join("") || `<p class="empty">${T("No letter matches.", "Kein Brief passt.")}</p>`;
     };
     q.addEventListener("input", draw);
+    app.querySelector(".shelves").addEventListener("click", (ev) => {
+      const a = ev.target.closest("[data-shelf]");
+      if (!a) return;
+      ev.preventDefault();
+      const h = document.getElementById("shelf-" + a.dataset.shelf);
+      h && h.scrollIntoView();
+    });
     draw();
   }
 
@@ -174,50 +217,56 @@
       <p>Eine Demonstration der <a href="https://www.dh.unibe.ch/" target="_blank" rel="noopener">Digital Humanities der Universität Bern</a>
       an den Thuner Missiven: Briefe an die Stadt Thun aus dem 15. und 16. Jahrhundert, viele von Schultheiss und Rat von Bern, im Burgerarchiv Thun (BAT).
       Die Seiten liegen in der Transkribus-Sammlung 2329424 («BAT Thuner Missiven neu»), 36 Dokumente nach Signatur (663 bis 666.1) und Briefnummern.</p>
-      <h2>Was zu sehen ist – und was nicht</h2>
+      <h2>Was zu sehen ist</h2>
       <ul>
-        <li><b>Nur Text, keine Bilder.</b> Die Digitalisierung erfolgte durch die Universität Zürich (Lehrstuhl Prof. Simon Teuscher). Die Seitenbilder werden hier weder gezeigt noch weitergegeben; veröffentlicht sind allein die maschinellen Lesungen.</li>
+        <li><b>Briefe mit ihren Bildern.</b> Die Digitalisierung erfolgte durch die Universität Zürich (Lehrstuhl Prof. Simon Teuscher). Die Bilder werden von Transkribus ausgeliefert (IIIF) und lassen sich vergrössern.</li>
+        <li><b>Die Einheit ist der Brief.</b> Die Briefe sind nach den Dateinamen der Aufnahmen getrennt, die Signatur, Nummer und Seite tragen (z. B. <code>BAT_666.1_500_r.png</code>: BAT 666.1, Nr. 500, Recto). Einige Briefe sind ein zweites Mal aufgenommen; diese Aufnahmen stehen nach den Seiten als «weitere Aufnahme».</li>
         <li><b>Keine Edition, keine Ground Truth.</b> Keine Seite ist von Menschen transkribiert oder geprüft. Die erste Lesung ist die automatische Lesung in Transkribus (PyLaia, Modell «Medieval_Scripts_M2.4»), unkorrigiert.</li>
-        <li><b>Die Einheit ist die Seite.</b> Wo ein Brief beginnt oder endet, ist noch nicht bestimmt. Die Seiten stehen nach Dokument in Signaturfolge.</li>
+        <li><b>Überschriften und Regesten sind Maschinenentwürfe.</b> Ein offenes Sprachmodell (Qwen3.8-27B auf dem GPUStack der Universität Bern) entwirft sie aus der besten vorhandenen Lesung eines Briefs, mit Briefen der St. Galler Edition als Stilvorlagen. Niemand hat sie geprüft; Namen und Daten können falsch sein. Briefe ohne Entwurf zeigen keinen.</li>
         <li><b>Lesungen vergleichen</b>: Wo eine Seite mehrere Lesungen hat, zeigt «Vergleichen mit …» Wort für Wort, was die eine Lesung hat und die andere nicht. Die Prozentzahl ist <i>Abweichung, nie Qualität</i>.</li>
-        <li><b>Suche</b> im Text einer Lesung, mit «Schreibvarianten zulassen» (u/v/w, i/y/j, ſ/s, Doppelbuchstaben, ů/uo/u, ä/ae/a, Worttrennung am Zeilenende).</li>
+        <li><b>Suche</b> im Text einer Lesung, Brief für Brief, mit «Schreibvarianten zulassen» (u/v/w, i/y/j, ſ/s, Doppelbuchstaben, ů/uo/u, ä/ae/a, Worttrennung am Zeilenende) und Facetten nach Signatur, Jahrzehnt, Absender, Empfänger und Regest (die letzten vier aus den Maschinenentwürfen).</li>
       </ul>
       <h2>Geplant</h2>
-      <p>Weitere Leser: Gemini 4 Argon, Gemini 3.8 Flash, ein feinjustiertes Qwen3.5-4B (Kurrent, ganze Seiten), kraken und TrOCR. Danach die automatische Auszeichnung von Personen, Orten und Daten (NER) und ihre Verknüpfung mit Normdaten.</p>
+      <p>Weitere Leser: Gemini 4 Argon, Gemini 3.8 Flash, ein feinjustiertes Qwen3.5-4B (Kurrent, ganze Seiten), kraken und TrOCR; Regestentwürfe für alle Briefe. Danach die automatische Auszeichnung von Personen, Orten und Daten (NER) und ihre Verknüpfung mit Normdaten.</p>
       <h2>Daten und Code</h2>
-      <p><a href="https://github.com/DHBern/thun-missiven-data" target="_blank" rel="noopener">github.com/DHBern/thun-missiven-data</a> – die Lesungen liegen in <code>readings/</code>, eine JSON-Zeile pro Seite und Leser. Der Viewer ist aus dem der <a href="https://dhbern.github.io/sg-missiven-data/" target="_blank" rel="noopener">St. Galler Missiven</a> abgeleitet.</p>
+      <p><a href="https://github.com/DHBern/thun-missiven-data" target="_blank" rel="noopener">github.com/DHBern/thun-missiven-data</a> – die Lesungen liegen in <code>readings/</code>, eine JSON-Zeile pro Seite und Leser, die Briefe in <code>readings/letters.tsv</code>, die Regestentwürfe in <code>regests/drafts.jsonl</code>. Der Viewer ist aus dem der <a href="https://dhbern.github.io/sg-missiven-data/" target="_blank" rel="noopener">St. Galler Missiven</a> abgeleitet.</p>
     </section>` : `<section class="prose">
       <h1>About</h1>
       <p>A demonstration by <a href="https://www.dh.unibe.ch/" target="_blank" rel="noopener">Digital Humanities, University of Bern</a>,
       on the Thun Missives: letters received by the town of Thun in the 15th and 16th centuries, many from the Schultheiss and council of Bern, kept in the Burgerarchiv Thun (BAT).
       The pages are in Transkribus collection 2329424 ("BAT Thuner Missiven neu"), 36 documents by shelfmark (663 to 666.1) and letter numbers.</p>
-      <h2>What you see — and what you don't</h2>
+      <h2>What you see</h2>
       <ul>
-        <li><b>Text only, no images.</b> The page images were digitised by the University of Zurich (Chair of Prof. Simon Teuscher). They are neither shown nor passed on here; only the machine readings are published.</li>
+        <li><b>Letters with their images.</b> The letters were digitised by the University of Zurich (Chair of Prof. Simon Teuscher). The images are served by Transkribus (IIIF) and can be zoomed.</li>
+        <li><b>The unit is the letter.</b> The letters were told apart by the file names of the scans, which carry shelfmark, number and side (e.g. <code>BAT_666.1_500_r.png</code>: BAT 666.1, no. 500, recto). Some letters were scanned a second time; those scans follow the pages as "further scan".</li>
         <li><b>No edition, no ground truth.</b> No page has been transcribed or checked by a person. The first reading is the automatic one in Transkribus (PyLaia, model "Medieval_Scripts_M2.4"), uncorrected.</li>
-        <li><b>The unit is the page.</b> Where a letter begins or ends has not been determined yet. Pages are listed by document in shelfmark order.</li>
+        <li><b>Headings and regests are machine drafts.</b> An open language model (Qwen3.8-27B on the University of Bern's GPUStack) drafts them from the best reading a letter has, with letters of the St. Gallen edition as style examples. Nobody has checked them; names and dates may be wrong. Letters without a draft show none.</li>
         <li><b>Compare readings</b>: where a page has more than one reading, "Compare with …" marks word by word what one reading has and the other lacks. The percentage is <i>disagreement, never quality</i>.</li>
-        <li><b>Search</b> in the text of one reading, with "tolerant spelling" (u/v/w, i/y/j, ſ/s, doubled letters, ů/uo/u, ä/ae/a, words broken at the line end).</li>
+        <li><b>Search</b> in the text of one reading, letter by letter, with "tolerant spelling" (u/v/w, i/y/j, ſ/s, doubled letters, ů/uo/u, ä/ae/a, words broken at the line end) and facets for shelfmark, decade, sender, recipient and regest (the last four from the machine drafts).</li>
       </ul>
       <h2>Planned</h2>
-      <p>More readers: Gemini 4 Argon, Gemini 3.8 Flash, a fine-tuned Qwen3.5-4B (Kurrent, whole pages), kraken and TrOCR. Then automatic tagging of persons, places and dates (NER) and linking them to authority files.</p>
+      <p>More readers: Gemini 4 Argon, Gemini 3.8 Flash, a fine-tuned Qwen3.5-4B (Kurrent, whole pages), kraken and TrOCR; regest drafts for every letter. Then automatic tagging of persons, places and dates (NER) and linking them to authority files.</p>
       <h2>Data and code</h2>
-      <p><a href="https://github.com/DHBern/thun-missiven-data" target="_blank" rel="noopener">github.com/DHBern/thun-missiven-data</a> — the readings are in <code>readings/</code>, one JSON line per page and reader. The viewer is derived from the <a href="https://dhbern.github.io/sg-missiven-data/" target="_blank" rel="noopener">St. Gallen Missives</a> viewer.</p>
+      <p><a href="https://github.com/DHBern/thun-missiven-data" target="_blank" rel="noopener">github.com/DHBern/thun-missiven-data</a> — the readings are in <code>readings/</code>, one JSON line per page and reader, the letters in <code>readings/letters.tsv</code>, the regest drafts in <code>regests/drafts.jsonl</code>. The viewer is derived from the <a href="https://dhbern.github.io/sg-missiven-data/" target="_blank" rel="noopener">St. Gallen Missives</a> viewer.</p>
     </section>`;
   }
 
   /* ---------- search ---------- */
-  /* Full text over the pages of one reader. The text is sharded per reader
-     (site/data/search/<reader>/text-N.json) and loaded, in parallel, only once
-     a query is typed. The whole search lives in the URL. */
+  /* Full text over the letters, in the reading of one reader. The text is
+     sharded per reader (site/data/search/<reader>/text-N.json: letter id ->
+     its page texts) and loaded, in parallel, only once a query is typed.
+     Without a query the facets alone select letters. The whole search lives
+     in the URL. */
   const FACETS = [
     { k: "sh", en: "Shelfmark", de: "Signatur" },
-    { k: "doc", en: "Document", de: "Dokument" },
+    { k: "dec", en: "Decade (draft)", de: "Jahrzehnt (Entwurf)" },
+    { k: "snd", en: "Sender (draft)", de: "Absender (Entwurf)" },
+    { k: "rcp", en: "Recipient (draft)", de: "Empfänger (Entwurf)" },
+    { k: "dr", en: "Regest", de: "Regest" },
   ];
-  const texts = new Map();   // reader -> Promise<{key: text}>
+  const texts = new Map();   // reader -> Promise<{letter id: [page texts]}>
+  const normed = new Map();  // reader|tol -> Map(letter id -> [normalised page texts])
   let searchTimer = null;
-  const docOfKey = (k) => k.replace(/_p\d+$/, "");
-  const pageOfKey = (k) => +(/_p(\d+)$/.exec(k) || [0, 0])[1];
 
   function searchTexts(reader) {
     if (!texts.has(reader)) {
@@ -273,17 +322,37 @@
     return (a > 0 ? "…" : "") + out.replace(/\n/g, " / ") + (b < text.length ? "…" : "") + (spans.length > 1 ? ` <span class="muted">(${spans.length}×)</span>` : "");
   }
 
+  function facetValue(l, k) {
+    if (k === "sh") return l.shelf;
+    if (k === "dec") return l.y ? String(Math.floor(l.y / 10) * 10) : "";
+    if (k === "snd") return l.s || "";
+    if (k === "rcp") return l.r || "";
+    if (k === "dr") return l.h ? "yes" : "no";
+    return "";
+  }
+  function facetLabel(k, v) {
+    if (k === "sh") return "BAT " + v;
+    if (k === "dec") return T(`${v}s`, `${v}er`);
+    if (k === "dr") return v === "yes" ? T("Machine draft", "Maschinenentwurf") : T("None yet", "noch keines");
+    return v;
+  }
+
   async function showSearch(params) {
     setNav("search");
     const readers = state.readers.filter((r) => state.index.search[r.id]);
-    const ui = { q: params.get("q") || "", tol: params.get("tol") !== "0", shown: 50,
+    const ui = { q: params.get("q") || "", tol: params.get("tol") !== "0", shown: 50, ff: {},
                  reader: readers.some((r) => r.id === params.get("r")) ? params.get("r") : (readers.some((r) => r.id === state.reader) ? state.reader : (readers[0] || {}).id) };
     const sel = Object.fromEntries(FACETS.map((f) => [f.k, new Set(params.getAll(f.k))]));
+    const shelfOrder = [...new Set(state.index.letters.map((l) => l.shelf))];
     app.innerHTML = `
       <section class="intro">
         <h1>${T("Search", "Suche")}</h1>
-        <p>${T(`The text of every page as one machine read it. These are uncorrected readings: a word the machine misread is not found under its right spelling, so try variants, or let the search tolerate spelling variants.`,
-              `Der Text jeder Seite, wie eine Maschine ihn gelesen hat. Die Lesungen sind unkorrigiert: Ein falsch gelesenes Wort wird unter seiner richtigen Schreibung nicht gefunden; Varianten versuchen oder Schreibvarianten zulassen.`)}</p>
+        <p>${T(`The text of every letter as one machine read it. These are uncorrected readings: a word the machine misread is not found under its right spelling, so try variants, or let the search tolerate spelling variants.
+              Without words, the facets alone select letters.`,
+              `Der Text jedes Briefs, wie eine Maschine ihn gelesen hat. Die Lesungen sind unkorrigiert: Ein falsch gelesenes Wort wird unter seiner richtigen Schreibung nicht gefunden; Varianten versuchen oder Schreibvarianten zulassen.
+              Ohne Suchwort wählen die Facetten allein Briefe aus.`)}</p>
+        <p class="small muted">${T("Decade, sender and recipient come from the regests drafted by a language model: machine drafts, unchecked, and so far only for some letters.",
+          "Jahrzehnt, Absender und Empfänger stammen aus den Regestentwürfen eines Sprachmodells: Maschinenentwürfe, ungeprüft und bisher nur für einige Briefe.")}</p>
       </section>
       <div class="sbar">
         <input id="sq" type="search" value="${esc(ui.q)}" placeholder="${T('Words or "a phrase" in the text…', 'Wörter oder «eine Wendung» im Text…')}" aria-label="${T("Search the text", "Text durchsuchen")}">
@@ -308,60 +377,76 @@
       const h = "#/search" + (u.toString() ? "?" + u : "");
       if (location.hash !== h) history.replaceState(null, "", location.pathname + location.search + h);
     };
-    const facetValue = (key, k) => (k === "doc" ? docOfKey(key) : (docById(docOfKey(key)) || {}).shelf || "");
-    const facetLabel = (k, v) => (k === "doc" ? (docById(v) ? docLabel(docById(v)) : v) : "BAT " + v);
-    const order = new Map(state.index.docs.map((d, i) => [d.id, i]));
+    const sortVals = (k, counts) => [...counts.entries()].sort((a, b) => {
+      if (k === "sh") return shelfOrder.indexOf(a[0]) - shelfOrder.indexOf(b[0]);
+      if (k === "dec") return +a[0] - +b[0];
+      if (k === "dr") return a[0] === "yes" ? -1 : 1;
+      return b[1] - a[1] || a[0].localeCompare(b[0], "de");
+    });
 
     const run = async () => {
       toUrl();
       const terms = parseQuery(ui.q, ui.tol);
-      if (!terms.length || !ui.reader) {
-        $("facets").innerHTML = "";
+      const nSel = FACETS.reduce((n, f) => n + sel[f.k].size, 0);
+      let base;
+      if (terms.length && ui.reader) {
+        $("scount").textContent = T("Loading the texts…", "Die Texte werden geladen…");
+        const all = await searchTexts(ui.reader);
+        const nk = ui.reader + "|" + ui.tol;
+        if (!normed.has(nk)) normed.set(nk, new Map());
+        const cache = normed.get(nk);
+        base = [];
+        for (const l of state.index.letters) {
+          const pages = all[l.id];
+          if (!pages) continue;
+          if (!cache.has(l.id)) cache.set(l.id, pages.map((t) => normText(t, ui.tol).s));
+          const ns = cache.get(l.id);
+          if (!terms.every((x) => ns.some((t) => t.includes(x)))) continue;
+          const at = Math.max(0, ns.findIndex((t) => t.includes(terms[0])));
+          base.push({ l, page: at + 1, text: pages[at] });
+        }
+      } else if (nSel) {
+        base = state.index.letters.map((l) => ({ l }));
+      } else {
+        $("facets").innerHTML = facetsHtml(state.index.letters.map((l) => ({ l })), () => true);
+        $("fsel").textContent = "";
         $("scount").textContent = "";
-        $("sres").innerHTML = `<p class="empty">${readers.length ? T("Type a word to search.", "Ein Wort eingeben, um zu suchen.") : T("No reading to search yet.", "Noch keine Lesung zum Durchsuchen.")}</p>`;
+        $("sres").innerHTML = `<p class="empty">${readers.length ? T("Type a word to search, or choose a facet.", "Ein Wort eingeben oder eine Facette wählen.") : T("No reading to search yet.", "Noch keine Lesung zum Durchsuchen.")}</p>`;
         return;
       }
-      $("scount").textContent = T("Loading the texts…", "Die Texte werden geladen…");
-      const all = await searchTexts(ui.reader);
-      const base = [];
-      for (const [key, text] of Object.entries(all)) {
-        const t = normText(text, ui.tol).s;
-        if (terms.every((x) => t.includes(x))) base.push({ key, text });
-      }
-      base.sort((a, b) => order.get(docOfKey(a.key)) - order.get(docOfKey(b.key)) || pageOfKey(a.key) - pageOfKey(b.key));
-      const passes = (h, except) => FACETS.every((f) => f.k === except || !sel[f.k].size || sel[f.k].has(facetValue(h.key, f.k)));
+      const passes = (h, except) => FACETS.every((f) => f.k === except || !sel[f.k].size || sel[f.k].has(facetValue(h.l, f.k)));
       const rows = base.filter((h) => passes(h, null));
-      const nSel = FACETS.reduce((n, f) => n + sel[f.k].size, 0);
       $("fsel").textContent = nSel ? `(${nSel} ${T("selected", "gewählt")})` : "";
-      $("facets").innerHTML = FACETS.map((f) => {
-        const counts = new Map();
-        for (const h of base) if (passes(h, f.k)) { const v = facetValue(h.key, f.k); counts.set(v, (counts.get(v) || 0) + 1); }
-        for (const v of sel[f.k]) if (!counts.has(v)) counts.set(v, 0);
-        const vals = [...counts.entries()].sort((a, b) => (order.get(a[0]) ?? 0) - (order.get(b[0]) ?? 0) || a[0].localeCompare(b[0], "de", { numeric: true }));
-        if (!vals.length) return "";
-        return `<details class="facet" open data-k="${f.k}"><summary>${T(f.en, f.de)}${sel[f.k].size ? ` <span class="badge">${sel[f.k].size}</span>` : ""} <span class="muted small">${vals.length}</span></summary>
-          <ul>${vals.map(([v, n]) => `<li><label class="${n ? "" : "zero"}"><input type="checkbox" data-k="${f.k}" value="${esc(v)}" ${sel[f.k].has(v) ? "checked" : ""}>
-            <span class="fl">${esc(facetLabel(f.k, v))}</span><span class="fc">${n}</span></label></li>`).join("")}</ul></details>`;
-      }).join("");
-      $("scount").innerHTML = `${num(rows.length)} ${P(rows.length, "page", "pages", "Seite", "Seiten")}${T(" with ", " mit ")}` +
-        (ui.q.match(/"[^"]+"|\S+/g) || []).map((t) => `<b>${esc(t)}</b>`).join(" + ") + ` · ${esc(readerLabel(ui.reader))}`;
+      $("facets").innerHTML = facetsHtml(base, passes);
+      $("scount").innerHTML = `${num(rows.length)} ${P(rows.length, "letter", "letters", "Brief", "Briefe")}` + (terms.length ? `${T(" with ", " mit ")}` +
+        (ui.q.match(/"[^"]+"|\S+/g) || []).map((t) => `<b>${esc(t)}</b>`).join(" + ") + ` · ${esc(readerLabel(ui.reader))}` : "");
       const draw = () => {
         $("sres").innerHTML = rows.slice(0, ui.shown).map((h) => {
-          const d = docById(docOfKey(h.key)) || { shelf: "", range: "", id: docOfKey(h.key) };
-          const p = pageOfKey(h.key);
-          const href = `#/doc/${encodeURIComponent(d.id)}/${p}/${encodeURIComponent(ui.reader)}`;
-          return `<div class="row srow">
-            <span class="num"><a href="${href}">${T("p.", "S.")} ${p}</a></span>
-            <span class="date small">${esc(d.id)}</span>
-            <span><a class="who" href="${href}">${esc(docLabel(d))}, ${T("page", "Seite")} ${p}</a>
-            <a class="hit" href="${href}">${snippet(h.text, terms, ui.tol)}</a></span></div>`;
+          if (!h.text) return letterRow(h.l);
+          const href = `#/letter/${encodeURIComponent(h.l.id)}/${h.page}/${encodeURIComponent(ui.reader)}`;
+          return letterRow(h.l, `<a class="hit" href="${href}">${snippet(h.text, terms, ui.tol)}</a>`, href);
         }).join("") + (rows.length > ui.shown ? `<button type="button" class="linkish" id="smore">${T(`Show ${Math.min(50, rows.length - ui.shown)} more of ${rows.length - ui.shown}`, `${Math.min(50, rows.length - ui.shown)} weitere von ${rows.length - ui.shown} zeigen`)}</button>` : "")
-          + (!rows.length ? `<p class="empty">${T("No page matches. Remove a facet or a word, or allow spelling variants.", "Keine Seite passt. Eine Facette oder ein Wort entfernen oder Schreibvarianten zulassen.")}</p>` : "");
+          + (!rows.length ? `<p class="empty">${T("No letter matches. Remove a facet or a word, or allow spelling variants.", "Kein Brief passt. Eine Facette oder ein Wort entfernen oder Schreibvarianten zulassen.")}</p>` : "");
         const more = $("smore");
         more && more.addEventListener("click", () => { ui.shown += 50; draw(); });
       };
       draw();
     };
+
+    function facetsHtml(base, passes) {
+      return FACETS.map((f) => {
+        const counts = new Map();
+        for (const h of base) if (passes(h, f.k)) { const v = facetValue(h.l, f.k); if (v) counts.set(v, (counts.get(v) || 0) + 1); }
+        for (const v of sel[f.k]) if (!counts.has(v)) counts.set(v, 0);
+        const vals = sortVals(f.k, counts);
+        if (!vals.length) return "";
+        const ff = (ui.ff[f.k] || "").toLowerCase();
+        return `<details class="facet" open data-k="${f.k}"><summary>${T(f.en, f.de)}${sel[f.k].size ? ` <span class="badge">${sel[f.k].size}</span>` : ""} <span class="muted small">${vals.length}</span></summary>
+          ${vals.length > 12 ? `<input class="ffilter" type="search" data-ff="${f.k}" value="${esc(ui.ff[f.k] || "")}" placeholder="${T("Filter…", "Filtern…")}" aria-label="${T("Filter", "Filtern")} ${T(f.en, f.de)}">` : ""}
+          <ul>${vals.map(([v, n]) => `<li ${ff && !facetLabel(f.k, v).toLowerCase().includes(ff) ? "hidden" : ""}><label class="${n ? "" : "zero"}"><input type="checkbox" data-k="${f.k}" value="${esc(v)}" ${sel[f.k].has(v) ? "checked" : ""}>
+            <span class="fl">${esc(facetLabel(f.k, v))}</span><span class="fc">${num(n)}</span></label></li>`).join("")}</ul></details>`;
+      }).join("");
+    }
 
     const later = (f, ms = 250) => { clearTimeout(searchTimer); searchTimer = setTimeout(f, ms); };
     $("sq").addEventListener("input", () => { ui.q = $("sq").value; ui.shown = 50; later(run); });
@@ -379,16 +464,23 @@
       ui.shown = 50;
       run();
     });
+    $("facets").addEventListener("input", (ev) => {
+      const inp = ev.target.closest("input[data-ff]");
+      if (!inp) return;
+      ui.ff[inp.dataset.ff] = inp.value;
+      const w = inp.value.toLowerCase();
+      inp.closest(".facet").querySelectorAll("li").forEach((li) => { li.hidden = !!w && !li.querySelector(".fl").textContent.toLowerCase().includes(w); });
+    });
     await run();
   }
 
-  /* ---------- page ---------- */
-  async function getPage(doc, pageNr) {
-    const i = doc.pages.indexOf(pageNr);
-    const c = Math.floor(i / state.index.chunk);
-    const k = `${doc.id}/${c}`;
-    if (!state.chunks.has(k)) state.chunks.set(k, json(`data/pages/${encodeURIComponent(doc.id)}/${c}.json`));
-    return (await state.chunks.get(k))[String(pageNr)];
+  /* ---------- letter ---------- */
+  async function getLetter(id) {
+    const pos = state.pos.get(id);
+    if (pos == null) return null;
+    const c = Math.floor(pos / state.index.chunk);
+    if (!state.chunks.has(c)) state.chunks.set(c, json(`data/letters/${c}.json`));
+    return (await state.chunks.get(c)).find((l) => l.id === id) || null;
   }
 
   let cur = null;   // the page on screen, for the arrow keys
@@ -398,13 +490,15 @@
     if (to) { location.hash = to; ev.preventDefault(); }
   }
 
-  async function showPage(docId, pageNr, readerId) {
-    setNav("docs");
+  async function showLetter(id, pageNo, readerId) {
+    setNav("letters");
     cur = null;
-    const doc = docById(docId);
-    if (!doc) { app.innerHTML = `<p>${T("No document", "Kein Dokument")} ${esc(docId)}. <a href="#/">${T("All documents", "Alle Dokumente")}</a></p>`; return; }
-    if (!doc.pages.includes(pageNr)) pageNr = doc.pages[0];
-    const page = await getPage(doc, pageNr);
+    let letter = null;
+    try { letter = await getLetter(id); } catch { letter = null; }
+    if (!letter) { destroyOsd(); app.innerHTML = `<p>${T("No letter", "Kein Brief")} ${esc(id)}. <a href="#/">${T("All letters", "Alle Briefe")}</a></p>`; return; }
+    const pages = letter.pages;
+    pageNo = Math.min(Math.max(pageNo || 1, 1), pages.length);
+    const page = pages[pageNo - 1];
     if (readerId && state.readers.some((r) => r.id === readerId)) { state.reader = readerId; store.set("reader", readerId); }
     let reader = state.reader;
     if (!page.readings[reader]) {
@@ -412,48 +506,80 @@
       if (first) reader = first.id;
     }
 
-    const di = state.index.docs.indexOf(doc);
-    const pi = doc.pages.indexOf(pageNr);
-    const prevDoc = state.index.docs[di - 1], nextDoc = state.index.docs[di + 1];
-    const href = (d, p) => `#/doc/${encodeURIComponent(d.id)}/${p}`;
-    const prev = pi > 0 ? href(doc, doc.pages[pi - 1]) : prevDoc ? href(prevDoc, prevDoc.pages[prevDoc.pages.length - 1]) : null;
-    const next = pi < doc.pages.length - 1 ? href(doc, doc.pages[pi + 1]) : nextDoc ? href(nextDoc, nextDoc.pages[0]) : null;
+    const pos = state.pos.get(id);
+    const prevL = state.index.letters[pos - 1], nextL = state.index.letters[pos + 1];
+    const href = (lid, n) => `#/letter/${encodeURIComponent(lid)}/${n}`;
+    const prev = pageNo > 1 ? href(id, pageNo - 1) : prevL ? href(prevL.id, 1) : null;
+    const next = pageNo < pages.length ? href(id, pageNo + 1) : nextL ? href(nextL.id, 1) : null;
     cur = { prev, next };
+    const showImg = store.get("image", true);
+    const main = pages.filter((p) => !p.extra).length;
+    const pgBtn = (p, i) => `<a class="pg ${i + 1 === pageNo ? "on" : ""}" href="${href(id, i + 1)}" ${i + 1 === pageNo ? 'aria-current="page"' : ""}>${esc(pageLabel(p))}</a>`;
 
-    app.innerHTML = `
-      <div class="pageview">
+    const keepImage = showImg && state.osd && app.querySelector("#osd") && app.dataset.tk === page.tk;
+    const html = `
+      <div class="letter ${showImg ? "" : "noimgpane"}">
         <section class="pane textpane">
           <div class="lnav">
-            ${prevDoc ? `<a href="${href(prevDoc, prevDoc.pages[0])}">← ${esc(docLabel(prevDoc))}</a>` : "<span></span>"}
-            <a href="#/">${T("All documents", "Alle Dokumente")}</a>
-            ${nextDoc ? `<a href="${href(nextDoc, nextDoc.pages[0])}">${esc(docLabel(nextDoc))} →</a>` : "<span></span>"}
+            ${prevL ? `<a href="${href(prevL.id, 1)}">← ${esc(titleOf(prevL))}</a>` : "<span></span>"}
+            <a href="#/">${T("All letters", "Alle Briefe")}</a>
+            ${nextL ? `<a href="${href(nextL.id, 1)}">${esc(titleOf(nextL))} →</a>` : "<span></span>"}
           </div>
-          <div class="muted small">${esc(doc.id)} · ${esc(page.key)}</div>
-          <h1>${esc(docLabel(doc))} · ${T("page", "Seite")} ${pageNr}</h1>
-          <div class="pager">
-            ${prev ? `<a class="pg" href="${prev}" aria-label="${T("Previous page", "Vorherige Seite")}">←</a>` : `<span class="pg off">←</span>`}
-            <label class="small">${T("Page", "Seite")} <select id="pgsel" aria-label="${T("Go to page", "Zu Seite")}">${doc.pages.map((p) => `<option value="${p}" ${p === pageNr ? "selected" : ""}>${p}</option>`).join("")}</select> ${T("of", "von")} ${doc.pages.length}</label>
-            ${next ? `<a class="pg" href="${next}" aria-label="${T("Next page", "Nächste Seite")}">→</a>` : `<span class="pg off">→</span>`}
-            <span class="muted small">${T("arrow keys ← → turn the page", "Pfeiltasten ← → blättern")}</span>
+          <div class="muted small">${T("Transkribus page", "Transkribus-Seite")} ${esc(page.key)}</div>
+          <h1>${esc(titleOf(letter))}</h1>
+          ${draftBlock(letter.draft)}
+          <div class="pages"><span class="lbl">${T("Page", "Seite")}</span>${pages.slice(0, main).map(pgBtn).join("")}
+            ${pages.length > main ? `<span class="lbl extra-lbl">${T("Further scan", "Weitere Aufnahme")}</span>${pages.slice(main).map((p, i) => pgBtn(p, main + i)).join("")}` : ""}
+            <button type="button" class="linkish imgtoggle" id="imgtoggle" aria-pressed="${showImg}">${showImg ? T("Hide image", "Bild ausblenden") : T("Show image", "Bild zeigen")}</button>
           </div>
-          <p class="noimg-note small">${noImages()}</p>
           <div class="readers" role="tablist" aria-label="${T("Readings", "Lesungen")}">${readerButtons(page, reader)}</div>
           ${modeSelect(page, reader)}
           <div id="reading">${readingHtml(page, reader)}</div>
         </section>
+        ${showImg ? `<section class="pane imgpane">
+          <div id="osd" role="img" aria-label="${T("Image of", "Bild von")} ${esc(titleOf(letter))}, ${esc(sideLabel(page.side))}"></div>
+          <div class="imgbar"><span><b>${esc(pageLabel(page))}</b>${page.extra ? ` · ${T("further scan", "weitere Aufnahme")}` : ""} <span class="muted">· ${esc(page.img)}</span></span><span id="imglink"></span></div>
+          <p class="imgcredit small muted">${DIGI()}</p>
+        </section>` : ""}
       </div>
-      <footer class="foot">${T("Burgerarchiv Thun · machine readings, uncorrected · DH Bern", "Burgerarchiv Thun · maschinelle Lesungen, unkorrigiert · DH Bern")}</footer>`;
+      <footer class="foot">${T("Burgerarchiv Thun · digitised by the University of Zurich (Chair of Prof. Simon Teuscher) · machine readings, uncorrected · DH Bern",
+        "Burgerarchiv Thun · Digitalisierung Universität Zürich (Lehrstuhl Prof. Simon Teuscher) · maschinelle Lesungen, unkorrigiert · DH Bern")}</footer>`;
+
+    if (keepImage) {
+      app.querySelector(".textpane").outerHTML = new DOMParser().parseFromString(html, "text/html").querySelector(".textpane").outerHTML;
+    } else {
+      destroyOsd();
+      app.innerHTML = html;
+      if (showImg) { app.dataset.tk = page.tk; openImage(page); }
+    }
 
     app.querySelectorAll(".rd").forEach((b) => b.addEventListener("click", () => {
       if (b.disabled) return;
-      location.hash = `#/doc/${encodeURIComponent(doc.id)}/${pageNr}/${encodeURIComponent(b.dataset.reader)}`;
+      location.hash = `${href(id, pageNo)}/${encodeURIComponent(b.dataset.reader)}`;
     }));
-    document.getElementById("pgsel").addEventListener("change", (ev) => { location.hash = href(doc, +ev.target.value); });
+    document.getElementById("imgtoggle").addEventListener("click", () => { store.set("image", !showImg); destroyOsd(); route(); });
     const m = document.getElementById("t-mode");
     m && m.addEventListener("change", () => { state.mode = m.value; store.set("mode", m.value); route(); });
+    const det = app.querySelector("details.regest");
+    det && det.addEventListener("toggle", () => store.set("regest", det.open));
     const rd = document.getElementById("reading");
     rd.addEventListener("mouseover", entTip);
     rd.addEventListener("click", entTip);
+  }
+
+  /* A heading and regest drafted by a language model from an uncorrected
+     machine reading: always marked as such, with the reading and the model. */
+  function draftBlock(d) {
+    if (!d) return "";
+    const when = [d.place, d.date_text].filter(Boolean).map(esc).join(", ");
+    return `<details class="regest draft" ${store.get("regest", true) ? "open" : ""}>
+      <summary>${T("Regest — machine draft", "Regest – Maschinenentwurf")}</summary>
+      ${d.heading ? `<div class="meta"><span class="parties">${esc(d.heading)}</span></div>` : ""}
+      ${when || d.year ? `<p class="small muted">${when}${d.year ? `${when ? " · " : ""}${T(`year read as ${esc(d.year)} (unchecked)`, `Jahr gelesen als ${esc(d.year)} (ungeprüft)`)}` : ""}</p>` : ""}
+      <p lang="de">${esc(d.regest)}</p>
+      <p class="small muted">${T(`Heading and regest drafted by ${esc(d.model || "a language model")} from the uncorrected reading ${esc(readerLabel(d.reader))}, not checked by anyone${LANG === "en" ? "; in German" : ""}. Names and dates may be wrong.`,
+        `Überschrift und Regest entworfen von ${esc(d.model || "einem Sprachmodell")} aus der unkorrigierten Lesung ${esc(readerLabel(d.reader))}, von niemandem geprüft. Namen und Daten können falsch sein.`)}</p>
+    </details>`;
   }
 
   function readerButtons(page, current) {
@@ -540,6 +666,38 @@
     }
     flushDel();
     return out.replace(/ \n/g, "\n");
+  }
+
+  /* ---------- image (IIIF on files.transkribus.eu) ---------- */
+  function destroyOsd() { if (state.osd) { state.osd.destroy(); state.osd = null; } delete app.dataset.tk; }
+  function noImage(msg) {
+    const el = document.getElementById("osd");
+    if (el) el.innerHTML = `<p class="noimg">${msg}</p>`;
+  }
+  /* Transkribus' info.json lists `sizes`; with `sizes` OpenSeadragon 4.1 stops
+     at a thumbnail (as on the St. Gallen IIIF server), so it is dropped. */
+  async function openImage(page) {
+    if (!page.tk) { noImage(T("No image for this page.", "Kein Bild zu dieser Seite.")); return; }
+    if (!window.OpenSeadragon) { noImage(T("The image viewer did not load.", "Der Bildbetrachter wurde nicht geladen.")); return; }
+    const base = IIIF + encodeURIComponent(page.tk);
+    noImage(T("Loading the image from Transkribus…", "Das Bild wird von Transkribus geladen…"));
+    let info = null;
+    try { info = await json(`${base}/info.json`); } catch { info = null; }
+    if (app.dataset.tk !== page.tk || !document.getElementById("osd")) return;
+    if (!info) { noImage(T("The image could not be loaded from Transkribus.", "Das Bild konnte nicht von Transkribus geladen werden.")); return; }
+    info["@id"] = base;
+    delete info.sizes;
+    document.getElementById("osd").innerHTML = "";
+    state.osd = OpenSeadragon({
+      id: "osd",
+      prefixUrl: "https://cdnjs.cloudflare.com/ajax/libs/openseadragon/4.1.0/images/",
+      tileSources: info,
+      showNavigator: true, navigatorPosition: "BOTTOM_RIGHT",
+      gestureSettingsMouse: { clickToZoom: false },
+      crossOriginPolicy: "Anonymous",
+    });
+    const el = document.getElementById("imglink");
+    if (el) el.innerHTML = `<a href="${esc(base)}/full/max/0/default.jpg" target="_blank" rel="noopener">${T("Full image", "Ganzes Bild")} ↗</a>`;
   }
 
   /* ---------- entities (hook: entities/<reader>.jsonl, none yet) ---------- */

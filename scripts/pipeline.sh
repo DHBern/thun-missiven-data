@@ -8,8 +8,8 @@
 #   scripts/pipeline.sh --dry-run   collect and check, publish nothing
 #
 # The checkout (~/thun-missiven-data) belongs to the pipeline: each cycle resets
-# it to origin/main. Code never reaches main this way; only readings/ and
-# entities/ may change, or the cycle stops.
+# it to origin/main. Code never reaches main this way; only readings/,
+# entities/ and regests/ may change, or the cycle stops.
 #
 # No joint reading here: St. Gallen weighs each voter by its error against the
 # edition, and the Thun Missiven have no edition or ground truth to weigh by.
@@ -20,7 +20,7 @@ PY=${THM_PY:-$HOME/sg-missiven-venv/bin/python}   # lxml + rapidfuzz; SG's venv 
 STATE=${THM_STATE:-$HOME/thun-pipeline}
 GH_REPO=DHBern/thun-missiven-data
 BRANCH=data/auto
-DATA_PATHS=(readings entities)
+DATA_PATHS=(readings entities regests)
 DRY=${1:-}
 
 mkdir -p "$STATE"

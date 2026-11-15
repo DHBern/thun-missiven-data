@@ -1,10 +1,12 @@
 # Adding a reading
 
 The viewer shows every reader listed in `readings/readers.json` that has a file
-`readings/<id>.jsonl`. A reading is keyed by the **page key**,
+`readings/<id>.jsonl`. Its unit is the letter (`readings/letters.tsv`, split by
+the scan file names), but a reading is keyed by the **page key**,
 `<Transkribus document title>_p<4-digit page number>`, e.g.
-`BAT_663.1_350_399_p0005`; `readings/pages.tsv` lists every key. Once a change
-is merged into `main`, the Pages workflow rebuilds the site.
+`BAT_663.1_350_399_p0005`; `readings/pages.tsv` lists every key, and
+`readings/letters.tsv` says which letter each page belongs to. Once a change is
+merged into `main`, the Pages workflow rebuilds the site.
 
 There is no edition and no ground truth for these letters, so a new reading is
 **not scored**. Where a page has two or more readings, the build reports how
@@ -13,11 +15,22 @@ quality.
 
 ## Images
 
-The page images are on the research share
-(`/mnt/wbkolleg_dh_1/tei/datasets/thun-missiven-images/pages/<key>.jpg`, 1500 px
-working copies). They are **not public** (digitised by the University of Zurich,
-Chair of Prof. Simon Teuscher). Run engines on them where they lie; never copy them into this
-repository or anywhere public.
+The viewer shows the page images from Transkribus: IIIF Image API 2 at
+`https://files.transkribus.eu/iiif/2/<tk>/info.json`, `tk` from
+`readings/images.tsv`. The letters were digitised by the University of Zurich
+(Chair of Prof. Simon Teuscher). For running engines, 1500 px working copies lie
+on the research share
+(`/mnt/wbkolleg_dh_1/tei/datasets/thun-missiven-images/pages/<key>.jpg`); run
+engines on them where they lie, and do not copy them into this repository.
+
+## Regests
+
+`scripts/regest.py` drafts a heading and a regest per letter from the best
+reading it has (Qwen3.8-27B on the University of Bern's GPUStack, letters of the
+St. Gallen edition as style examples) into `regests/drafts.jsonl`. They are
+machine drafts from uncorrected readings, and the viewer says so on every one,
+with the reading and the model. Once a better reading covers every page of a
+letter, running the script again replaces its draft.
 
 ## One command per source
 
@@ -61,12 +74,13 @@ normalised, needs a `caveat`.
 ## Check locally
 
 ```bash
-uv run -p 3.12 --with rapidfuzz==3.10.1 python scripts/build_site.py
+uv run -p 3.12 --with lxml==5.3.0 --with rapidfuzz==3.10.1 python scripts/build_site.py
 python3 -m http.server -d site 8000      # http://localhost:8000
 ```
 
-`build_site.py` prints every reader's page count and the disagreement of every
-pair. Look at a few pages with **Compare with …** before you trust a new reader.
+`build_site.py` prints the number of letters and drafted regests, every
+reader's page count and the disagreement of every pair. Look at a few letters
+with **Compare with …** before you trust a new reader.
 
 ## Entities (planned)
 
