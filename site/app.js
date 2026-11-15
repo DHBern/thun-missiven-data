@@ -80,8 +80,8 @@
 
   /* ---------- documents ---------- */
   function noImages() {
-    return T(`No page images are shown: the rights of the Burgerarchiv Thun to publish them are not cleared. Only the machines' text is public.`,
-      `Seitenbilder werden nicht gezeigt: Die Rechte des Burgerarchivs Thun an ihrer Veröffentlichung sind nicht geklärt. Öffentlich ist nur der Text der Maschinen.`);
+    return T(`The page images were digitised by the University of Zurich (Chair of Prof. Simon Teuscher). The viewer shows the machines' text only.`,
+      `Die Digitalisierung erfolgte durch die Universität Zürich (Lehrstuhl Prof. Simon Teuscher). Der Viewer zeigt nur den Text der Maschinen.`);
   }
 
   function showList() {
@@ -176,7 +176,7 @@
       Die Seiten liegen in der Transkribus-Sammlung 2329424 («BAT Thuner Missiven neu»), 36 Dokumente nach Signatur (663 bis 666.1) und Briefnummern.</p>
       <h2>Was zu sehen ist – und was nicht</h2>
       <ul>
-        <li><b>Nur Text, keine Bilder.</b> Die Rechte des Burgerarchivs Thun an der Veröffentlichung der Seitenbilder sind nicht geklärt; die Bilder werden darum weder gezeigt noch weitergegeben. Veröffentlicht sind allein die maschinellen Lesungen.</li>
+        <li><b>Nur Text, keine Bilder.</b> Die Digitalisierung erfolgte durch die Universität Zürich (Lehrstuhl Prof. Simon Teuscher). Die Seitenbilder werden hier weder gezeigt noch weitergegeben; veröffentlicht sind allein die maschinellen Lesungen.</li>
         <li><b>Keine Edition, keine Ground Truth.</b> Keine Seite ist von Menschen transkribiert oder geprüft. Die erste Lesung ist die automatische Lesung in Transkribus (PyLaia, Modell «Medieval_Scripts_M2.4»), unkorrigiert.</li>
         <li><b>Die Einheit ist die Seite.</b> Wo ein Brief beginnt oder endet, ist noch nicht bestimmt. Die Seiten stehen nach Dokument in Signaturfolge.</li>
         <li><b>Lesungen vergleichen</b>: Wo eine Seite mehrere Lesungen hat, zeigt «Vergleichen mit …» Wort für Wort, was die eine Lesung hat und die andere nicht. Die Prozentzahl ist <i>Abweichung, nie Qualität</i>.</li>
@@ -193,7 +193,7 @@
       The pages are in Transkribus collection 2329424 ("BAT Thuner Missiven neu"), 36 documents by shelfmark (663 to 666.1) and letter numbers.</p>
       <h2>What you see — and what you don't</h2>
       <ul>
-        <li><b>Text only, no images.</b> The rights of the Burgerarchiv Thun to publish the page images are not cleared, so the images are neither shown nor passed on. Only the machine readings are published.</li>
+        <li><b>Text only, no images.</b> The page images were digitised by the University of Zurich (Chair of Prof. Simon Teuscher). They are neither shown nor passed on here; only the machine readings are published.</li>
         <li><b>No edition, no ground truth.</b> No page has been transcribed or checked by a person. The first reading is the automatic one in Transkribus (PyLaia, model "Medieval_Scripts_M2.4"), uncorrected.</li>
         <li><b>The unit is the page.</b> Where a letter begins or ends has not been determined yet. Pages are listed by document in shelfmark order.</li>
         <li><b>Compare readings</b>: where a page has more than one reading, "Compare with …" marks word by word what one reading has and the other lacks. The percentage is <i>disagreement, never quality</i>.</li>

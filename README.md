@@ -11,8 +11,8 @@ ist aus dem der [St. Galler Missiven](https://github.com/DHBern/sg-missiven-data
 
 ## Was veröffentlicht ist – und was nicht
 
-- **Die Lesungen sind öffentlich, die Bilder nicht.** Die Rechte des Burgerarchivs Thun an der
-  Veröffentlichung der Seitenbilder sind nicht geklärt. Die Bilder liegen weder in diesem
+- **Die Lesungen sind öffentlich, die Bilder nicht.** Die Digitalisierung erfolgte durch die
+  Universität Zürich (Lehrstuhl Prof. Simon Teuscher). Die Bilder liegen weder in diesem
   Repository noch im Viewer; er zeigt nur Text.
 - **Nichts hier ist Ground Truth.** Es gibt keine Edition, keine TEI, keine Register und keine
   geprüfte Transkription. Jede Lesung ist maschinell und unkorrigiert, und keine wird bewertet.

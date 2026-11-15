@@ -15,8 +15,8 @@ quality.
 
 The page images are on the research share
 (`/mnt/wbkolleg_dh_1/tei/datasets/thun-missiven-images/pages/<key>.jpg`, 1500 px
-working copies). They are **not public**: the rights of the Burgerarchiv Thun
-are not cleared. Run engines on them where they lie; never copy them into this
+working copies). They are **not public** (digitised by the University of Zurich,
+Chair of Prof. Simon Teuscher). Run engines on them where they lie; never copy them into this
 repository or anywhere public.
 
 ## One command per source
