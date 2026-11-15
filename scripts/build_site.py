@@ -207,6 +207,21 @@ def write_search(letters: list[dict], readings: dict[str, dict[str, dict]], read
     return shards_of
 
 
+def load_cross_links() -> dict[str, list[dict]]:
+    """Hints to letters in other collections (links/<collection>.json): letter id ->
+    [{collection, kind, de, en, url, label}]. Each says what the relation is, never more."""
+    out: dict[str, list[dict]] = {}
+    for path in sorted((ROOT / "links").glob("*.json")):
+        data = json.loads(path.read_text(encoding="utf-8"))
+        for ln in data["links"]:
+            other = ln.get("other")
+            out.setdefault(ln["letter"], []).append({
+                "collection": path.stem, "kind": ln["kind"], "de": ln["de"], "en": ln["en"],
+                "url": f"{data['viewer']}#/letter/{other}/1" if other else data["viewer"],
+                "label": ln.get("label") or other or ""})
+    return out
+
+
 def main() -> None:
     pages = {p["key"]: p for p in tsv("pages.tsv")}
     images = {r["key"]: r for r in tsv("images.tsv")}
@@ -246,6 +261,7 @@ def main() -> None:
     pair = {(a, b): {"edits": 0, "chars": 0, "pages": 0} for a, b in itertools.combinations(ids, 2)}
     read = {r: 0 for r in ids}
     linked = {r: [0, 0] for r in ids}   # lines linked, lines on pages with rows
+    cross_links = load_cross_links()
     index, pagekeys, chunk = [], {}, []
     for pos, lt in enumerate(letters):
         recs = []
@@ -289,6 +305,8 @@ def main() -> None:
         full = {"id": lt["id"], "shelf": lt["shelf"], "nr": lt["nr"], "title": lt["title"], "doc": lt["doc"], "pages": recs}
         if d:
             full["draft"] = d
+        if lt["id"] in cross_links:
+            full["links"] = cross_links[lt["id"]]
         chunk.append(full)
         row = {"id": lt["id"], "shelf": lt["shelf"], "nr": lt["nr"], "n": lt["n_main"],
                "tk": recs[0]["tk"] if recs else ""}

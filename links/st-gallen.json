@@ -1,0 +1,14 @@
+{
+  "about": "Hints to the St. Gallen Missives (Briefverkehr der Stadt St. Gallen 1400–1650; readings viewer https://dhbern.github.io/sg-missiven-data/). Found 15.11.2026 by comparing both collections: senders and recipients, dates, text similarity. No letter was found in both collections, and no letter that answers one in the other. The St. Gallen collection holds one letter from Thun, of 1632 (unedited Nr. 2887), later than the Thun letters here (about 1400–1540).",
+  "viewer": "https://dhbern.github.io/sg-missiven-data/",
+  "links": [
+    {
+      "letter": "bat_664_17",
+      "other": "stasg_missiv_00123",
+      "label": "StadtASG Missive, Nr. 123",
+      "kind": "same_event",
+      "de": "Dasselbe Ereignis: Am 8. Oktober 1439 danken Schultheiss und Rat zu Bern Bürgermeister und Rat zu St. Gallen für die Vermittlung im Streit zwischen Zürich und Schwyz, um den es hier geht (ediert). Kein Gegenbrief, kein gleichlautender Brief.",
+      "en": "The same event: on 8 October 1439 the Schultheiss and council of Bern thank the mayor and council of St. Gallen for mediating in the conflict between Zürich and Schwyz that this letter is about (edited). Not a reply, not the same letter."
+    }
+  ]
+}
