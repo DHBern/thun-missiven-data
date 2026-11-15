@@ -108,6 +108,30 @@ def german(answer: dict) -> bool:
     return len(_DE.findall(t)) >= len(_EN.findall(t))
 
 
+# St. Gallen in a Thun letter: almost always the date "sant Gallen tag" (16 October).
+_GALL = re.compile(r"gall\w*", re.I)
+_GALL_DATE = re.compile(r"\W*(tag|tage|ta-|tus|abend|abent|dag|mess)", re.I)
+
+
+def gallen_unsupported(answer: dict, text: str) -> bool:
+    """The draft names St. Gallen as sender or recipient, but the letter mentions
+    St. Gallen only as a date or not at all: copied from the St. Gallen examples
+    (5 of the first 985 drafts, 15.11.2026)."""
+    who = f"{answer.get('sender') or ''} {answer.get('recipient') or ''}"
+    if not _GALL.search(who):
+        return False
+    flat = re.sub(r"\s+", " ", text)
+    return not any(not _GALL_DATE.match(flat[m.end():m.end() + 8]) for m in _GALL.finditer(flat))
+
+
+def drop_gallen(answer: dict) -> dict:
+    for k in ("sender", "recipient"):
+        if _GALL.search(answer.get(k) or ""):
+            answer[k] = None
+    answer["note"] = "St. Gallen als Absender/Empfänger verworfen: im Brief nicht belegt"
+    return answer
+
+
 def ask(client: httpx.Client, shots: list[dict], text: str) -> dict:
     body = {"model": MODEL, "temperature": 0.2, "max_tokens": 1200,
             "chat_template_kwargs": {"enable_thinking": False},
@@ -125,6 +149,16 @@ def ask(client: httpx.Client, shots: list[dict], text: str) -> dict:
             if not german(answer) and attempt < 3:
                 last = ValueError("regest not in German")
                 continue
+            if gallen_unsupported(answer, text):
+                if attempt < 3:
+                    body["messages"] = body["messages"][:len(shots) + 2] + [
+                        {"role": "assistant", "content": content},
+                        {"role": "user", "content": "St. Gallen kommt in diesem Brief nicht als Absender oder Empfänger "
+                                                    "vor (höchstens als Datum «sant Gallen tag»). Nimm Absender und "
+                                                    "Empfänger nur aus diesem Brief und antworte noch einmal."}]
+                    last = ValueError("St. Gallen not in the letter")
+                    continue
+                return drop_gallen(answer)
             return answer
         except Exception as e:  # noqa: BLE001
             last = e
@@ -165,11 +199,12 @@ def main() -> None:
             reader = next((r for r in READERS if any(readings[r].get(k, "").strip() for k in keys)), None)
         if reader is None:
             continue
+        text = letter_text([readings[reader].get(k, "") for k in keys])
         old = done.get(lt["id"])
         if old and "error" not in old["draft"] and READERS.index(old["reader"]) <= READERS.index(reader) \
-                and old.get("prompt") == PROMPT_DIGEST:
+                and old.get("prompt") == PROMPT_DIGEST and not gallen_unsupported(old["draft"], text):
             continue
-        jobs.append({"lt": lt, "reader": reader, "text": letter_text([readings[reader].get(k, "") for k in keys])})
+        jobs.append({"lt": lt, "reader": reader, "text": text})
     if args.n:
         jobs = jobs[: args.n]
     print(f"{len(jobs)} letters to draft via {MODEL} (prompt {PROMPT_DIGEST})", flush=True)
