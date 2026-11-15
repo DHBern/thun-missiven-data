@@ -18,6 +18,8 @@ Inputs
   readings/images.tsv           one row per page key: letter, side, note, img, tk
                                 (the IIIF identifier on files.transkribus.eu), size
   readings/<reader>.jsonl       one line per page: {"key": <page key>, "text": ...}
+  readings/lines.jsonl          the Transkribus TextLines of each page: outline and PyLaia
+                                text (scripts/import_transkribus.py; docs/LINES.md)
   readings/readers.json         who each reader is (label, kind, about, caveat; en + _de)
   regests/drafts.jsonl          machine-drafted heading and regest per letter (latest wins)
   entities/<reader>.jsonl       automatic tagging of a reading (optional; none yet)
@@ -27,7 +29,9 @@ Outputs (site/data/)
                                 year, sender, recipient), search shard counts
   readers.json                  readers with pages read and pairwise disagreement
   letters/<n>.json              CHUNK letters in index order, each with its pages,
-                                every reading, the image and the draft
+                                every reading, the image and the draft; a page with
+                                lines carries ``rows`` (each line's outline) and every
+                                reading ``ln`` (per text line the rows it is linked to)
   pagekeys.json                 page key -> [letter id, page position]: old page links
   search/<reader>/text-<n>.json letter id -> page texts, loaded only by a search
 
@@ -49,6 +53,10 @@ from pathlib import Path
 from rapidfuzz.distance import Levenshtein
 
 ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT / "scripts"))
+import line_links  # noqa: E402
+
+NOT_READERS = {"lines"}         # readings/*.jsonl that hold no reading
 OUT = ROOT / "site" / "data"
 CHUNK = 25                      # letters per file the viewer loads at once
 SEARCH_SHARD_CHARS = 1_500_000  # text per search shard, loaded in parallel
@@ -72,6 +80,8 @@ def tsv(name: str) -> list[dict]:
 def load_readings(known: set[str]) -> dict[str, dict[str, dict]]:
     readings: dict[str, dict[str, dict]] = {}
     for path in sorted((ROOT / "readings").glob("*.jsonl")):
+        if path.stem in NOT_READERS:
+            continue
         pages, unknown = {}, []
         for line in path.read_text(encoding="utf-8").splitlines():
             if not line.strip():
@@ -88,6 +98,38 @@ def load_readings(known: set[str]) -> dict[str, dict[str, dict]]:
             print(f"  {path.name}: {len(unknown)} keys not in pages.tsv, e.g. {unknown[:3]}", file=sys.stderr)
         readings[path.stem] = pages
     return readings
+
+
+def load_lines(known: set[str]) -> dict[str, dict]:
+    """readings/lines.jsonl: per page key its rows (the TextLines, docs/LINES.md)."""
+    path = ROOT / "readings" / "lines.jsonl"
+    out: dict[str, dict] = {}
+    if not path.exists():
+        return out
+    for line in path.read_text(encoding="utf-8").splitlines():
+        if line.strip():
+            rec = json.loads(line)
+            if rec["key"] in known and rec.get("poly"):
+                out[rec["key"]] = rec
+    return out
+
+
+def link_lines(rec: dict, geo: dict) -> dict[str, tuple[int, int]]:
+    """Rows on the image for this page, and for every reading which rows each
+    of its lines is on: ``rec["rows"]`` holds each TextLine's outline (x, y, x,
+    y, ... in ten-thousandths of the image width), ``ln`` beside a reading per
+    line the rows it is linked to, [] where no link was good enough. Returns
+    per reader (lines linked, lines)."""
+    rec["rows"] = geo["poly"]
+    row_texts = [[t] for t in geo["text"]]
+    counts = {}
+    for reader, entry in rec["readings"].items():
+        if not entry.get("text"):
+            continue
+        ln = line_links.align(entry["text"].split("\n"), row_texts)
+        entry["ln"] = ln
+        counts[reader] = (sum(1 for x in ln if x), len(ln))
+    return counts
 
 
 def load_entities() -> dict[str, dict[str, list]]:
@@ -170,6 +212,7 @@ def main() -> None:
     images = {r["key"]: r for r in tsv("images.tsv")}
     rows = tsv("letters.tsv")
     readings = load_readings(set(pages))
+    lines = load_lines(set(pages))
     entities = load_entities()
     listed = json.loads((ROOT / "readings" / "readers.json").read_text(encoding="utf-8"))
     for r in listed:
@@ -202,6 +245,7 @@ def main() -> None:
 
     pair = {(a, b): {"edits": 0, "chars": 0, "pages": 0} for a, b in itertools.combinations(ids, 2)}
     read = {r: 0 for r in ids}
+    linked = {r: [0, 0] for r in ids}   # lines linked, lines on pages with rows
     index, pagekeys, chunk = [], {}, []
     for pos, lt in enumerate(letters):
         recs = []
@@ -233,6 +277,10 @@ def main() -> None:
                 t["edits"] += edits; t["chars"] += longer; t["pages"] += 1
             if dis:
                 rec["dis"] = dis
+            if key in lines:
+                for r, (a, b) in link_lines(rec, lines[key]).items():
+                    linked[r][0] += a
+                    linked[r][1] += b
             for r, ents in entities.items():
                 if key in ents and r in rec["readings"]:
                     rec.setdefault("ents", {})[r] = ents[key]
@@ -270,9 +318,12 @@ def main() -> None:
     (OUT / "pagekeys.json").write_text(json.dumps(pagekeys, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
     (OUT / "readers.json").write_text(json.dumps(readers, ensure_ascii=False, indent=1), encoding="utf-8")
 
-    print(f"{len(pages)} pages in {len(letters)} letters, {len(drafts)} with a drafted regest")
+    print(f"{len(pages)} pages in {len(letters)} letters, {len(drafts)} with a drafted regest; "
+          f"{sum(1 for k in lines if k in seen)} with line outlines")
     for r in readers:
-        print(f"  {r['id']:<40} read {r['pages_read']:>5}")
+        a, b = linked[r["id"]]
+        print(f"  {r['id']:<40} read {r['pages_read']:>5}; lines linked to the image {a} of {b}"
+              f"{f' ({a / b:.1%})' if b else ''}")
     for (a, b), t in pair.items():
         if t["pages"]:
             print(f"  disagreement {a} | {b}: {t['edits'] / t['chars']:.4f} over {t['pages']} pages")

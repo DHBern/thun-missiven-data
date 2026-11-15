@@ -34,7 +34,7 @@ from lxml import etree
 
 ROOT = Path(__file__).resolve().parents[1]
 IMAGE_EXT = re.compile(r"\.(jpe?g|png|tiff?|jp2|webp)$", re.I)
-ID = re.compile(r"^[a-z0-9][a-z0-9._-]*$")
+ID = re.compile(r"^(?!lines$)[a-z0-9][a-z0-9._-]*$")  # "lines": readings/lines.jsonl is the line geometry
 
 
 def page_index() -> dict[str, str]:

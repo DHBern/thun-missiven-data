@@ -27,9 +27,10 @@ repository; the viewer shows the images from Transkribus (IIIF).
 
 1. **Transkribus:** `manifest.jsonl` and `pagexml/` of the ingest.
    `scripts/import_transkribus.py` writes `readings/pages.tsv` (the list of
-   pages: the viewer knows no page that is not in it) and
-   `readings/transkribus-pylaia-m2.4.jsonl`. It drops every user name and
-   e-mail address of the manifest, and refuses to write if either output would
+   pages: the viewer knows no page that is not in it),
+   `readings/transkribus-pylaia-m2.4.jsonl` and `readings/lines.jsonl` (the
+   line outlines, [LINES.md](LINES.md)). It drops every user name and
+   e-mail address of the manifest, and refuses to write if any output would
    have fewer pages than now.
 2. **Gateway and Gemini runs** under
    `~/agentic_historian/agentic_historian/data/vlm_test/`:

@@ -31,7 +31,7 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-ID = re.compile(r"^[a-z0-9][a-z0-9._-]*$")
+ID = re.compile(r"^(?!lines$)[a-z0-9][a-z0-9._-]*$")  # "lines": readings/lines.jsonl is the line geometry
 
 
 def page_keys() -> dict[str, str]:

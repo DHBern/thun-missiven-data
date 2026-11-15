@@ -512,6 +512,7 @@
     const prev = pageNo > 1 ? href(id, pageNo - 1) : prevL ? href(prevL.id, 1) : null;
     const next = pageNo < pages.length ? href(id, pageNo + 1) : nextL ? href(nextL.id, 1) : null;
     cur = { prev, next };
+    state.view = { page, reader };   // the lines on the image follow the page and reader on screen
     const showImg = store.get("image", true);
     const main = pages.filter((p) => !p.extra).length;
     const pgBtn = (p, i) => `<a class="pg ${i + 1 === pageNo ? "on" : ""}" href="${href(id, i + 1)}" ${i + 1 === pageNo ? 'aria-current="page"' : ""}>${esc(pageLabel(p))}</a>`;
@@ -565,6 +566,10 @@
     const rd = document.getElementById("reading");
     rd.addEventListener("mouseover", entTip);
     rd.addEventListener("click", entTip);
+    rd.addEventListener("mouseover", onLineHover);
+    rd.addEventListener("mouseleave", () => { if (!pinned) clearRows(); });
+    rd.addEventListener("click", onLineClick);
+    clearRows();
   }
 
   /* A heading and regest drafted by a language model from an uncorrected
@@ -638,11 +643,168 @@
     } else if (mode === "ents") {
       body = entHtml(rd.text, page.ents[readerId]);
     } else body = esc(rd.text);
-    return head + trunc + note + (mode === "ents" ? legend() : "") + `<div class="text ${mode === "ents" ? "ents" : ""}">${numberLines(body)}</div>`;
+    return head + trunc + note + (mode === "ents" ? legend() : "") + lineNote(rd.ln, page) +
+      `<div class="text ${mode === "ents" ? "ents" : ""}">${numberLines(body)}</div>`;
   }
 
   function numberLines(body) {
-    return body.split("\n").map((l, i) => `<span class="line"><span class="ln">${i + 1}</span>${l}</span>`).join("");
+    return body.split("\n").map((l, i) => `<span class="line" data-i="${i}"><span class="ln">${i + 1}</span>${l}</span>`).join("");
+  }
+
+  /* ---------- lines on the image (docs/LINES.md) ----------
+     Adapted from the St. Gallen viewer. build_site.py gives a page with
+     Transkribus lines `rows` (each TextLine's outline: x, y, x, y, … in
+     ten-thousandths of the image width, the unit of OpenSeadragon's overlays)
+     and every reading `ln`: per line the rows it is linked to (empty where no
+     link was good enough). Pointing at a line shows its row on the image,
+     pointing at the image shows the line; a click (a tap) on a line also brings
+     the image to it, a click on the image brings the text to the line. */
+  function lineNote(ln, page) {
+    if (!ln || !page.rows) return "";
+    const lines = ln.length, linked = ln.filter((x) => x.length).length;
+    return `<p class="line-note small muted">${T(`${linked} of ${lines} lines linked to the image: point at or tap a line, or the image.`,
+      `${linked} von ${lines} Zeilen mit dem Bild verknüpft: auf eine Zeile oder ins Bild zeigen oder tippen.`)}</p>`;
+  }
+  function currentLn() {
+    const v = state.view || {};
+    if (!v.page || !v.page.rows) return null;
+    const rd = v.page.readings[v.reader];
+    return (rd && rd.ln) || null;
+  }
+  function rowBox(poly) {
+    let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+    for (let k = 0; k + 1 < poly.length; k += 2) {
+      x0 = Math.min(x0, poly[k]); x1 = Math.max(x1, poly[k]);
+      y0 = Math.min(y0, poly[k + 1]); y1 = Math.max(y1, poly[k + 1]);
+    }
+    return [x0, y0, x1, y1];
+  }
+  const imageOpen = () => !!(state.osd && state.osd.world.getItemCount() && window.OpenSeadragon);
+  let hlEls = [], pinned = false, pinUntil = 0;
+  function clearRows() {
+    hlEls.forEach((el) => state.osd && state.osd.removeOverlay(el));
+    hlEls = [];
+    pinned = false;
+    app.querySelectorAll("#reading .line.hl").forEach((el) => el.classList.remove("hl"));
+  }
+  function showRows(rows) {
+    const v = state.view || {};
+    if (!imageOpen() || !v.page || !v.page.rows) return;
+    for (const j of rows) {
+      const poly = v.page.rows[j];
+      if (!poly) continue;
+      const [x0, y0, x1, y1] = rowBox(poly);
+      const w = x1 - x0, h = y1 - y0;
+      if (w <= 0 || h <= 0) continue;
+      const el = document.createElement("div");
+      el.className = "row-hl";
+      const pts = [];
+      for (let k = 0; k + 1 < poly.length; k += 2) pts.push(`${poly[k] - x0},${poly[k + 1] - y0}`);
+      el.innerHTML = `<svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="none" aria-hidden="true"><polygon points="${pts.join(" ")}"/></svg>`;
+      state.osd.addOverlay({ element: el, location: new OpenSeadragon.Rect(x0 / 1e4, y0 / 1e4, w / 1e4, h / 1e4) });
+      hlEls.push(el);
+    }
+  }
+  function lineRows(line) {
+    const ln = currentLn();
+    return (line && ln && ln[+line.dataset.i]) || [];
+  }
+  /* after a click the line stays shown until another line is pointed at */
+  function onLineHover(ev) {
+    const line = ev.target.closest(".line[data-i]");
+    if (line && line.classList.contains("hl")) return;
+    // the page scrolling to the image after a click or a tap passes over other lines
+    if (pinned && (!lineRows(line).length || performance.now() < pinUntil)) return;
+    clearRows();
+    const rows = lineRows(line);
+    if (!rows.length) return;
+    line.classList.add("hl");
+    showRows(rows);
+  }
+  /* a click or a tap on a line: keep it shown and bring the image to it, gently
+     (the line across most of the viewer, a few lines above and below) */
+  function onLineClick(ev) {
+    if (ev.target.closest(".ent, a, button")) return;
+    const line = ev.target.closest(".line[data-i]");
+    const rows = lineRows(line);
+    if (!rows.length) return;
+    clearRows();
+    line.classList.add("hl");
+    showRows(rows);
+    pinned = true;
+    pinUntil = performance.now() + 1500;
+    if (!imageOpen()) return;
+    const v = state.view, bs = rows.map((j) => rowBox(v.page.rows[j]));
+    const x0 = Math.min(...bs.map((b) => b[0])), y0 = Math.min(...bs.map((b) => b[1]));
+    const x1 = Math.max(...bs.map((b) => b[2])), y1 = Math.max(...bs.map((b) => b[3]));
+    const w = Math.max(x1 - x0, 2500), h = y1 - y0, cx = (x0 + x1) / 2, cy = (y0 + y1) / 2;
+    const vw = w * 1.25, vh = Math.max(h * 5, vw * 0.25);
+    state.osd.viewport.fitBoundsWithConstraints(new OpenSeadragon.Rect((cx - vw / 2) / 1e4, (cy - vh / 2) / 1e4, vw / 1e4, vh / 1e4));
+    const img = document.getElementById("osd");
+    if (img && stacked()) img.scrollIntoView({ block: "nearest", behavior: "smooth" });
+  }
+  /* the image below the text (narrow screens): a click on the image does not
+     scroll the text away from it, and a tap on a line brings the image up */
+  function stacked() {
+    const t = app.querySelector(".textpane"), i = app.querySelector(".imgpane");
+    return !!(t && i && i.getBoundingClientRect().top >= t.getBoundingClientRect().bottom - 1);
+  }
+  function inPoly(x, y, p) {
+    let inside = false;
+    for (let a = 0, b = p.length - 2; a < p.length; b = a, a += 2) {
+      if ((p[a + 1] > y) !== (p[b + 1] > y) && x < (p[b] - p[a]) * (y - p[a + 1]) / (p[b + 1] - p[a + 1]) + p[a]) inside = !inside;
+    }
+    return inside;
+  }
+  function rowAt(pt) {
+    const v = state.view || {};
+    if (!v.page || !v.page.rows) return -1;
+    const x = pt.x * 1e4, y = pt.y * 1e4;
+    let hit = -1, area = Infinity;
+    v.page.rows.forEach((poly, j) => {
+      const b = rowBox(poly);
+      if (x < b[0] || x > b[2] || y < b[1] || y > b[3] || !inPoly(x, y, poly)) return;
+      const a = (b[2] - b[0]) * (b[3] - b[1]);
+      if (a < area) { hit = j; area = a; }
+    });
+    return hit;
+  }
+  function linesOfRow(j) {
+    const ln = currentLn();
+    if (!ln || j < 0) return [];
+    return [...app.querySelectorAll("#reading .line[data-i]")].filter((el) => (ln[+el.dataset.i] || []).includes(j));
+  }
+  function hlRow(j) {
+    clearRows();
+    const els = linesOfRow(j);
+    if (!els.length) return [];
+    els.forEach((el) => el.classList.add("hl"));
+    showRows([j]);
+    return els;
+  }
+  function trackImage(osd) {
+    let last = -2;
+    const tracker = new OpenSeadragon.MouseTracker({
+      element: osd.canvas,
+      moveHandler: (e) => {
+        if (state.osd !== osd) return;
+        const j = rowAt(osd.viewport.pointFromPixel(e.position));
+        if (j === last) return;
+        last = j;
+        if (pinned && (performance.now() < pinUntil || !linesOfRow(j).length)) return;
+        hlRow(j);
+      },
+      leaveHandler: () => { last = -2; if (!pinned) clearRows(); },
+    });
+    osd.addHandler("canvas-click", (e) => {
+      if (!e.quick || state.osd !== osd) return;
+      const j = rowAt(osd.viewport.pointFromPixel(e.position));
+      last = j;
+      const els = hlRow(j);
+      pinned = els.length > 0;
+      if (els.length && !stacked()) els[0].scrollIntoView({ block: "center", behavior: "smooth" });
+    });
+    osd.addHandler("destroy", () => tracker.destroy());
   }
 
   /* word diff: tokens of the reading against tokens of another reading (LCS) */
@@ -696,6 +858,7 @@
       gestureSettingsMouse: { clickToZoom: false },
       crossOriginPolicy: "Anonymous",
     });
+    trackImage(state.osd);
     const el = document.getElementById("imglink");
     if (el) el.innerHTML = `<a href="${esc(base)}/full/max/0/default.jpg" target="_blank" rel="noopener">${T("Full image", "Ganzes Bild")} ↗</a>`;
   }

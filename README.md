@@ -59,9 +59,11 @@ ist aus dem der [St. Galler Missiven](https://github.com/DHBern/sg-missiven-data
 | `readings/<leser>.jsonl` | eine Zeile pro Seite: `key`, `text` (eine Zeile pro Textzeile) |
 | `readings/readers.json` | wer jeder Leser ist, mit Vorbehalten (`label`, `kind`, `about`, `caveat`; deutsch in `*_de`) |
 | `readings/sources.json` | wo die Pipeline auf tei die Lesungen findet |
+| `readings/lines.jsonl` | die Zeilen jeder Seite aus dem Transkribus-Layout: Rahmen, Umriss (höchstens 8 Punkte), PyLaia-Text; Koordinaten in Zehntausendsteln der Bildbreite ([docs/LINES.md](docs/LINES.md)) |
 | `entities/<leser>.jsonl` | (noch leer) automatische Auszeichnung einer Lesung, Format wie bei St. Gallen; der Build liest sie, sobald sie da ist |
 | `prompts/thun_missiven_page_v1.md` | die Anweisung an die Vision-Language-Modelle |
-| `scripts/import_transkribus.py` | Transkribus-Ingest (Manifest + PAGE XML) → `pages.tsv` und die PyLaia-Lesung |
+| `scripts/import_transkribus.py` | Transkribus-Ingest (Manifest + PAGE XML) → `pages.tsv`, die PyLaia-Lesung und `lines.jsonl` |
+| `scripts/line_links.py` | ordnet die Zeilen einer Lesung den Zeilen im Bild zu (von St. Gallen übernommen) |
 | `scripts/collect_series.py` | sammelt die Läufe auf tei (Gateway, Gemini, UBELIX) in `readings/` – fügt hinzu, entfernt nie |
 | `scripts/collect_readings.py` | dasselbe für einen einzelnen Lauf, von Hand |
 | `scripts/import_readings.py` | Lesungen anderer Engines übernehmen (Text, PAGE XML, ALTO, JSONL) |
@@ -88,6 +90,12 @@ in der URL. Der Text liegt in Teilen, die erst bei einer Suche parallel geladen 
 Der Viewer ist zweisprachig (Deutsch/Englisch, Umschalter oben rechts); `?lang=de` oder
 `?lang=en` erzwingt eine Sprache. Jeder sichtbare Text steht in `site/app.js` als
 `T("English", "Deutsch")` nebeneinander.
+
+Text und Bild sind Zeile für Zeile verknüpft: Der Zeiger auf einer Zeile der Lesung zeigt sie
+im Bild, der Zeiger im Bild die Zeile im Text; ein Klick oder Tippen auf eine Zeile führt das
+Bild zu ihr. Die Zeilen sind die TextLines des Transkribus-Layouts (Umriss aus dem PAGE XML,
+`readings/lines.jsonl`); jede Lesung wird ihnen nach dem Textvergleich zugeordnet, wie bei den
+St. Galler Missiven – bei PyLaia 99,9 % der Zeilen ([docs/LINES.md](docs/LINES.md)).
 
 Eine weitere Lesung hinzufügen: [docs/ADDING_READINGS.md](docs/ADDING_READINGS.md).
 
