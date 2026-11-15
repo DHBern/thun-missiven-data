@@ -36,6 +36,19 @@ if [ ! -e "$ST/ingest.done" ]; then
 fi
 TOTAL=$(ls "$SRC" | grep -c '\.jpg$')
 
+# R. regest drafts (GPUStack, scripts/regest.py), beside the reading runs: drafts every
+#    letter that has none and upgrades a draft once a better reading is complete
+#    (Argon after the PyLaia reading). One request per letter; idle when nothing is new.
+#    Output outside any checkout; the pipeline copies it into regests/.
+RG=$HOME/thun-regest; RS=$HOME/thun-regest-state
+if ! active regest; then
+  [ -d "$RG" ] || git clone -q https://github.com/DHBern/thun-missiven-data "$RG"
+  git -C "$RG" pull -q --ff-only || log "regest: pull failed, using the checkout as it is"
+  mkdir -p "$RS"; [ -s "$RS/drafts.jsonl" ] || cp "$RG/regests/drafts.jsonl" "$RS/drafts.jsonl"
+  systemd-run --user --unit=thun-regest --collect --quiet -p Nice=10 --working-directory="$RG" \
+    /bin/bash -c "set -a; . $HOME/.gpustack.env; set +a; THM_REGEST_OUT=$RS/drafts.jsonl PYTHONUNBUFFERED=1 $PY scripts/regest.py --workers 3 >> $ST/regest.log 2>&1"
+fi
+
 # 2. Gemini test (200 pages)
 if [ ! -e "$ST/gemini-test.done" ]; then
   active gemini-test && exit 0
