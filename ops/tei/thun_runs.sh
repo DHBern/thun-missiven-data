@@ -23,7 +23,7 @@ active() { systemctl --user is-active --quiet "thun-$1"; }
 start() {  # start <step> <atr-batch args...>
   local step=$1; shift
   systemd-run --user --unit="thun-$step" --collect --quiet -p Nice=10 -p MemoryMax=1500M \
-    -p OOMPolicy=continue --working-directory="$AH/agentic_historian" \
+    -p OOMPolicy=continue --working-directory="$AH" \
     /bin/bash -c "PYTHONUNBUFFERED=1 $PY -m agentic_historian atr-batch $* >> $ST/$step.log 2>&1 && touch $ST/$step.done"
   log "started $step: $*"
 }
