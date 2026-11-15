@@ -43,7 +43,7 @@ import httpx
 ROOT = Path(__file__).resolve().parents[1]
 MODEL = "qwen3.8-27b"
 READERS = ["gemini-4-argon", "transkribus-pylaia-m2.4"]  # best first
-OUT = ROOT / "regests" / "drafts.jsonl"
+OUT = Path(os.environ.get("THM_REGEST_OUT") or ROOT / "regests" / "drafts.jsonl")  # tei: outside the checkout
 
 SYSTEM = """Du bist Editorin der Thuner Missiven: Briefe an Schultheiss und Rat der Stadt Thun
 aus dem 15. und 16. Jahrhundert, viele von Schultheiss und Rat zu Bern.
