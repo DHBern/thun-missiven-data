@@ -41,6 +41,15 @@ OUT = ROOT / "site" / "data"
 CHUNK = 20                     # pages per file the viewer loads at once
 SEARCH_SHARD_CHARS = 1_500_000  # text per search shard, loaded in parallel
 DOC = re.compile(r"^BAT_(\d+(?:\.\d+)?)_?(.*)$")
+# Two Transkribus titles write the sub-shelfmark with an underscore:
+# "BAT_664_1_100_199" is BAT 664.1, Nr. 100-199 (not BAT 664, "1-100 199").
+SUBSHELF = re.compile(r"^BAT_(\d+)_1_(\d+_\d+.*)$")
+
+
+def norm_title(title: str) -> str:
+    m = SUBSHELF.match(title)
+    return f"BAT_{m.group(1)}.1_{m.group(2)}" if m else title
+
 
 
 def flat(text: str) -> str:
@@ -98,7 +107,7 @@ def load_entities() -> dict[str, dict[str, list]]:
 
 
 def doc_meta(doc: str) -> dict:
-    m = DOC.match(doc)
+    m = DOC.match(norm_title(doc))
     shelf, rest = (m.group(1), m.group(2)) if m else (doc, "")
     parts = [x for x in rest.split("_") if x]
     if len(parts) >= 2 and parts[0].isdigit() and parts[1].isdigit():  # "500_543_und_465"

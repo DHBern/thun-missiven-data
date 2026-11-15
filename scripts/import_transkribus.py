@@ -41,12 +41,21 @@ ROOT = Path(__file__).resolve().parents[1]
 READER = "transkribus-pylaia-m2.4"
 EMAIL = re.compile(r"[\w.+-]+@[\w-]+\.[\w.-]+")
 DOC = re.compile(r"^BAT_(\d+)(?:\.(\d+))?(?:_(\d+))?(.*)$")
+# Two Transkribus titles write the sub-shelfmark with an underscore:
+# "BAT_664_1_100_199" is BAT 664.1, Nr. 100-199 (not BAT 664, "1-100 199").
+SUBSHELF = re.compile(r"^BAT_(\d+)_1_(\d+_\d+.*)$")
+
+
+def norm_title(title: str) -> str:
+    m = SUBSHELF.match(title)
+    return f"BAT_{m.group(1)}.1_{m.group(2)}" if m else title
+
 
 
 def doc_sort_key(title: str) -> tuple:
     """BAT_663_..., BAT_663.1_..., BAT_664_... then the first letter number:
     shelfmark order. Unknown titles go last, alphabetically."""
-    m = DOC.match(title)
+    m = DOC.match(norm_title(title))
     if not m:
         return (1 << 30, 0, 0, title)
     shelf, sub, first, rest = m.groups()
