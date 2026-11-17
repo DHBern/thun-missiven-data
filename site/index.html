@@ -4,12 +4,14 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Thun Missives Readings</title>
-<meta name="description" content="Letters received by the town of Thun (Burgerarchiv Thun, 15th–16th century), letter by letter with the page images, as read by machines: uncorrected automatic readings, switchable reader by reader, machine-drafted regests, full-text search. No edition, no ground truth.">
+<meta name="description" content="Letters received by the town of Thun (Burgerarchiv Thun, 15th–16th century), letter by letter with the page images, as read by machines: uncorrected automatic readings, switchable reader by reader, machine-drafted regests, full-text search, a register of persons, places and organisations generated from automatic tagging, with a map. No edition, no ground truth.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;600;700&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/openseadragon/4.1.0/openseadragon.min.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 </head>
 <body>
 <header class="top">
@@ -17,6 +19,8 @@
   <nav>
     <a href="#/" data-nav="letters">Letters</a>
     <a href="#/search" data-nav="search">Search</a>
+    <a href="#/places" data-nav="places">Places</a>
+    <a href="#/names" data-nav="names">Names</a>
     <a href="#/readers" data-nav="readers">Readers</a>
     <a href="#/about" data-nav="about">About</a>
     <span class="lang" role="group" aria-label="Language / Sprache"><button type="button" data-lang="de">DE</button><button type="button" data-lang="en">EN</button></span>

@@ -1,6 +1,6 @@
 /* Thun Missives — readings viewer. No build step, no framework.
    Forked from the St. Gallen Missives viewer (DHBern/sg-missiven-data): no
-   edition, no scores, no registers. The unit is the letter (readings/letters.tsv,
+   edition, no scores; the register is generated from the automatic tagging. The unit is the letter (readings/letters.tsv,
    split by the scan file names), with its pages, their machine readings, the
    page images from Transkribus (IIIF) and, where one exists, a regest drafted
    by a language model. */
@@ -28,7 +28,7 @@
   function applyLang() {
     document.documentElement.lang = LANG;
     document.title = T("Thun Missives Readings", "Thuner Missiven: Lesungen");
-    const nav = { letters: T("Letters", "Briefe"), search: T("Search", "Suche"), readers: T("Readers", "Leser"), about: T("About", "Über") };
+    const nav = { letters: T("Letters", "Briefe"), search: T("Search", "Suche"), places: T("Places", "Orte"), names: T("Names", "Namen"), readers: T("Readers", "Leser"), about: T("About", "Über") };
     document.querySelectorAll("[data-nav]").forEach((a) => { a.textContent = nav[a.dataset.nav]; });
     const brand = document.querySelector(".brand");
     if (brand) brand.innerHTML = `${T("Thun Missives", "Thuner Missiven")} <span>· ${T("readings", "Lesungen")}</span>`;
@@ -213,12 +213,12 @@
     const withKw = ls.filter((l) => l.k && l.k.length).length;
     const terms = [...state.kw.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0], "de"));
     const max = terms[0][1];
-    const row = ([k, c]) => `<a class="kwrow" href="#/search?kw=${encodeURIComponent(k)}"><span class="kl" lang="de">${esc(k)}</span><span class="kb"><i style="width:${(c / max) * 100}%"></i></span><span class="kn">${num(c)}</span></a>`;
+    const row = ([k, c]) => `<a class="kwrow" href="${kwHref(k)}"><span class="kl" lang="de">${esc(k)}</span><span class="kb"><i style="width:${(c / max) * 100}%"></i></span><span class="kn">${num(c)}</span></a>`;
     const TOP = 40;
     return `<section class="overview kwov" aria-labelledby="kw-h">
       <h2 id="kw-h">${T("Keywords", "Schlagwörter")}</h2>
-      <p class="small muted">${T(`${num(withKw)} of ${num(ls.length)} letters have keywords, ${num(terms.length)} different terms. A language model assigned them from the machine-drafted regests, choosing from the ${num(voc.terms)} keywords of the St. Gallen Missives edition; unchecked. Click a keyword to search its letters.`,
-        `${num(withKw)} von ${num(ls.length)} Briefen haben Schlagwörter, ${num(terms.length)} verschiedene. Ein Sprachmodell hat sie aus den maschinell entworfenen Regesten vergeben, gewählt aus den ${num(voc.terms)} Schlagwörtern der Edition der St. Galler Missiven; ungeprüft. Ein Klick auf ein Schlagwort sucht seine Briefe.`)}</p>
+      <p class="small muted">${T(`${num(withKw)} of ${num(ls.length)} letters have keywords, ${num(terms.length)} different terms. A language model assigned them from the machine-drafted regests, choosing from the ${num(voc.terms)} keywords of the St. Gallen Missives edition; unchecked. Click a keyword for its page: its letters, its companions and their decades.`,
+        `${num(withKw)} von ${num(ls.length)} Briefen haben Schlagwörter, ${num(terms.length)} verschiedene. Ein Sprachmodell hat sie aus den maschinell entworfenen Regesten vergeben, gewählt aus den ${num(voc.terms)} Schlagwörtern der Edition der St. Galler Missiven; ungeprüft. Ein Klick auf ein Schlagwort öffnet seine Seite: seine Briefe, seine Begleiter und deren Jahrzehnte.`)}</p>
       <div class="kwlist">${terms.slice(0, TOP).map(row).join("")}</div>
       ${terms.length > TOP ? `<details class="kwmore"><summary>${T(`Show all ${num(terms.length)}`, `Alle ${num(terms.length)} anzeigen`)}</summary><div class="kwlist">${terms.slice(TOP).map(row).join("")}</div></details>` : ""}
     </section>`;
@@ -260,10 +260,18 @@
 
   function route() {
     hideTip();
+    destroyMaps();
     const [path, qs] = location.hash.replace(/^#\/?/, "").split("?");
     const parts = path.split("/").map(decodeURIComponent);
+    /* a new view starts at the top (a letter keeps its own scrolling between its pages) */
+    const view = parts[0] === "letter" ? "letter/" + parts[1] : path;
+    if (state.lastView !== undefined && state.lastView !== view) window.scrollTo(0, 0);
+    state.lastView = view;
     if (parts[0] !== "letter") { destroyOsd(); cur = null; }
     if (parts[0] === "search") return showSearch(new URLSearchParams(qs || ""));
+    if (parts[0] === "places" || parts[0] === "names") return showRegister(parts[0], new URLSearchParams(qs || ""));
+    if (parts[0] === "entry" && parts[1]) return showEntry(parts[1]);
+    if (parts[0] === "keyword" && parts[1]) return showKeyword(parts[1]);
     if (parts[0] === "letter" && parts[1]) return showLetter(parts[1], +(parts[2] || 1), parts[3]);
     /* old links: #/doc/<Transkribus document>/<page>/<reader>, and #/page/<page key> */
     if (parts[0] === "doc" && parts[1]) return toPageKey(`${parts[1]}_p${String(+(parts[2] || 1)).padStart(4, "0")}`, parts[3]);
@@ -278,6 +286,387 @@
     const hit = (await state.pagekeys)[key];
     if (!hit) { app.innerHTML = `<p>${T("No page", "Keine Seite")} ${esc(key)}. <a href="#/">${T("All letters", "Alle Briefe")}</a></p>`; return; }
     location.replace(`#/letter/${encodeURIComponent(hit[0])}/${hit[1]}${reader ? "/" + encodeURIComponent(reader) : ""}`);
+  }
+
+  /* ---------- register (registers/*.json via site/data/registers.json) ----------
+     Generated automatically from the tagging (scripts/register.py, docs/REGISTER.md):
+     every entry and every link is a proposal, graded by St. Gallen's rules. The
+     list, entry and map code is adapted from the St. Gallen viewer. */
+  function loadRegisters() {
+    if (!state.index.registers) return Promise.resolve(null);
+    if (!state.regP) {
+      state.regP = json("data/registers.json").then((r) => {
+        const byLetter = new Map();
+        for (const [id, e] of Object.entries(r.entries)) {
+          const f = { place: "pl", person: "per", org: "org" }[e.k];
+          for (const lid of e.l) {
+            if (!byLetter.has(lid)) byLetter.set(lid, { pl: [], per: [], org: [] });
+            byLetter.get(lid)[f].push(id);
+          }
+        }
+        state.reg = r; state.regByLetter = byLetter;
+        return r;
+      }).catch(() => null);
+    }
+    return state.regP;
+  }
+  const GRADE = () => ({ "sicher": T("certain", "sicher"), "wahrscheinlich": T("likely", "wahrscheinlich"), "möglich": T("possible", "möglich") });
+  const SRC = () => ({ "hls": "HLS", "ssrq": "SSRQ", "kf": T("Königsfelden", "Königsfelden"), "st-gallen": T("St. Gallen", "St. Gallen") });
+  const LINK_LABEL = { "hls": "HLS", "ssrq": "SSRQ", "kf": "Königsfelden", "st-gallen": "St. Gallen", "gnd": "GND", "ortsnamen": "ortsnamen.ch", "wikidata": "Wikidata" };
+  const kindName = (k) => ({ place: T("place", "Ort"), person: T("person", "Person"), org: T("organisation", "Organisation") }[k] || k);
+  const nLetters = (e) => e.l.length;
+  const best = (e) => (e.c || [])[0];
+  /* "(measured in St. Gallen: 74 % right)" for a candidate's rule and grade */
+  function precision(c, kind) {
+    const m = ((state.reg || {}).measured || {})[c.rule];
+    const kk = kind === "person" ? "per" : kind;
+    const v = m && m[kk] && m[kk][c.grade];
+    if (!v) return c.rule === "sg-formula" || c.rule === "org" || c.rule === "sg-register" ? T("not measured", "nicht gemessen") : "";
+    return T(`measured in St. Gallen: ${Math.round((100 * v[0]) / v[1])} % right (${v[0]}/${v[1]})`, `in St. Gallen gemessen: ${Math.round((100 * v[0]) / v[1])} % richtig (${v[0]}/${v[1]})`);
+  }
+  function candLinks(c) {
+    return (c.links || []).map((l) => `<a href="${esc(l.url)}" target="_blank" rel="noopener">${esc(LINK_LABEL[l.type] || l.type)}</a>`).join("");
+  }
+  const gradeChip = (c, kind) => `<span class="grade g-${esc(c.grade)}" title="${esc(precision(c, kind))}">${esc(GRADE()[c.grade] || c.grade)}</span>`;
+  const autoBadge = () => `<span class="badge gen" title="${esc(T("Generated automatically from the automatic tagging; unchecked", "Automatisch aus der automatischen Auszeichnung generiert; ungeprüft"))}">${T("automatic", "automatisch")}</span>`;
+  const candDesc = (c) => [
+    c.desc, c.region, c.type,
+    c.birth || c.death ? `${c.birth || "?"}–${c.death || "?"}` : "",
+    c.first ? T(`attested ${c.first}${c.last && c.last !== c.first ? "–" + c.last : ""}`, `belegt ${c.first}${c.last && c.last !== c.first ? "–" + c.last : ""}`) : "",
+    c.km != null ? T(`${num(c.km)} km from Thun`, `${num(c.km)} km von Thun`) : "",
+  ].filter(Boolean).join(" · ");
+
+  function regIntro(which) {
+    const r = state.reg, es = Object.values(r.entries);
+    const kinds = which === "places" ? ["place"] : ["person", "org"];
+    const n = (k) => es.filter((e) => e.k === k).length;
+    return `<section class="intro">
+      <h1>${which === "places" ? T("Places", "Orte") : T("Names", "Namen")}</h1>
+      <p>${which === "places"
+        ? T(`${num(n("place"))} places, generated automatically from the names that the automatic tagging found in the letters, one entry per settlement where the spellings could be joined.`,
+            `${num(n("place"))} Orte, automatisch generiert aus den Namen, die die automatische Auszeichnung in den Briefen gefunden hat, ein Eintrag pro Siedlung, wo sich die Schreibungen zusammenführen liessen.`)
+        : T(`${num(n("person"))} persons and ${num(n("org"))} organisations, generated automatically from the names that the automatic tagging found in the letters. A person is a name within 30 years; the same name later is another entry.`,
+            `${num(n("person"))} Personen und ${num(n("org"))} Organisationen, automatisch generiert aus den Namen, die die automatische Auszeichnung in den Briefen gefunden hat. Eine Person ist ein Name innerhalb von 30 Jahren; derselbe Name später ist ein weiterer Eintrag.`)}
+      ${T(`Each entry is matched against HLS, the SSRQ, the Königsfelden edition and the St. Gallen Missives; every link is a proposal graded <b>certain</b>, <b>likely</b> or <b>possible</b> by St. Gallen's rules, with the precision St. Gallen measured for that rule. Nothing here is checked by a person; the tagger itself is not measured on Thun.`,
+        `Jeder Eintrag ist mit dem HLS, der SSRQ, der Königsfelder Edition und den St. Galler Missiven abgeglichen; jeder Link ist ein Vorschlag, nach den Regeln aus St. Gallen als <b>sicher</b>, <b>wahrscheinlich</b> oder <b>möglich</b> eingestuft, mit der Trefferquote, die St. Gallen für die Regel gemessen hat. Nichts hier ist von einem Menschen geprüft; die Auszeichnung selbst ist an Thun nicht gemessen.`)}
+      <a href="https://github.com/DHBern/thun-missiven-data/blob/main/docs/REGISTER.md" target="_blank" rel="noopener">docs/REGISTER.md</a></p>
+    </section>`;
+  }
+
+  async function showRegister(which, params) {
+    setNav(which);
+    app.innerHTML = `<p class="muted">${T("Loading…", "Wird geladen…")}</p>`;
+    const r = await loadRegisters();
+    if (!r) { app.innerHTML = `<p>${T("No register yet.", "Noch kein Register.")}</p>`; return; }
+    const kinds = which === "places" ? ["place"] : ["person", "org"];
+    const all = Object.entries(r.entries).filter(([, e]) => kinds.includes(e.k)).sort((a, b) => nLetters(b[1]) - nLetters(a[1]) || a[1].n.localeCompare(b[1].n, "de"));
+    const f = state.regFilter = state.regFilter || {};
+    if (params.get("nogeo")) f.nogeo = true;
+    const noGeo = all.filter(([, e]) => !e.g || e.gg !== "wahrscheinlich").length;
+    const cnt = (pred) => all.filter(([, e]) => pred(e)).length;
+    app.innerHTML = regIntro(which) + `
+      <div class="filters">
+        <input id="rq" type="search" placeholder="${T("Search names and spellings…", "Namen und Schreibungen suchen…")}" value="${esc(f[which] || "")}" aria-label="${T("Search the register", "Register durchsuchen")}">
+        ${which === "names" ? `<select id="rt" aria-label="${T("Kind", "Art")}"><option value="">${T("Persons and organisations", "Personen und Organisationen")}</option><option value="person" ${f.kind === "person" ? "selected" : ""}>${T("Persons", "Personen")} (${num(cnt((e) => e.k === "person"))})</option><option value="org" ${f.kind === "org" ? "selected" : ""}>${T("Organisations", "Organisationen")} (${num(cnt((e) => e.k === "org"))})</option></select>` : ""}
+        <select id="rgr" aria-label="${T("Best link", "Bester Link")}">
+          <option value="">${T("Any link", "Alle")}</option>
+          ${["sicher", "wahrscheinlich", "möglich"].map((g) => `<option value="${g}" ${f.grade === g ? "selected" : ""}>${T("best link", "bester Link")} ${GRADE()[g]} (${num(cnt((e) => best(e) && best(e).grade === g))})</option>`).join("")}
+          <option value="none" ${f.grade === "none" ? "selected" : ""}>${T("no candidate", "kein Kandidat")} (${num(cnt((e) => !best(e)))})</option>
+        </select>
+        <select id="rsrc" aria-label="${T("Source", "Quelle")}"><option value="">${T("Any source", "Alle Quellen")}</option>
+          ${Object.entries(SRC()).map(([k, l]) => `<option value="${k}" ${f.src === k ? "selected" : ""}>${T("best link from", "bester Link aus")} ${esc(l)} (${num(cnt((e) => best(e) && (best(e).srcs || []).includes(k)))})</option>`).join("")}</select>
+        <label class="small"><input type="checkbox" id="rmany" ${f.many ? "checked" : ""}> ${T("in two letters or more", "in zwei Briefen oder mehr")}</label>
+        ${which === "places" ? `<label class="small"><input type="checkbox" id="rg" ${f.nogeo ? "checked" : ""}> ${T("not on the map", "nicht auf der Karte")} (${num(noGeo)})</label>` : ""}
+        <span id="rcount" class="muted small"></span>
+      </div>
+      <div class="list reg" id="rlist"></div>`;
+    const $ = (id) => document.getElementById(id);
+    const draw = () => {
+      f[which] = $("rq").value; f.grade = $("rgr").value; f.src = $("rsrc").value; f.many = $("rmany").checked;
+      if (which === "names") f.kind = $("rt").value;
+      if (which === "places") f.nogeo = $("rg").checked;
+      const words = $("rq").value.toLowerCase().split(/\s+/).filter(Boolean);
+      const rows = all.filter(([, e]) => {
+        const b = best(e);
+        if (which === "names" && f.kind && e.k !== f.kind) return false;
+        if (f.grade && (f.grade === "none" ? b : !b || b.grade !== f.grade)) return false;
+        if (f.src && (!b || !(b.srcs || []).includes(f.src))) return false;
+        if (f.many && nLetters(e) < 2) return false;
+        if (which === "places" && f.nogeo && e.g && e.gg === "wahrscheinlich") return false;
+        if (!words.length) return true;
+        const hay = [e.n, ...e.f.map((x) => x[0]), b ? b.label : ""].join(" ").toLowerCase();
+        return words.every((w) => hay.includes(w));
+      });
+      $("rcount").textContent = `${num(rows.length)} ${P(rows.length, "entry", "entries", "Eintrag", "Einträge")}`;
+      $("rlist").innerHTML = rows.slice(0, 400).map(([id, e]) => {
+        const b = best(e), n = nLetters(e);
+        return `<div class="row rrow">
+          <span class="num">${num(n)}<span class="muted small"> ${P(n, "letter", "letters", "Brief", "Briefe")}</span></span>
+          <span><a class="who go" href="#/entry/${encodeURIComponent(id)}">${esc(e.n)}</a>${e.y ? ` <span class="muted small">${e.y[0]}${e.y[1] !== e.y[0] ? "–" + e.y[1] : ""}</span>` : ""}
+            <span class="reg">${esc(kindName(e.k))}${e.f.length > 1 ? ` · ${e.f.slice(0, 4).map((x) => esc(x[0])).join(", ")}` : ""}${b ? ` · ${esc(b.label)}?` : ` · ${T("no candidate found", "kein Kandidat gefunden")}`}</span></span>
+          <span class="ext">${b ? gradeChip(b, e.k) : ""}${b ? candLinks(b) : ""}</span>
+        </div>`;
+      }).join("") + (rows.length > 400 ? `<p class="muted small">${T(`Showing 400 of ${num(rows.length)}: narrow the search.`, `400 von ${num(rows.length)} angezeigt: Suche eingrenzen.`)}</p>` : "");
+    };
+    ["rq", "rgr", "rsrc", "rmany", "rt", "rg"].forEach((id) => { const el = $(id); el && el.addEventListener(id === "rq" ? "input" : "change", draw); });
+    draw();
+  }
+
+  async function showEntry(id) {
+    app.innerHTML = `<p class="muted">${T("Loading…", "Wird geladen…")}</p>`;
+    const r = await loadRegisters();
+    const e = r && r.entries[id];
+    if (!e) { setNav("places"); app.innerHTML = `<p>${T("No register entry", "Kein Registereintrag")} ${esc(id)}. <a href="#/places">${T("Places", "Orte")}</a> · <a href="#/names">${T("Names", "Namen")}</a></p>`; return; }
+    const which = e.k === "place" ? "places" : "names";
+    setNav(which);
+    const facet = { place: "pl", person: "per", org: "org" }[e.k];
+    const letters = e.l.map((lid) => state.index.letters[state.pos.get(lid)]).filter(Boolean);
+    const roles = Object.entries(e.r || {}).map(([k, n]) => `${esc({ issuer: T("issuer", "Aussteller"), recipient: T("recipient", "Empfänger"), origPlace: T("place of writing", "Ausstellungsort") }[k] || k)} ${num(n)}×`).join(", ");
+    const sg = (e.c || []).filter((c) => c.sg);
+    app.innerHTML = `
+      <section class="entry">
+        <p class="muted small"><a href="#/${which}">← ${which === "places" ? T("Places", "Orte") : T("Names", "Namen")}</a></p>
+        <h1>${esc(e.n)} ${autoBadge()}</h1>
+        <p class="muted">${esc(kindName(e.k))}${e.y ? ` · ${e.y[0]}${e.y[1] !== e.y[0] ? "–" + e.y[1] : ""}` : ""} · ${num(e.m)} ${P(e.m, "mention", "mentions", "Nennung", "Nennungen")} ${T("in", "in")} ${num(letters.length)} ${P(letters.length, "letter", "letters", "Brief", "Briefen")}${roles ? ` · ${roles}` : ""}</p>
+        <p class="note-box">${T(`This entry was generated automatically: the tagger (St. Gallen's model, not measured on Thun) found these names in the machine reading, and a rule joined their spellings${e.k === "person" ? " within 30 years" : ""}${e.nz ? "; the address formula is normalised" : ""}. The candidates were looked up by name${e.k === "person" ? " and checked against the letters' years" : ""}. None of it is checked by a person.`,
+          `Dieser Eintrag ist automatisch generiert: Die Auszeichnung (das Modell aus St. Gallen, an Thun nicht gemessen) hat diese Namen in der maschinellen Lesung gefunden, und eine Regel hat ihre Schreibungen zusammengeführt${e.k === "person" ? ", innerhalb von 30 Jahren" : ""}${e.nz ? "; die Anredeformel ist vereinheitlicht" : ""}. Die Kandidaten sind nach dem Namen gesucht${e.k === "person" ? " und an den Jahren der Briefe geprüft" : ""}. Nichts davon ist von einem Menschen geprüft.`)}</p>
+        <h2>${T("Spellings", "Schreibungen")}</h2>
+        <p class="chips">${e.f.map(([f, n]) => `<span><i>${esc(f)}</i> <span class="muted">${num(n)}</span></span>`).join("")}</p>
+        <h2>${T("Candidates", "Kandidaten")}</h2>
+        ${(e.c || []).length ? `<div class="list cands">${e.c.map((c) => `
+          <div class="row cand">${gradeChip(c, e.k)}
+            <span><b>${esc(c.label)}</b> <span class="muted small">${esc((c.srcs || []).map((s) => SRC()[s] || s).join(" + "))}</span>${candDesc(c) ? `<br><span class="muted small">${esc(candDesc(c))}</span>` : ""}${c.via && c.via !== c.label ? `<br><span class="muted small">${T("found by the spelling", "gefunden über die Schreibung")} «${esc(c.via)}»</span>` : ""}<br><span class="muted small">${esc(precision(c, e.k))}</span></span>
+            <span class="ext">${candLinks(c)}</span>
+          </div>`).join("")}</div>
+          <p class="muted small">${e.k === "person"
+            ? T("Grades: <b>certain</b> forename and surname match an HLS person (≥ 95), the letters fall in the adult life and nothing else comes close; <b>likely</b> the spelling matches (≥ 90 HLS, ≥ 95 SSRQ/Königsfelden/St. Gallen, those attested within 40 years of the letters), clearly the best; <b>possible</b> a close spelling whose years fit. SSRQ, Königsfelden and St. Gallen are never certain.",
+                "Stufen: <b>sicher</b> Vor- und Nachname stimmen mit einer Person im HLS (≥ 95), die Briefe fallen in ihr Erwachsenenleben, nichts anderes kommt nahe; <b>wahrscheinlich</b> die Schreibung stimmt (≥ 90 HLS, ≥ 95 SSRQ/Königsfelden/St. Gallen, dort innerhalb von 40 Jahren um die Briefe belegt), klar der beste; <b>möglich</b> eine ähnliche Schreibung, deren Jahre passen. SSRQ, Königsfelden und St. Gallen sind nie «sicher».")
+            : e.k === "place"
+            ? T("Grades: <b>likely</b> the spelling is a name of a place with an HLS article (settlements, then the nearest to Thun, first), or exactly one settlement of the SSRQ place database has it as a name or a recorded spelling; <b>possible</b> another place of that name, or a close spelling. A place is never certain: old spellings name too many places.",
+                "Stufen: <b>wahrscheinlich</b> die Schreibung ist ein Name eines Orts mit HLS-Artikel (Siedlungen und dann der nächste bei Thun zuerst), oder genau eine Siedlung der SSRQ-Ortsdatenbank hat sie als Namen oder überlieferte Schreibung; <b>möglich</b> ein anderer Ort dieses Namens oder eine ähnliche Schreibung. Ein Ort ist nie «sicher»: Alte Schreibungen treffen zu viele Orte.")
+            : T("Grades: an organisation is at most <b>possible</b> (St. Gallen's rule), except that the normalised address formula equal to the main name of a St. Gallen register entry is <b>likely</b> (a Thun rule, not measured).",
+                "Stufen: Eine Organisation ist höchstens <b>möglich</b> (Regel aus St. Gallen), ausser die vereinheitlichte Anredeformel ist genau der Hauptname eines Eintrags im St. Galler Register: dann <b>wahrscheinlich</b> (eine Thuner Regel, nicht gemessen).")}</p>`
+          : `<p class="muted">${T("No candidate found in HLS, the SSRQ, Königsfelden or St. Gallen.", "Kein Kandidat im HLS, in der SSRQ, in Königsfelden oder in St. Gallen gefunden.")}${e.k === "person" && !e.y ? " " + T("Without a year no person is proposed.", "Ohne Jahr wird keine Person vorgeschlagen.") : ""}</p>`}
+        ${sg.length ? `<p>${T("In the St. Gallen Missives", "In den St. Galler Missiven")}: ${sg.map((c) => `<a href="${esc((c.links.find((l) => l.type === "st-gallen") || {}).url)}" target="_blank" rel="noopener">${esc(c.label)} ↗</a> <span class="muted small">(${esc(GRADE()[c.grade])})</span>`).join(", ")}</p>` : ""}
+        ${e.k === "place" ? (e.g ? `<div id="emap" class="emap"></div><p class="small muted">${T("Coordinates from", "Koordinaten aus")} ${esc(SRC()[e.gf] || (e.gf === "wikidata" ? T("Wikidata, by the HLS id", "Wikidata, über die HLS-Kennung") : e.gf || ""))}, ${T("candidate graded", "Kandidat eingestuft als")} ${esc(GRADE()[e.gg] || "")}.</p>`
+          : `<p class="note-box">${T("No coordinates: no candidate with coordinates was found, so the place is not on the map.", "Keine Koordinaten: Kein Kandidat mit Koordinaten gefunden, darum fehlt der Ort auf der Karte.")}</p>`) : ""}
+        <h2>${num(letters.length)} ${P(letters.length, "letter", "letters", "Brief", "Briefe")} <a class="small" href="#/search?${facet}=${encodeURIComponent(id)}">${T("in the search", "in der Suche")} →</a></h2>
+        <div class="list">${letters.map((l) => letterRow(l)).join("")}</div>
+      </section>`;
+    if (e.g && window.L) {
+      const m = baseMap("emap", { center: e.g, zoom: 10 });
+      placeMarker(id, e, m, true);
+    }
+  }
+
+  /* ---------- map (Leaflet 1.9.4, OpenStreetMap tiles) ---------- */
+  let leafletMaps = [];
+  function destroyMaps() { leafletMaps.forEach((m) => m.remove()); leafletMaps = []; }
+  function baseMap(el, opts = {}) {
+    const m = L.map(el, { scrollWheelZoom: false, ...opts });
+    L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      maxZoom: 18, attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+    }).addTo(m);
+    leafletMaps.push(m);
+    return m;
+  }
+  function placeMarker(id, e, m, on) {
+    const n = nLetters(e);
+    const poss = e.gg !== "wahrscheinlich";
+    const pop = `<b>${esc(e.n)}</b><br>${num(n)} ${P(n, "letter", "letters", "Brief", "Briefe")}${poss ? `<br><span class="muted">${T("coordinates of a «possible» candidate", "Koordinaten eines «möglichen» Kandidaten")}</span>` : ""}
+      <br><a href="#/entry/${encodeURIComponent(id)}">${T("Entry", "Eintrag")}</a> · <a href="#/search?pl=${encodeURIComponent(id)}">${T("Letters", "Briefe")}</a>`;
+    return L.circleMarker(e.g, { radius: Math.min(22, 4 + Math.sqrt(n) * 1.6), className: `lf-place${poss ? " poss" : ""}${on ? " on" : ""}`, weight: 1.5, fillOpacity: poss ? 0.15 : 0.45, dashArray: poss ? "3 3" : null })
+      .bindTooltip(`${esc(e.n)} · ${num(n)} ${P(n, "letter", "letters", "Brief", "Briefe")}`)
+      .bindPopup(pop)
+      .addTo(m);
+  }
+  function mapHtml() {
+    if (!state.index.registers || !state.index.registers.place) return "";
+    return `<section class="overview mapov" aria-labelledby="map-h">
+      <h2 id="map-h">${T("Places", "Orte")}</h2>
+      <p class="small muted" id="map-note">${T("Loading…", "Wird geladen…")}</p>
+      <label class="small"><input type="checkbox" id="mapposs" ${state.mapPoss ? "checked" : ""}> ${T("also places whose coordinates come from a «possible» candidate", "auch Orte, deren Koordinaten von einem «möglichen» Kandidaten stammen")}</label>
+      <div id="ovmap" class="ovmap" role="region" aria-label="${T("Map of the places named in the letters", "Karte der in den Briefen genannten Orte")}"></div>
+    </section>`;
+  }
+  async function drawOverviewMap() {
+    const el = document.getElementById("ovmap");
+    if (!el) return;
+    const r = await loadRegisters();
+    if (!r || document.getElementById("ovmap") !== el) return;
+    if (!window.L) { el.innerHTML = `<p class="noimg">${T("The map library did not load.", "Die Kartenbibliothek wurde nicht geladen.")}</p>`; return; }
+    const places = Object.entries(r.entries).filter(([, e]) => e.k === "place");
+    const sure = places.filter(([, e]) => e.g && e.gg === "wahrscheinlich");
+    const poss = places.filter(([, e]) => e.g && e.gg !== "wahrscheinlich");
+    const shown = state.mapPoss ? sure.concat(poss) : sure;
+    const lettersOn = new Set(shown.flatMap(([, e]) => e.l)).size;
+    document.getElementById("map-note").innerHTML = T(
+      `${num(sure.length)} of the ${num(places.length)} places of the generated register have coordinates from a candidate graded «likely» (HLS, SSRQ, Königsfelden or St. Gallen; never from a name alone), ${num(poss.length)} more from a «possible» one. A circle's size is the number of letters that name the place; click it for the place and its letters. <a href="#/places?nogeo=1">${num(places.length - sure.length)} places are not on the map</a> (no coordinates, or only from a «possible» candidate). Places named in the letters on the map: ${num(lettersOn)} letters.`,
+      `${num(sure.length)} der ${num(places.length)} Orte des generierten Registers haben Koordinaten von einem als «wahrscheinlich» eingestuften Kandidaten (HLS, SSRQ, Königsfelden oder St. Gallen; nie aus dem Namen allein), ${num(poss.length)} weitere von einem «möglichen». Die Grösse eines Kreises ist die Zahl der Briefe, die den Ort nennen; ein Klick zeigt den Ort und seine Briefe. <a href="#/places?nogeo=1">${num(places.length - sure.length)} Orte fehlen auf der Karte</a> (keine Koordinaten oder nur von einem «möglichen» Kandidaten). Briefe, die einen Ort auf der Karte nennen: ${num(lettersOn)}.`);
+    const m = baseMap(el, { scrollWheelZoom: false });
+    shown.sort((a, b) => nLetters(b[1]) - nLetters(a[1])).forEach(([id, e]) => placeMarker(id, e, m));
+    /* open on the region: places in three letters or more, within 120 km of Thun; the far ones are a zoom away */
+    const core = sure.filter(([, e]) => nLetters(e) >= 3 && best(e) && best(e).km != null && best(e).km <= 120);
+    const pts = (core.length > 5 ? core : shown).map(([, e]) => e.g);
+    if (pts.length) m.fitBounds(L.latLngBounds(pts), { padding: [20, 20], maxZoom: 10 }); else m.setView([46.758, 7.628], 8);
+  }
+
+  /* ---------- keywords: Sankey (keyword -> its most frequent companions -> decades) ----------
+     Adapted from the St. Gallen viewer's drawSankey: plain SVG, no library; columns
+     of boxes, bands as filled cubic curves; one neutral tone, the band under the
+     pointer turns red. Periods are decades (dates/dates.jsonl). */
+  const kwHref = (k) => "#/keyword/" + encodeURIComponent(k);
+  const kwSearch = (...ks) => "#/search?" + ks.map((k) => "kw=" + encodeURIComponent(k)).join("&");
+  function kwLetters(k) { return state.index.letters.filter((l) => (l.k || []).includes(k)); }
+  /* a keyword on more than half the letters (Schultheiss: it is in nearly every address)
+     says nothing about a companion: left out of the companions and not the default */
+  const commonKw = () => {
+    if (!state.kwCommon) state.kwCommon = new Set([...state.kw.entries()].filter(([, n]) => n > state.index.letters.length / 2).map(([k]) => k));
+    return state.kwCommon;
+  };
+  function companions(k, mine) {
+    const co = new Map(), skip = commonKw();
+    for (const l of mine) for (const x of l.k) if (x !== k && !skip.has(x)) co.set(x, (co.get(x) || 0) + 1);
+    return [...co.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0], "de"));
+  }
+  function tipAt(rect, html) {
+    hideTip();
+    tipEl = document.createElement("div");
+    tipEl.className = "tip";
+    tipEl.innerHTML = html;
+    tipEl.style.pointerEvents = "none";
+    document.body.appendChild(tipEl);
+    tipEl.style.left = Math.max(8, Math.min(window.innerWidth - tipEl.offsetWidth - 8, rect.left)) + "px";
+    tipEl.style.top = (rect.bottom + 6 + tipEl.offsetHeight > window.innerHeight ? rect.top - tipEl.offsetHeight - 6 : rect.bottom + 6) + "px";
+  }
+  function drawSankey(el, k, nComp = 8) {
+    const mine = kwLetters(k);
+    const comps = companions(k, mine).slice(0, nComp).map(([x]) => x);
+    if (!comps.length) { el.innerHTML = `<p class="muted small">${T("No other keyword is given with this one.", "Kein anderes Schlagwort ist mit diesem vergeben.")}</p>`; return; }
+    const W = 760, GAP = 6, PADY = 4;
+    const decOf = (l) => (l.y ? Math.floor(l.y / 10) * 10 : null);
+    const decs = [...new Set(mine.filter((l) => comps.some((c) => l.k.includes(c))).map(decOf))].sort((a, b) => (a ?? 1e9) - (b ?? 1e9));
+    const periods = decs.map((d) => ({ id: d == null ? "pu" : "p" + d, lo: d, label: d == null ? T("undated", "undatiert") : T(`${d}s`, `${d}er`) }));
+    const pOf = (l) => periods.find((p) => p.lo === decOf(l));
+    const flow1 = comps.map((c) => ({ c, n: mine.filter((l) => l.k.includes(c)).length }));
+    const flow2 = [];
+    for (const c of comps) for (const l of mine) {
+      if (!l.k.includes(c)) continue;
+      const p = pOf(l), f = flow2.find((x) => x.c === c && x.p === p);
+      if (f) f.n++; else flow2.push({ c, p, n: 1 });
+    }
+    const total = flow1.reduce((a, f) => a + f.n, 0);
+    const maxNodes = Math.max(comps.length, periods.length);
+    const scale = (Math.max(260, maxNodes * 24) - 2 * PADY - GAP * (maxNodes - 1)) / total;
+    const X = [150, 400, 640], NW = 12, MIN = 13;   // a box gets at least MIN px of room, so that labels do not overlap
+    const col = (items, size) => {
+      let y = 0;
+      const out = items.map((it) => { const h = size(it) * scale, r = { it, y, h }; y += Math.max(h, MIN) + GAP; return r; });
+      out.total = y - GAP;
+      return out;
+    };
+    const cIn = new Map(flow1.map((f) => [f.c, f.n]));
+    const pIn = new Map(periods.map((p) => [p, flow2.filter((f) => f.p === p).reduce((a, f) => a + f.n, 0)]));
+    const cols = [col([k], () => total), col(comps, (c) => cIn.get(c)), col(periods, (p) => pIn.get(p))];
+    const H = Math.max(...cols.map((c) => c.total)) + 2 * PADY;
+    cols.forEach((c) => { const off = (H - c.total) / 2; c.forEach((r) => { r.y += off; }); });
+    const [[nK], nC, nP] = cols;
+    const band = (x0, y0, x1, y1, h) => { const mx = (x0 + x1) / 2; return `M${x0},${y0}C${mx},${y0} ${mx},${y1} ${x1},${y1}L${x1},${y1 + h}C${mx},${y1 + h} ${mx},${y0 + h} ${x0},${y0 + h}Z`; };
+    const decQ = (p) => (p.lo == null ? "" : "&dec=" + p.lo);
+    let svg = "", yK = nK.y;
+    nC.forEach((nc) => {
+      svg += `<a href="${kwSearch(k, nc.it)}"><path class="sk-band" data-c="${esc(nc.it)}" data-tip="${esc(k)} + ${esc(nc.it)}: ${num(cIn.get(nc.it))} ${P(cIn.get(nc.it), "letter", "letters", "Brief", "Briefe")}" d="${band(X[0] + NW, yK, X[1], nc.y, nc.h)}"/></a>`;
+      yK += nc.h;
+    });
+    const outY = new Map(nC.map((nc) => [nc.it, nc.y])), inY = new Map(nP.map((np) => [np.it, np.y]));
+    for (const nc of nC) for (const np of nP) {
+      const f = flow2.find((x) => x.c === nc.it && x.p === np.it);
+      if (!f) continue;
+      const h = f.n * scale;
+      svg += `<a href="${kwSearch(k, nc.it)}${decQ(np.it)}"><path class="sk-band" data-c="${esc(nc.it)}" data-p="${np.it.id}" data-tip="${esc(k)} + ${esc(nc.it)}, ${esc(np.it.label)}: ${num(f.n)} ${P(f.n, "letter", "letters", "Brief", "Briefe")}" d="${band(X[1] + NW, outY.get(nc.it), X[2], inY.get(np.it), h)}"/></a>`;
+      outY.set(nc.it, outY.get(nc.it) + h); inY.set(np.it, inY.get(np.it) + h);
+    }
+    const node = (x, n, label, href, cls, data, anchor) => `<a href="${href}"><rect class="sk-node ${cls}" ${data} x="${x}" y="${n.y}" width="${NW}" height="${Math.max(1, n.h)}" rx="2"/>
+      <text class="sk-lab" x="${anchor === "end" ? x - 6 : x + NW + 6}" y="${n.y + n.h / 2}" text-anchor="${anchor}" dominant-baseline="middle">${label}</text></a>`;
+    svg += node(X[0], nK, esc(k), kwSearch(k), "key", "", "end");
+    nC.forEach((nc) => { svg += node(X[1], nc, `${esc(nc.it)} <tspan class="sk-n">${num(cIn.get(nc.it))}</tspan>`, kwHref(nc.it), "", `data-c="${esc(nc.it)}"`, "start"); });
+    nP.forEach((np) => { svg += node(X[2], np, `${esc(np.it.label)} <tspan class="sk-n">${num(pIn.get(np.it))}</tspan>`, kwSearch(k) + decQ(np.it), "", `data-p="${np.it.id}"`, "start"); });
+    el.innerHTML = `<div class="sankeywrap"><svg class="sankey" viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(T(`Sankey: ${k} to its companions and their decades`, `Sankey: ${k} zu seinen Begleitern und deren Jahrzehnten`))}">${svg}</svg></div>`;
+    const svgEl = el.querySelector("svg");
+    const lit = (c, p) => svgEl.querySelectorAll(".sk-band").forEach((b) => {
+      const on = (!c || b.dataset.c === c) && (!p || b.dataset.p === p || (!b.dataset.p && !c));
+      b.classList.toggle("hl", on && !!(c || p));
+      b.classList.toggle("dim", !on && !!(c || p));
+    });
+    svgEl.addEventListener("mouseover", (ev) => {
+      const b = ev.target.closest(".sk-band"), a = ev.target.closest("a"), n = a && a.querySelector(".sk-node");
+      if (b) { lit(b.dataset.c, b.dataset.p); tipAt(b.getBoundingClientRect(), esc(b.dataset.tip)); return; }
+      if (n && n.dataset.c) lit(n.dataset.c, null);
+      else if (n && n.dataset.p) svgEl.querySelectorAll(".sk-band").forEach((x) => {
+        const on = x.dataset.p === n.dataset.p || (!x.dataset.p && !!svgEl.querySelector(`.sk-band[data-p="${n.dataset.p}"][data-c="${CSS.escape(x.dataset.c)}"]`));
+        x.classList.toggle("hl", on); x.classList.toggle("dim", !on);
+      });
+    });
+    svgEl.addEventListener("mouseleave", () => { lit(null, null); hideTip(); });
+  }
+  function sankeyHtml() {
+    if (!state.kw.size) return "";
+    const terms = [...state.kw.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0], "de"));
+    const cur = state.kw.has(state.skKey) ? state.skKey : (terms.find(([k]) => !commonKw().has(k)) || terms[0])[0];
+    return `<section class="overview skov" aria-labelledby="sk-h">
+      <h2 id="sk-h">${T("A keyword, its companions, their decades", "Ein Schlagwort, seine Begleiter, ihre Jahrzehnte")}</h2>
+      <div class="tl-zoomhead"><label for="skk" class="small">${T("Keyword", "Schlagwort")}</label>
+        <select id="skk" lang="de">${terms.map(([k, n]) => `<option value="${esc(k)}" ${k === cur ? "selected" : ""}>${esc(k)} (${num(n)})</option>`).join("")}</select>
+        <a class="small" href="${kwHref(cur)}">${T("keyword page", "Seite des Schlagworts")} →</a></div>
+      <div id="sankey" data-k="${esc(cur)}"></div>
+      <p class="small muted">${T(`From the keyword to the keywords most often given with it, and on to the decades of those letters. A band's width is the number of letters that carry both; a letter with several of these companions counts once with each. A click on a band or a box opens those letters in the search. ${[...commonKw()].map((x) => "«" + esc(x) + "»").join(", ")} ${commonKw().size ? "(on more than half of all letters, in nearly every address) is left out of the companions. " : ""}Keywords are machine-assigned and unchecked; the years are read by rule.`,
+        `Vom Schlagwort zu den Schlagwörtern, die am häufigsten mit ihm vergeben sind, und weiter zu den Jahrzehnten dieser Briefe. Die Breite eines Bands ist die Zahl der Briefe mit beiden; ein Brief mit mehreren dieser Begleiter zählt bei jedem. Ein Klick auf ein Band oder ein Feld öffnet diese Briefe in der Suche. ${[...commonKw()].map((x) => "«" + esc(x) + "»").join(", ")} ${commonKw().size ? "(auf mehr als der Hälfte aller Briefe, in fast jeder Anrede) ist bei den Begleitern weggelassen. " : ""}Die Schlagwörter sind maschinell vergeben und ungeprüft; die Jahre nach Regeln gelesen.`)}</p>
+    </section>`;
+  }
+
+  function showKeyword(k) {
+    setNav("letters");
+    const mine = kwLetters(k);
+    if (!mine.length) { app.innerHTML = `<p>${T("No letter has the keyword", "Kein Brief hat das Schlagwort")} «${esc(k)}». <a href="#/">${T("Overview", "Übersicht")}</a></p>`; return; }
+    const co = companions(k, mine).slice(0, 24);
+    const by = new Map();
+    for (const l of mine) if (l.y) { const d = Math.floor(l.y / 10) * 10; by.set(d, (by.get(d) || 0) + 1); }
+    const decs = [...by.keys()].sort((a, b) => a - b), top = Math.max(1, ...by.values());
+    const rows = mine.slice().sort((a, b) => (a.y || 9999) - (b.y || 9999));
+    app.innerHTML = `
+      <section class="intro">
+        <div class="muted small"><a href="#/">${T("Overview", "Übersicht")}</a></div>
+        <h1 lang="de">${esc(k)}</h1>
+        <p>${T(`${num(mine.length)} ${P(mine.length, "letter", "letters", "", "")} with this keyword (machine-assigned, unchecked).`, `${num(mine.length)} ${P(mine.length, "", "", "Brief", "Briefe")} mit diesem Schlagwort (maschinell vergeben, ungeprüft).`)}
+          <a href="${kwSearch(k)}">${T("Open in the search", "In der Suche öffnen")}</a></p>
+      </section>
+      <section class="pane sankeypane"><h2>${T("Companions over time", "Begleiter über die Zeit")}</h2><div id="sankey"></div></section>
+      <div class="kwcols">
+        <section class="pane"><h2>${T("Over time", "Über die Zeit")}</h2>
+          <div class="kwbars" role="table" aria-label="${T("Letters per decade", "Briefe pro Jahrzehnt")}">${decs.map((d) => `<a href="${kwSearch(k)}&dec=${d}" role="row"><span class="yr">${d}</span><span class="bar"><i style="width:${Math.round((100 * by.get(d)) / top)}%"></i></span><span class="n">${num(by.get(d))}</span></a>`).join("")}</div>
+          <p class="muted small">${T("Letters with this keyword per decade; a click opens them in the search.", "Briefe mit diesem Schlagwort pro Jahrzehnt; ein Klick öffnet sie in der Suche.")}</p></section>
+        <section class="pane"><h2>${T("Often together with", "Oft zusammen mit")}</h2>
+          <div class="kw" lang="de">${co.map(([x, n]) => `<a href="${kwHref(x)}">${esc(x)} <span class="n">${num(n)}</span></a>`).join("")}</div>
+          <p class="muted small">${T("The number: letters that carry both keywords.", "Die Zahl: Briefe, die beide Schlagwörter tragen.")}</p></section>
+      </div>
+      <h2>${T("Letters", "Briefe")}</h2>
+      <div class="list">${rows.map((l) => letterRow(l)).join("")}</div>`;
+    drawSankey(document.getElementById("sankey"), k, 10);
+  }
+
+  /* the register entries this letter names (automatic tagging of one machine reading) */
+  function fillLetterNames(id) {
+    const el = document.getElementById("lreg");
+    if (!el || !state.reg) return;
+    const mine = state.regByLetter.get(id);
+    if (!mine) { el.innerHTML = ""; return; }
+    const part = (f, label) => {
+      const ids = mine[f].slice().sort((a, b) => state.reg.entries[b].m - state.reg.entries[a].m);
+      if (!ids.length) return "";
+      return `<span class="kwlab">${label}:</span>${ids.slice(0, 12).map((x) => `<a href="#/entry/${encodeURIComponent(x)}" class="r-${f}">${esc(state.reg.entries[x].n)}</a>`).join("")}${ids.length > 12 ? `<span class="muted small">+${ids.length - 12}</span>` : ""}`;
+    };
+    const html = [part("pl", T("Places", "Orte")), part("per", T("Persons", "Personen")), part("org", T("Organisations", "Organisationen"))].filter(Boolean);
+    el.innerHTML = html.length ? `<div class="kw kwl regl">${html.join("")}</div><p class="small muted">${T("Names found by the automatic tagging of the Gemini 4 Argon reading and joined into the generated register; unchecked.", "Namen, die die automatische Auszeichnung in der Lesung von Gemini 4 Argon gefunden hat, ins generierte Register zusammengeführt; ungeprüft.")}</p>` : "";
   }
 
   /* ---------- letters ---------- */
@@ -313,6 +702,7 @@
             `${num(drafted)} Briefe haben eine von einem Sprachmodell entworfene Überschrift und ein Regest: Maschinenentwürfe, ungeprüft.`) : ""}</p>
       </section>
       <div class="ovgrid">${timelineHtml()}${keywordsHtml()}</div>
+      ${mapHtml()}${sankeyHtml()}
       <div class="filters">
         <input id="q" type="search" placeholder="${T("Filter by shelfmark, number, sender, recipient…", "Nach Signatur, Nummer, Absender, Empfänger filtern…")}" value="${esc(state.filter)}" aria-label="${T("Filter letters", "Briefe filtern")}">
         <span id="count" class="muted small"></span>
@@ -343,6 +733,20 @@
       ["mouseout", "focusout"].forEach((e) => tl.addEventListener(e, (ev) => { if (!ev.relatedTarget || !ev.relatedTarget.closest || !ev.relatedTarget.closest(".tl-bar")) hideTip(); }));
       const z = document.getElementById("tl-zoom");
       z && z.addEventListener("change", () => { state.zoom = +z.value; const y = window.scrollY; hideTip(); showList(); window.scrollTo(0, y); const z2 = document.getElementById("tl-zoom"); z2 && z2.focus(); });
+    }
+    destroyMaps();
+    drawOverviewMap();
+    const mp = document.getElementById("mapposs");
+    mp && mp.addEventListener("change", () => { state.mapPoss = mp.checked; destroyMaps(); drawOverviewMap(); });
+    const sk = document.getElementById("sankey"), skk = document.getElementById("skk");
+    if (sk && skk) {
+      drawSankey(sk, skk.value);
+      skk.addEventListener("change", () => {
+        state.skKey = skk.value;
+        drawSankey(sk, skk.value);
+        const a = skk.parentElement.querySelector("a");
+        if (a) a.href = kwHref(skk.value);
+      });
     }
     app.querySelector(".shelves").addEventListener("click", (ev) => {
       const a = ev.target.closest("[data-shelf]");
@@ -409,11 +813,12 @@
         <li><b>Keine Edition, keine Ground Truth.</b> Keine Seite ist von Menschen transkribiert oder geprüft. Die erste Lesung ist die automatische Lesung in Transkribus (PyLaia, Modell «Medieval_Scripts_M2.4»), unkorrigiert.</li>
         <li><b>Überschriften und Regesten sind Maschinenentwürfe.</b> Ein offenes Sprachmodell (Qwen3.8-27B auf dem GPUStack der Universität Bern) entwirft sie aus der besten vorhandenen Lesung eines Briefs, mit Briefen der St. Galler Edition als Stilvorlagen. Niemand hat sie geprüft; Namen und Daten können falsch sein. Briefe ohne Entwurf zeigen keinen.</li>
         <li><b>Lesungen vergleichen</b>: Wo eine Seite mehrere Lesungen hat, zeigt «Vergleichen mit …» Wort für Wort, was die eine Lesung hat und die andere nicht. Die Prozentzahl ist <i>Abweichung, nie Qualität</i>.</li>
-        <li><b>Suche</b> im Text einer Lesung, Brief für Brief, mit «Schreibvarianten zulassen» (u/v/w, i/y/j, ſ/s, Doppelbuchstaben, ů/uo/u, ä/ae/a, Worttrennung am Zeilenende) und Facetten nach Signatur, Jahrzehnt und Jahr, Schlagwort, Absender, Empfänger und Regest.</li>
+        <li><b>Suche</b> im Text einer Lesung, Brief für Brief, mit «Schreibvarianten zulassen» (u/v/w, i/y/j, ſ/s, Doppelbuchstaben, ů/uo/u, ä/ae/a, Worttrennung am Zeilenende) und Facetten nach Signatur, Jahrzehnt und Jahr, Schlagwort, genanntem Ort, genannter Person und Organisation (Register), Absender, Empfänger und Regest.</li>
         <li><b>Daten.</b> Jahr und Tag jedes Briefs sind nach Regeln aus der Datumszeile gelesen, die der Regestentwurf aus einer maschinellen Lesung zitiert (<code>scripts/dates.py</code>). Ein aus einem Fest berechneter Tag ist julianisch; wo vom Jahr nur die letzten Ziffern geschrieben sind, stammt das Jahrhundert von den benachbarten datierten Briefen und ist unsicher. Schlagwörter vergibt ein Sprachmodell aus den Regestentwürfen, gewählt aus dem Vokabular der St. Galler Edition; ungeprüft.</li>
+        <li><b>Register, Karte und Sankey.</b> Personen, Orte und Organisationen hat das Modell der St. Galler Edition (hmBERT) in der Lesung von Gemini 4 Argon ausgezeichnet; an Thun ist es nicht gemessen. Daraus ist ein Register automatisch generiert (<code>scripts/register.py</code>): Schreibungen zusammengeführt, Personen nur innerhalb von 30 Jahren, jeder Eintrag mit dem HLS, der SSRQ, der Königsfelder Edition und den St. Galler Missiven abgeglichen und die Kandidaten nach den Regeln aus St. Gallen als sicher, wahrscheinlich oder möglich eingestuft. Koordinaten stammen nur von einem solchen Kandidaten, nie aus dem Namen allein. Die Übersicht zeigt die Orte auf einer Karte und ein Sankey-Diagramm vom Schlagwort zu seinen Begleitern und deren Jahrzehnten. Nichts davon ist geprüft; eine Stichprobe steht in <a href="https://github.com/DHBern/thun-missiven-data/blob/main/docs/REGISTER.md" target="_blank" rel="noopener">docs/REGISTER.md</a>.</li>
       </ul>
       <h2>Geplant</h2>
-      <p>Weitere Leser: Gemini 4 Argon, Gemini 3.8 Flash, ein feinjustiertes Qwen3.5-4B (Kurrent, ganze Seiten), kraken und TrOCR; Regestentwürfe für alle Briefe. Danach die automatische Auszeichnung von Personen, Orten und Daten (NER) und ihre Verknüpfung mit Normdaten.</p>
+      <p>Weitere Leser: ein feinjustiertes Qwen3.5-4B (Kurrent, ganze Seiten), kraken und TrOCR; Regestentwürfe für alle Briefe. Eine von Hand ausgezeichnete Stichprobe, an der sich die Auszeichnung und das Register an Thun messen lassen (docs/NER_REGISTER_PLAN.md).</p>
       <h2>Daten und Code</h2>
       <p><a href="https://github.com/DHBern/thun-missiven-data" target="_blank" rel="noopener">github.com/DHBern/thun-missiven-data</a> – die Lesungen liegen in <code>readings/</code>, eine JSON-Zeile pro Seite und Leser, die Briefe in <code>readings/letters.tsv</code>, die Regestentwürfe in <code>regests/drafts.jsonl</code>. Der Viewer ist aus dem der <a href="https://dhbern.github.io/sg-missiven-data/" target="_blank" rel="noopener">St. Galler Missiven</a> abgeleitet.</p>
     </section>` : `<section class="prose">
@@ -429,11 +834,12 @@
         <li><b>No edition, no ground truth.</b> No page has been transcribed or checked by a person. The first reading is the automatic one in Transkribus (PyLaia, model "Medieval_Scripts_M2.4"), uncorrected.</li>
         <li><b>Headings and regests are machine drafts.</b> An open language model (Qwen3.8-27B on the University of Bern's GPUStack) drafts them from the best reading a letter has, with letters of the St. Gallen edition as style examples. Nobody has checked them; names and dates may be wrong. Letters without a draft show none.</li>
         <li><b>Compare readings</b>: where a page has more than one reading, "Compare with …" marks word by word what one reading has and the other lacks. The percentage is <i>disagreement, never quality</i>.</li>
-        <li><b>Search</b> in the text of one reading, letter by letter, with "tolerant spelling" (u/v/w, i/y/j, ſ/s, doubled letters, ů/uo/u, ä/ae/a, words broken at the line end) and facets for shelfmark, decade and year, keyword, sender, recipient and regest.</li>
+        <li><b>Search</b> in the text of one reading, letter by letter, with "tolerant spelling" (u/v/w, i/y/j, ſ/s, doubled letters, ů/uo/u, ä/ae/a, words broken at the line end) and facets for shelfmark, decade and year, keyword, place, person and organisation named (register), sender, recipient and regest.</li>
         <li><b>Dates.</b> Each letter's year and day are read by rule from the date line that the regest draft quotes from a machine reading (<code>scripts/dates.py</code>). A day computed from a feast is Julian; where only the last digits of the year are written, the century comes from the neighbouring dated letters and is uncertain. Keywords are assigned by a language model from the regest drafts, chosen from the St. Gallen edition's vocabulary; unchecked.</li>
+        <li><b>Register, map and Sankey.</b> Persons, places and organisations were tagged by the St. Gallen edition's model (hmBERT) on the Gemini 4 Argon reading; it is not measured on Thun. A register is generated from the tags (<code>scripts/register.py</code>): spellings joined, persons only within 30 years, every entry matched against HLS, the SSRQ, the Königsfelden edition and the St. Gallen Missives, the candidates graded certain, likely or possible by St. Gallen's rules. Coordinates come only from such a candidate, never from a name alone. The overview shows the places on a map and a Sankey from a keyword to its companions and their decades. None of it is checked; a spot check is in <a href="https://github.com/DHBern/thun-missiven-data/blob/main/docs/REGISTER.md" target="_blank" rel="noopener">docs/REGISTER.md</a>.</li>
       </ul>
       <h2>Planned</h2>
-      <p>More readers: Gemini 4 Argon, Gemini 3.8 Flash, a fine-tuned Qwen3.5-4B (Kurrent, whole pages), kraken and TrOCR; regest drafts for every letter. Then automatic tagging of persons, places and dates (NER) and linking them to authority files.</p>
+      <p>More readers: a fine-tuned Qwen3.5-4B (Kurrent, whole pages), kraken and TrOCR; regest drafts for every letter. A hand-tagged sample on which the tagging and the register can be measured on Thun (docs/NER_REGISTER_PLAN.md).</p>
       <h2>Data and code</h2>
       <p><a href="https://github.com/DHBern/thun-missiven-data" target="_blank" rel="noopener">github.com/DHBern/thun-missiven-data</a> — the readings are in <code>readings/</code>, one JSON line per page and reader, the letters in <code>readings/letters.tsv</code>, the regest drafts in <code>regests/drafts.jsonl</code>. The viewer is derived from the <a href="https://dhbern.github.io/sg-missiven-data/" target="_blank" rel="noopener">St. Gallen Missives</a> viewer.</p>
     </section>`;
@@ -450,10 +856,14 @@
     { k: "dec", en: "Decade", de: "Jahrzehnt" },
     { k: "yr", en: "Year", de: "Jahr" },
     { k: "kw", en: "Keyword (machine)", de: "Schlagwort (maschinell)" },
+    { k: "pl", en: "Place named (automatic)", de: "Genannter Ort (automatisch)" },
+    { k: "per", en: "Person named (automatic)", de: "Genannte Person (automatisch)" },
+    { k: "org", en: "Organisation named (automatic)", de: "Genannte Organisation (automatisch)" },
     { k: "snd", en: "Sender (draft)", de: "Absender (Entwurf)" },
     { k: "rcp", en: "Recipient (draft)", de: "Empfänger (Entwurf)" },
     { k: "dr", en: "Regest", de: "Regest" },
   ];
+  const BIG = new Set(["pl", "per", "org"]);
   const texts = new Map();   // reader -> Promise<{letter id: [page texts]}>
   const normed = new Map();  // reader|tol -> Map(letter id -> [normalised page texts])
   let searchTimer = null;
@@ -519,6 +929,7 @@
     if (k === "dec") return one(l.y ? String(Math.floor(l.y / 10) * 10) : "");
     if (k === "yr") return one(l.y ? String(l.y) : "");
     if (k === "kw") return l.k || [];
+    if (k === "pl" || k === "per" || k === "org") return ((state.regByLetter && state.regByLetter.get(l.id)) || {})[k] || [];
     if (k === "snd") return one(l.s);
     if (k === "rcp") return one(l.r);
     if (k === "dr") return [l.h ? "yes" : "no"];
@@ -528,11 +939,16 @@
     if (k === "sh") return "BAT " + v;
     if (k === "dec") return T(`${v}s`, `${v}er`);
     if (k === "dr") return v === "yes" ? T("Machine draft", "Maschinenentwurf") : T("None yet", "noch keines");
+    if ((k === "pl" || k === "per" || k === "org") && state.reg) {
+      const e = state.reg.entries[v];
+      return e ? e.n + (k === "per" && e.y ? ` (${e.y[0]}${e.y[1] !== e.y[0] ? "–" + e.y[1] : ""})` : "") : v;
+    }
     return v;
   }
 
   async function showSearch(params) {
     setNav("search");
+    if (["pl", "per", "org"].some((k) => params.has(k)) || state.index.registers) await loadRegisters();
     const readers = state.readers.filter((r) => state.index.search[r.id]);
     const ui = { q: params.get("q") || "", tol: params.get("tol") !== "0", shown: 50, ff: {},
                  reader: readers.some((r) => r.id === params.get("r")) ? params.get("r") : (readers.some((r) => r.id === state.reader) ? state.reader : (readers[0] || {}).id) };
@@ -608,7 +1024,9 @@
         $("sres").innerHTML = `<p class="empty">${readers.length ? T("Type a word to search, or choose a facet.", "Ein Wort eingeben oder eine Facette wählen.") : T("No reading to search yet.", "Noch keine Lesung zum Durchsuchen.")}</p>`;
         return;
       }
-      const passes = (h, except) => FACETS.every((f) => f.k === except || !sel[f.k].size || facetValues(h.l, f.k).some((v) => sel[f.k].has(v)));
+      /* several keywords: letters with all of them; any other facet: with any of the values */
+      const passes = (h, except) => FACETS.every((f) => f.k === except || !sel[f.k].size
+        || (f.k === "kw" ? [...sel.kw].every((v) => facetValues(h.l, "kw").includes(v)) : facetValues(h.l, f.k).some((v) => sel[f.k].has(v))));
       const rows = base.filter((h) => passes(h, null));
       $("fsel").textContent = nSel ? `(${nSel} ${T("selected", "gewählt")})` : "";
       $("facets").innerHTML = facetsHtml(base, passes);
@@ -630,15 +1048,20 @@
     function facetsHtml(base, passes) {
       return FACETS.map((f) => {
         const counts = new Map();
-        for (const h of base) if (passes(h, f.k)) for (const v of facetValues(h.l, f.k)) counts.set(v, (counts.get(v) || 0) + 1);
+        for (const h of base) if (passes(h, f.k === "kw" ? null : f.k)) for (const v of facetValues(h.l, f.k)) counts.set(v, (counts.get(v) || 0) + 1);
         for (const v of sel[f.k]) if (!counts.has(v)) counts.set(v, 0);
-        const vals = sortVals(f.k, counts);
+        let vals = sortVals(f.k, counts);
         if (!vals.length) return "";
         const ff = (ui.ff[f.k] || "").toLowerCase();
+        const nAll = vals.length;
+        /* the register facets are long: the 150 most frequent (and the chosen), or those matching the filter */
+        if (BIG.has(f.k) && vals.length > 150) {
+          vals = vals.filter(([v], i) => sel[f.k].has(v) || (ff ? facetLabel(f.k, v).toLowerCase().includes(ff) : i < 150)).slice(0, 300);
+        }
         /* the year list is long: open once a decade or a year is chosen */
-        const open = f.k !== "yr" || sel.yr.size || sel.dec.size;
-        return `<details class="facet" ${open ? "open" : ""} data-k="${f.k}"><summary>${T(f.en, f.de)}${sel[f.k].size ? ` <span class="badge">${sel[f.k].size}</span>` : ""} <span class="muted small">${vals.length}</span></summary>
-          ${vals.length > 12 ? `<input class="ffilter" type="search" data-ff="${f.k}" value="${esc(ui.ff[f.k] || "")}" placeholder="${T("Filter…", "Filtern…")}" aria-label="${T("Filter", "Filtern")} ${T(f.en, f.de)}">` : ""}
+        const open = BIG.has(f.k) ? sel[f.k].size || ff : f.k !== "yr" || sel.yr.size || sel.dec.size;
+        return `<details class="facet" ${open ? "open" : ""} data-k="${f.k}"><summary>${T(f.en, f.de)}${sel[f.k].size ? ` <span class="badge">${sel[f.k].size}</span>` : ""} <span class="muted small">${nAll}</span></summary>
+          ${nAll > 12 ? `<input class="ffilter" type="search" data-ff="${f.k}" value="${esc(ui.ff[f.k] || "")}" placeholder="${T("Filter…", "Filtern…")}" aria-label="${T("Filter", "Filtern")} ${T(f.en, f.de)}">` : ""}
           <ul>${vals.map(([v, n]) => `<li ${ff && !facetLabel(f.k, v).toLowerCase().includes(ff) ? "hidden" : ""}><label class="${n ? "" : "zero"}"><input type="checkbox" data-k="${f.k}" value="${esc(v)}" ${sel[f.k].has(v) ? "checked" : ""}>
             <span class="fl">${esc(facetLabel(f.k, v))}</span><span class="fc">${num(n)}</span></label></li>`).join("")}</ul></details>`;
       }).join("");
@@ -664,6 +1087,15 @@
       const inp = ev.target.closest("input[data-ff]");
       if (!inp) return;
       ui.ff[inp.dataset.ff] = inp.value;
+      if (BIG.has(inp.dataset.ff)) {  // the long lists are filtered by drawing them again
+        const k = inp.dataset.ff;
+        later(async () => {
+          await run();
+          const again = document.querySelector(`input[data-ff="${k}"]`);
+          if (again) { again.focus(); again.setSelectionRange(again.value.length, again.value.length); }
+        }, 200);
+        return;
+      }
       const w = inp.value.toLowerCase();
       inp.closest(".facet").querySelectorAll("li").forEach((li) => { li.hidden = !!w && !li.querySelector(".fl").textContent.toLowerCase().includes(w); });
     });
@@ -689,6 +1121,7 @@
   async function showLetter(id, pageNo, readerId) {
     setNav("letters");
     cur = null;
+    loadRegisters().then(() => fillLetterNames(id));  // the names of this letter, and the entity view's links
     let letter = null;
     try { letter = await getLetter(id); } catch { letter = null; }
     if (!letter) { destroyOsd(); app.innerHTML = `<p>${T("No letter", "Kein Brief")} ${esc(id)}. <a href="#/">${T("All letters", "Alle Briefe")}</a></p>`; return; }
@@ -726,6 +1159,7 @@
           <h1>${esc(titleOf(letter))}</h1>
           ${dateBlock(letter.date)}
           ${kwChips(letter.keywords)}
+          ${state.index.registers ? `<div id="lreg" class="lreg"></div>` : ""}
           ${draftBlock(letter.draft, letter.date)}
           ${linksBlock(letter.links)}
           <div class="pages"><span class="lbl">${T("Page", "Seite")}</span>${pages.slice(0, main).map(pgBtn).join("")}
@@ -769,6 +1203,7 @@
     rd.addEventListener("mouseleave", () => { if (!pinned) clearRows(); });
     rd.addEventListener("click", onLineClick);
     clearRows();
+    if (state.reg) fillLetterNames(id);
   }
 
   /* A heading and regest drafted by a language model from an uncorrected
@@ -1088,7 +1523,7 @@
     for (const e of sorted) {
       if (e.start < at) continue;
       out += esc(text.slice(at, e.start));
-      const attrs = `class="ent ${esc(e.type)}" data-ref="${esc(e.ref || e.when || "")}" data-role="${esc(e.role || "")}"`;
+      const attrs = `class="ent ${esc(e.type)}" data-ref="${esc(e.ref || e.when || "")}" data-role="${esc(e.role || "")}" data-reg="${esc(e.reg || "")}"`;
       out += `<span ${attrs}>${text.slice(e.start, e.end).split("\n").map(esc).join(`</span>\n<span ${attrs}>`)}</span>`;
       at = e.end;
     }
@@ -1103,9 +1538,12 @@
     if (!el) return;
     const kind = [...el.classList].find((c) => ["per", "place", "org", "date"].includes(c));
     const kn = { per: T("Person", "Person"), place: T("Place", "Ort"), org: T("Organisation", "Organisation"), date: T("Date", "Datum") }[kind] || "";
-    const ref = el.dataset.ref;
+    const ref = el.dataset.ref, reg = el.dataset.reg, re = reg && state.reg && state.reg.entries[reg];
     let body = `<b>${esc(kn)}${T(" · automatic", " · automatisch")}</b>`;
-    body += ref ? (/^https?:/.test(ref) ? `<a href="${esc(ref)}" target="_blank" rel="noopener">${esc(ref)}</a>` : esc(ref)) : `<span class="muted">${T("not linked", "nicht verknüpft")}</span>`;
+    if (reg) body += `<a href="#/entry/${encodeURIComponent(reg)}">${T("Register", "Register")}: ${esc(re ? re.n : reg)}</a>${re && re.c && re.c[0] ? `<div class="muted">${esc(re.c[0].label)}? (${esc(GRADE()[re.c[0].grade])})</div>` : ""}`;
+    else if (kind === "date") body += ref ? esc(ref) : "";
+    else body += `<span class="muted">${T("not in the register", "nicht im Register")}</span>`;
+    if (ref && kind !== "date" && !/^https?:/.test(ref)) body += `<div class="muted small">${T("tagger's St. Gallen link", "St. Galler Link der Auszeichnung")}: ${esc(ref)}</div>`;
     if (el.dataset.role) body += `<div class="muted">${T("role", "Rolle")}: ${esc(el.dataset.role)}</div>`;
     hideTip();
     tipEl = document.createElement("div");

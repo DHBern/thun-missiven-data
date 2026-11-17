@@ -27,7 +27,10 @@ Inputs
   keywords/vocabulary.json      the keyword vocabulary (the St. Gallen edition's terms, flat)
   keywords/assigned.jsonl       machine-assigned terms per letter (scripts/keywords.py;
                                 latest line wins); optional: without it no keywords are shown
-  entities/<reader>.jsonl       automatic tagging of a reading (optional; none yet)
+  entities/<reader>.jsonl       automatic tagging of a reading (optional)
+  registers/{places,persons,orgs}.json
+                                the register generated from the tagging (scripts/register.py;
+                                optional: without it the viewer shows no register, map or facets)
 
 Outputs (site/data/)
   index.json                    letters (id, shelf, nr, pages, thumbnail, draft heading,
@@ -42,6 +45,10 @@ Outputs (site/data/)
                                 reading ``ln`` (per text line the rows it is linked to)
   pagekeys.json                 page key -> [letter id, page position]: old page links
   search/<reader>/text-<n>.json letter id -> page texts, loaded only by a search
+  registers.json                entries of the generated register (kind, name, spellings,
+                                letters, years, coordinates, graded candidates), loaded by the
+                                overview map, the register pages and the search; each tagged
+                                name in letters/<n>.json carries ``reg``, its entry
 
 Disagreement between two readings of a page = Levenshtein edits ÷ the length of
 the longer reading, whitespace collapsed. It is symmetric, 0 when they agree,
@@ -153,6 +160,44 @@ def load_entities() -> dict[str, dict[str, list]]:
                 pages[rec["key"]] = rec["entities"]
         out[path.stem] = pages
     return out
+
+
+REGISTER_FILES = ("places", "orgs", "persons")
+CAND_KEEP = ("label", "grade", "rule", "srcs", "hls", "ssrq", "sg", "km", "birth", "death", "first", "last", "desc",
+             "region", "type", "via", "links")
+
+
+def load_registers(letter_ids: set[str]) -> tuple[dict | None, dict[tuple[str, int], str]]:
+    """registers/{places,orgs,persons}.json (scripts/register.py) -> the viewer's
+    registers.json, and (page key, start) -> entry id for the tagged names.
+    Missing files are skipped: the site builds without a register."""
+    entries, meta, occ = {}, {}, {}
+    for name in REGISTER_FILES:
+        path = ROOT / "registers" / f"{name}.json"
+        if not path.exists():
+            continue
+        data = json.loads(path.read_text(encoding="utf-8"))
+        meta.setdefault("measured", data.get("measured"))
+        meta.setdefault("date", data.get("date"))
+        meta[name] = {k: data.get(k) for k in ("counts", "by_source", "dropped", "with_coordinates") if data.get(k)}
+        for eid, e in data["entries"].items():
+            x = {"k": e["kind"], "n": e["name"], "f": e["forms"][:10], "m": e["mentions"],
+                 "l": [lid for lid in e["letters"] if lid in letter_ids], "c": [{k: c[k] for k in CAND_KEEP if k in c} for c in e["candidates"]]}
+            if e.get("years"):
+                x["y"] = e["years"]
+            if e.get("roles"):
+                x["r"] = e["roles"]
+            if e.get("geo"):
+                x["g"], x["gg"], x["gf"] = e["geo"], e.get("geo_grade"), e.get("geo_from")
+            if e.get("normalised"):
+                x["nz"] = 1
+            entries[eid] = x
+            for page, start, _end in e.get("occ", []):
+                occ[(page, start)] = eid
+    if not entries:
+        return None, {}
+    meta["entries"] = entries
+    return meta, occ
 
 
 def load_drafts(letter_ids: set[str]) -> dict[str, dict]:
@@ -303,6 +348,7 @@ def main() -> None:
     drafts = load_drafts({r["id"] for r in rows})
     dates = load_dates({r["id"] for r in rows})
     vocab, keywords = load_keywords({r["id"] for r in rows})
+    registers, reg_occ = load_registers({r["id"] for r in rows})
 
     # every page key of letters.tsv must be a page, and no page may be lost
     letters, seen = [], set()
@@ -363,6 +409,9 @@ def main() -> None:
                     linked[r][1] += b
             for r, ents in entities.items():
                 if key in ents and r in rec["readings"]:
+                    if r == "gemini-4-argon" and reg_occ:  # the register is built from this tagging
+                        ents[key] = [{**e, "reg": reg_occ[(key, e["start"])]} if (key, e["start"]) in reg_occ else e
+                                     for e in ents[key]]
                     rec.setdefault("ents", {})[r] = ents[key]
             recs.append(rec)
         d = drafts.get(lt["id"])
@@ -411,6 +460,9 @@ def main() -> None:
     out = {"chunk": CHUNK, "pages": len(pages), "letters": index, "search": shards}
     if vocab:
         out["vocabulary"] = vocab
+    if registers:
+        (OUT / "registers.json").write_text(json.dumps(registers, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
+        out["registers"] = {k: sum(1 for e in registers["entries"].values() if e["k"] == k) for k in ("place", "person", "org")}
     (OUT / "index.json").write_text(json.dumps(out, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
     (OUT / "pagekeys.json").write_text(json.dumps(pagekeys, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
     (OUT / "readers.json").write_text(json.dumps(readers, ensure_ascii=False, indent=1), encoding="utf-8")
@@ -418,7 +470,7 @@ def main() -> None:
     print(f"{len(pages)} pages in {len(letters)} letters, {len(drafts)} with a drafted regest; "
           f"{sum(1 for k in lines if k in seen)} with line outlines; "
           f"{sum(1 for r in index if r.get('y'))} with a year, {sum(1 for r in index if r.get('d'))} with a day; "
-          f"{len(keywords)} with keywords")
+          f"{len(keywords)} with keywords; register: {out.get('registers') or 'none'}")
     for r in readers:
         a, b = linked[r["id"]]
         print(f"  {r['id']:<40} read {r['pages_read']:>5}; lines linked to the image {a} of {b}"
