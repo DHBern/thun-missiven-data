@@ -56,10 +56,13 @@ in `~/thun-pipeline/status.jsonl`.
 
 1. **Reset** the checkout to `origin/main`.
 2. **Import** the Transkribus ingest (`import_transkribus.py`, needs lxml).
-3. **Collect** the other sources (`collect_series.py`, standard library).
+3. **Collect** the other sources (`collect_series.py`, standard library), and
+   take over the regest drafts (`regests/drafts.jsonl`) if no letter loses one.
+   Then **date** the letters from the drafts' date lines (`dates.py`, standard
+   library, deterministic) → `dates/dates.jsonl`.
 4. **Check:**
    - no reader's page count and not the page list may drop;
-   - only `readings/` and `entities/` may change;
+   - only `readings/`, `entities/`, `regests/`, `dates/` and `keywords/` may change;
    - `build_site.py` must run without error.
 5. **Publish:** one rolling branch `data/auto`, one PR "Readings update
    (automatic, tei)", merged by the script once the checks pass (St. Gallen's

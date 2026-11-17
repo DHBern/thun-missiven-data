@@ -22,11 +22,19 @@ Inputs
                                 text (scripts/import_transkribus.py; docs/LINES.md)
   readings/readers.json         who each reader is (label, kind, about, caveat; en + _de)
   regests/drafts.jsonl          machine-drafted heading and regest per letter (latest wins)
+  dates/dates.jsonl             year and day of each letter, read by rule from the date line
+                                (scripts/dates.py; days in the Julian calendar)
+  keywords/vocabulary.json      the keyword vocabulary (the St. Gallen edition's terms, flat)
+  keywords/assigned.jsonl       machine-assigned terms per letter (scripts/keywords.py;
+                                latest line wins); optional: without it no keywords are shown
   entities/<reader>.jsonl       automatic tagging of a reading (optional; none yet)
 
 Outputs (site/data/)
   index.json                    letters (id, shelf, nr, pages, thumbnail, draft heading,
-                                year, sender, recipient), search shard counts
+                                sender, recipient; year ``y`` and day ``d`` from dates.jsonl,
+                                ``yu`` when the century is not written; keyword terms ``k``),
+                                search shard counts, and ``vocabulary`` (version, number of
+                                terms) when keywords exist
   readers.json                  readers with pages read and pairwise disagreement
   letters/<n>.json              CHUNK letters in index order, each with its pages,
                                 every reading, the image and the draft; a page with
@@ -180,6 +188,60 @@ def load_drafts(letter_ids: set[str]) -> dict[str, dict]:
     return out
 
 
+def load_dates(letter_ids: set[str]) -> dict[str, dict]:
+    """dates/dates.jsonl (scripts/dates.py): letter id -> its date record, without the id."""
+    path = ROOT / "dates" / "dates.jsonl"
+    out: dict[str, dict] = {}
+    if not path.exists():
+        print("  dates/dates.jsonl missing — run scripts/dates.py; no dates shown", file=sys.stderr)
+        return out
+    for line in path.read_text(encoding="utf-8").splitlines():
+        if not line.strip():
+            continue
+        rec = json.loads(line)
+        lid = rec.pop("id", None)
+        if lid not in letter_ids:
+            print(f"  dates.jsonl: unknown letter {lid}", file=sys.stderr)
+            continue
+        if rec.get("date_text") or rec.get("year"):
+            out[lid] = rec
+    return out
+
+
+def load_keywords(letter_ids: set[str]) -> tuple[dict | None, dict[str, list[str]]]:
+    """keywords/vocabulary.json (the St. Gallen edition's flat list of terms; the
+    term string is the key) and keywords/assigned.jsonl (terms per letter, the
+    latest line per letter wins; an error line, or no keywords, shows nothing).
+    Without assignments the viewer shows no keywords at all: returns (None, {})."""
+    vpath, apath = ROOT / "keywords" / "vocabulary.json", ROOT / "keywords" / "assigned.jsonl"
+    if not vpath.exists() or not apath.exists():
+        return None, {}
+    vocab = json.loads(vpath.read_text(encoding="utf-8"))
+    terms = [t["term"] for t in vocab.get("terms", [])]
+    known = set(terms)
+    out: dict[str, list[str]] = {}
+    unknown: set[str] = set()
+    for line in apath.read_text(encoding="utf-8").splitlines():
+        if not line.strip():
+            continue
+        rec = json.loads(line)
+        lid = rec.get("id")
+        if lid not in letter_ids:
+            print(f"  assigned.jsonl: unknown letter {lid}", file=sys.stderr)
+            continue
+        kws = [] if rec.get("error") else [k for k in rec.get("keywords") or [] if k in known]
+        unknown.update(k for k in rec.get("keywords") or [] if k not in known)
+        if kws:
+            out[lid] = list(dict.fromkeys(kws))
+        else:
+            out.pop(lid, None)
+    if unknown:
+        print(f"  assigned.jsonl: {len(unknown)} terms not in the vocabulary, dropped, e.g. {sorted(unknown)[:5]}", file=sys.stderr)
+    if not out:
+        return None, {}
+    return {"version": vocab.get("version"), "terms": len(terms)}, out
+
+
 def write_search(letters: list[dict], readings: dict[str, dict[str, dict]], readers: list[str]) -> dict[str, int]:
     """Per reader: letter id -> the text of each of its pages ("" if unread),
     in the letter's page order (pages, then the further scans)."""
@@ -239,6 +301,8 @@ def main() -> None:
     readers = [r for r in listed if readings.get(r["id"])]
     ids = [r["id"] for r in readers]
     drafts = load_drafts({r["id"] for r in rows})
+    dates = load_dates({r["id"] for r in rows})
+    vocab, keywords = load_keywords({r["id"] for r in rows})
 
     # every page key of letters.tsv must be a page, and no page may be lost
     letters, seen = [], set()
@@ -305,6 +369,11 @@ def main() -> None:
         full = {"id": lt["id"], "shelf": lt["shelf"], "nr": lt["nr"], "title": lt["title"], "doc": lt["doc"], "pages": recs}
         if d:
             full["draft"] = d
+        dt = dates.get(lt["id"])
+        if dt:
+            full["date"] = dt
+        if lt["id"] in keywords:
+            full["keywords"] = keywords[lt["id"]]
         if lt["id"] in cross_links:
             full["links"] = cross_links[lt["id"]]
         chunk.append(full)
@@ -313,7 +382,15 @@ def main() -> None:
         if len(recs) > lt["n_main"]:
             row["x"] = len(recs) - lt["n_main"]
         if d:
-            row.update({"h": d["heading"], "y": d["year"], "s": d["sender"], "r": d["recipient"]})
+            row.update({"h": d["heading"], "s": d["sender"], "r": d["recipient"]})
+        if dt and dt.get("year"):
+            row["y"] = dt["year"]
+            if dt.get("century") != "written":
+                row["yu"] = 1
+            if dt.get("date"):
+                row["d"] = dt["date"]
+        if lt["id"] in keywords:
+            row["k"] = keywords[lt["id"]]
         index.append(row)
         if len(chunk) == CHUNK or pos == len(letters) - 1:
             (OUT / "letters" / f"{pos // CHUNK}.json").write_text(json.dumps(chunk, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
@@ -332,12 +409,16 @@ def main() -> None:
 
     shards = write_search(letters, readings, ids)
     out = {"chunk": CHUNK, "pages": len(pages), "letters": index, "search": shards}
+    if vocab:
+        out["vocabulary"] = vocab
     (OUT / "index.json").write_text(json.dumps(out, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
     (OUT / "pagekeys.json").write_text(json.dumps(pagekeys, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
     (OUT / "readers.json").write_text(json.dumps(readers, ensure_ascii=False, indent=1), encoding="utf-8")
 
     print(f"{len(pages)} pages in {len(letters)} letters, {len(drafts)} with a drafted regest; "
-          f"{sum(1 for k in lines if k in seen)} with line outlines")
+          f"{sum(1 for k in lines if k in seen)} with line outlines; "
+          f"{sum(1 for r in index if r.get('y'))} with a year, {sum(1 for r in index if r.get('d'))} with a day; "
+          f"{len(keywords)} with keywords")
     for r in readers:
         a, b = linked[r["id"]]
         print(f"  {r['id']:<40} read {r['pages_read']:>5}; lines linked to the image {a} of {b}"

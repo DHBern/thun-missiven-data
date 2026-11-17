@@ -9,7 +9,7 @@
 #
 # The checkout (~/thun-missiven-data) belongs to the pipeline: each cycle resets
 # it to origin/main. Code never reaches main this way; only readings/,
-# entities/ and regests/ may change, or the cycle stops.
+# entities/, regests/, dates/ and keywords/ may change, or the cycle stops.
 #
 # No joint reading here: St. Gallen weighs each voter by its error against the
 # edition, and the Thun Missiven have no edition or ground truth to weigh by.
@@ -20,7 +20,7 @@ PY=${THM_PY:-$HOME/sg-missiven-venv/bin/python}   # lxml + rapidfuzz; SG's venv 
 STATE=${THM_STATE:-$HOME/thun-pipeline}
 GH_REPO=DHBern/thun-missiven-data
 BRANCH=data/auto
-DATA_PATHS=(readings entities regests)
+DATA_PATHS=(readings entities regests dates keywords)
 DRY=${1:-}
 
 mkdir -p "$STATE"
@@ -62,13 +62,17 @@ if [ -s "$DRAFTS" ]; then
   mkdir -p regests && cp "$DRAFTS" regests/drafts.jsonl
 fi
 
+# 4. dates by rule from the drafts' date lines (deterministic, standard library);
+#    keywords/assigned.jsonl is optional: the build shows no keywords without it
+python3 scripts/dates.py > "$STATE/dates.log" 2>&1 || fail "dates: $(tail -1 "$STATE/dates.log")"
+
 changed=$(git status --porcelain -- "${DATA_PATHS[@]}")
 if [ -z "$changed" ]; then
   status idle "nothing new"
   exit 0
 fi
 
-# 3. guards: nothing outside the data paths, and the site must build
+# 5. guards: nothing outside the data paths, and the site must build
 other=$(git status --porcelain | grep -v -E "^.. ($(IFS='|'; echo "${DATA_PATHS[*]}"))/" || true)
 [ -z "$other" ] || fail "changes outside the data paths: $other"
 "$PY" scripts/build_site.py > "$STATE/build.log" 2>&1 || fail "build_site.py failed: $(tail -1 "$STATE/build.log")"
@@ -76,6 +80,8 @@ other=$(git status --porcelain | grep -v -E "^.. ($(IFS='|'; echo "${DATA_PATHS[
 summary="transkribus: $(tail -1 "$STATE/import.log")
 $(grep -E ' -> .*pages' "$STATE/collect.log" | grep -v '(+0 new, 0 changed)' || true)"
 pages=$(grep -m1 -E '^[0-9]+ pages in' "$STATE/build.log" || true)
+summary="$summary
+dates: $(tail -1 "$STATE/dates.log")"
 
 if [ "$DRY" = "--dry-run" ]; then
   status dry-run "would publish: ${summary//$'\n'/; } | $pages"
@@ -83,7 +89,7 @@ if [ "$DRY" = "--dry-run" ]; then
   exit 0
 fi
 
-# 4. publish: one rolling branch, one PR, merged here when the checks passed
+# 6. publish: one rolling branch, one PR, merged here when the checks passed
 git switch -q -C "$BRANCH"
 existing=(); for p in "${DATA_PATHS[@]}"; do [ -e "$p" ] && existing+=("$p"); done
 git add -A -- "${existing[@]}"

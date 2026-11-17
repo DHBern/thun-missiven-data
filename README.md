@@ -55,6 +55,8 @@ ist aus dem der [St. Galler Missiven](https://github.com/DHBern/sg-missiven-data
 | `readings/pages.tsv` | alle Seiten in Signaturfolge: Schlüssel, Dokument, Seite, Bildgrösse, Zeilen, PyLaia-Variante (`lm`/`none`) |
 | `readings/letters.tsv` | die Briefe in Signaturfolge: `id`, `shelf`, `nr`, `title`, `doc`, `pages` (Seitenschlüssel), `sides` (`r;v`, `r1;r2;v1;v2` …), `extra` (weitere Aufnahmen) |
 | `readings/images.tsv` | eine Zeile pro Seite: Brief, Seite (r/v), Vermerk, Bilddatei, `tk` (IIIF-Kennung auf `files.transkribus.eu`), Bildgrösse |
+| `dates/dates.jsonl` | Jahr und, wo die Zeile einen nennt, Tag jedes Briefs, nach Regeln aus der Datumszeile gelesen (`scripts/dates.py`): Tage im julianischen Kalender, mit `how` (in Ziffern oder aus einem Fest berechnet); ein abgekürztes Jahr nimmt sein Jahrhundert von den benachbarten datierten Briefen (`century: "neighbours"`, unsicher) |
+| `keywords/vocabulary.json`, `keywords/assigned.jsonl` | Schlagwörter: das Vokabular der St. Galler Edition und die maschinell vergebenen Schlagwörter pro Brief (`scripts/keywords.py`; die letzte Zeile gilt). Ohne `assigned.jsonl` zeigt der Viewer keine Schlagwörter |
 | `regests/drafts.jsonl` | maschinell entworfene Überschrift und Regest pro Brief (die letzte Zeile gilt), mit Lesung, Modell und Prompt |
 | `readings/<leser>.jsonl` | eine Zeile pro Seite: `key`, `text` (eine Zeile pro Textzeile) |
 | `readings/readers.json` | wer jeder Leser ist, mit Vorbehalten (`label`, `kind`, `about`, `caveat`; deutsch in `*_de`) |
@@ -80,8 +82,13 @@ python3 -m http.server -d site 8000
 
 Ein Brief: `#/letter/<id>/<Seite>/<Leser>`, z. B. `#/letter/bat_663_217/1`.
 
+Übersicht (`#/`): Briefe nach Jahrzehnt und, für ein gewähltes Jahrzehnt, nach Jahr (aus
+`dates/dates.jsonl`; ein Klick auf einen Balken öffnet die Suche) und die Schlagwörter mit ihrer
+Briefzahl, sobald es Zuweisungen gibt. Beim Brief stehen Datum (julianisch), wie es gefunden ist,
+Warnungen (Wochentag passt nicht, Jahresbeginn an Weihnachten) und die Schlagwörter.
+
 Suche (`#/search`): Volltext über die Lesung eines Lesers, Brief für Brief, mit Facetten
-Signatur, Jahrzehnt, Absender, Empfänger und Regest (die letzten vier aus den Maschinenentwürfen);
+Signatur, Jahrzehnt und Jahr (aus `dates/dates.jsonl`), Schlagwort, Absender, Empfänger und Regest;
 ohne Suchwort wählen die Facetten allein Briefe aus.
 Wörter oder `"eine Wendung"`; «Schreibvarianten zulassen» setzt u/v/w, i/y/j, ſ/s,
 Doppelbuchstaben, ů/uo/u, ä/ae/a und Worttrennung am Zeilenende gleich. Die ganze Suche steht

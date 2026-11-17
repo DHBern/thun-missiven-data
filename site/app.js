@@ -66,9 +66,171 @@
   const DIGI = () => T("The letters were digitised by the University of Zurich (Chair of Prof. Simon Teuscher); the images are served by Transkribus.",
     "Die Digitalisierung erfolgte durch die Universität Zürich (Lehrstuhl Prof. Simon Teuscher); die Bilder liefert Transkribus.");
 
+  /* ---------- dates (dates/dates.jsonl, scripts/dates.py) and keywords ---------- */
+  const WD = { Mo: ["Mon", "Mo"], Di: ["Tue", "Di"], Mi: ["Wed", "Mi"], Do: ["Thu", "Do"], Fr: ["Fri", "Fr"], Sa: ["Sat", "Sa"], So: ["Sun", "So"] };
+  const MON = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  /* "Fr 18.3.1440" / "Fri 18 Mar 1440" from an ISO date (Julian, as dates.py computed it) */
+  function dayLabel(iso, wd) {
+    const [y, m, d] = iso.split("-").map(Number);
+    const w = WD[wd] ? T(WD[wd][0], WD[wd][1]) + " " : "";
+    return w + T(`${d} ${MON[m - 1]} ${y}`, `${d}.${m}.${y}`);
+  }
+  /* short date for a list row: the day, else the year, "?" when the century is not written */
+  const shortDate = (l) => (l.d ? dayLabel(l.d) : l.y ? String(l.y) : "") + (l.y && l.yu ? "?" : "");
+  const HOW = {
+    "figures": ["read from the date line, where the day is written in figures", "aus der Datumszeile, wo der Tag in Ziffern steht"],
+    "figures (ultima)": ["read from the date line: the last day of the month", "aus der Datumszeile: der letzte Tag des Monats"],
+    "figures (penultima)": ["read from the date line: the last day but one of the month", "aus der Datumszeile: der zweitletzte Tag des Monats"],
+    "feast day": ["computed: the feast day named in the date line", "berechnet: der Festtag, den die Datumszeile nennt"],
+    "eve of a feast": ["computed: the eve of the feast named in the date line", "berechnet: der Vorabend des Festes, das die Datumszeile nennt"],
+    "weekday after a feast": ["computed: the weekday after the feast named in the date line", "berechnet: der Wochentag nach dem Fest, das die Datumszeile nennt"],
+    "weekday before a feast": ["computed: the weekday before the feast named in the date line", "berechnet: der Wochentag vor dem Fest, das die Datumszeile nennt"],
+    "day after a feast": ["computed: the day after the feast named in the date line", "berechnet: der Tag nach dem Fest, das die Datumszeile nennt"],
+    "octave of a feast": ["computed: the octave of the feast named in the date line", "berechnet: die Oktav des Festes, das die Datumszeile nennt"],
+    "no day": ["year only: no day could be read from the date line", "nur das Jahr: Aus der Datumszeile liess sich kein Tag lesen"],
+    "weekday not read": ["year only: the feast was found, the weekday before or after it was not", "nur das Jahr: Das Fest ist gefunden, der Wochentag davor oder danach nicht"],
+  };
+  function dateBlock(dt) {
+    if (!dt) return "";
+    const line = dt.date_text ? `<span class="dline">${T("Date line (machine reading)", "Datumszeile (maschinelle Lesung)")}: <q lang="und">${esc(dt.date_text)}</q></span>` : "";
+    if (!dt.year) return `<div class="ldate"><p class="small muted">${T("No year could be read from the date line.", "Aus der Datumszeile liess sich kein Jahr lesen.")} ${line}</p></div>`;
+    const head = dt.date ? `${esc(dayLabel(dt.date, dt.weekday))} <span class="cal">${T("(Julian)", "(julianisch)")}</span>` : esc(dt.year) + (dt.century !== "written" ? "?" : "");
+    const how = HOW[dt.how] ? T(...HOW[dt.how]) : (dt.how || "");
+    const notes = [];
+    if (dt.century === "neighbours") notes.push(T("Only the last digits of the year are written; the century is taken from the dated letters around it in the same volume, so the year is uncertain.",
+      "Vom Jahr sind nur die letzten Ziffern geschrieben; das Jahrhundert ist von den datierten Briefen in der Nähe im selben Band genommen, das Jahr ist darum unsicher."));
+    else if (dt.century === "default") notes.push(T("Only the last digits of the year are written; the 15th century is assumed, so the year is uncertain.",
+      "Vom Jahr sind nur die letzten Ziffern geschrieben; das 15. Jahrhundert ist angenommen, das Jahr ist darum unsicher."));
+    const warn = [];
+    if (dt.weekday_check === "mismatch") warn.push(T(`The weekday written in the date line does not match the computed day in ${dt.year}${dt.weekday_fits && dt.weekday_fits.length ? ` (it would fit ${dt.weekday_fits.join(", ")})` : ""}: the year or the day may be misread.`,
+      `Der Wochentag in der Datumszeile passt nicht zum berechneten Tag im Jahr ${dt.year}${dt.weekday_fits && dt.weekday_fits.length ? ` (er passte ${dt.weekday_fits.join(", ")})` : ""}: Jahr oder Tag sind vielleicht falsch gelesen.`));
+    if (dt.year_start) warn.push(T(`Bern began the year at Christmas: a letter of 25–31 December “${dt.year}” may have been written in December ${dt.year - 1} by our count.`,
+      `Bern begann das Jahr an Weihnachten: Ein Brief vom 25.–31. Dezember «${dt.year}» ist nach unserer Zählung vielleicht im Dezember ${dt.year - 1} geschrieben.`));
+    if (dt.weekday_check === "ok") notes.push(T("The weekday written in the date line matches the computed day.", "Der Wochentag in der Datumszeile passt zum berechneten Tag."));
+    return `<div class="ldate">
+      <p><b>${head}</b>${how ? ` <span class="small muted">· ${esc(how)}</span>` : ""}</p>
+      ${warn.map((w) => `<p class="caveat">${esc(w)}</p>`).join("")}
+      <p class="small muted">${notes.map(esc).join(" ")} ${line}</p>
+    </div>`;
+  }
+  /* keywords are terms of the St. Gallen edition's vocabulary, in German in both languages */
+  function kwChips(terms) {
+    if (!terms || !terms.length) return "";
+    return `<div class="kw kwl"><span class="kwlab">${T("Keywords (machine-assigned)", "Schlagwörter (maschinell)")}:</span>${terms.map((k) =>
+      `<a href="#/search?kw=${encodeURIComponent(k)}" lang="de" title="${esc(T(`${num(state.kw.get(k) || 0)} letters`, `${num(state.kw.get(k) || 0)} Briefe`))}">${esc(k)}</a>`).join("")}</div>`;
+  }
+
+  /* ---------- overview: letters per decade, and the keywords ---------- */
+  function timelineHtml() {
+    const ls = state.index.letters, dated = ls.filter((l) => l.y);
+    if (!dated.length) return "";
+    const by = new Map();
+    for (const l of dated) {
+      const k = Math.floor(l.y / 10) * 10, c = by.get(k) || { w: 0, n: 0 };
+      l.yu ? c.n++ : c.w++;
+      by.set(k, c);
+    }
+    const decs = [...by.keys()].sort((a, b) => a - b);
+    const tot = (k) => (by.get(k) ? by.get(k).w + by.get(k).n : 0);
+    /* the dense range: from the first decade with 10 letters to the last with 5; the rest is noted */
+    const lo = decs.find((k) => tot(k) >= 10) ?? decs[0], hi = [...decs].reverse().find((k) => tot(k) >= 5) ?? decs[decs.length - 1];
+    const range = [];
+    for (let k = lo; k <= hi; k += 10) range.push(k);
+    const before = decs.filter((k) => k < lo), after = decs.filter((k) => k > hi);
+    const sumOf = (ks) => ks.reduce((n, k) => n + tot(k), 0);
+    const decLink = (ks) => "#/search?" + ks.map((k) => "dec=" + k).join("&");
+    const max = Math.max(...range.map(tot));
+    const step = max > 400 ? 200 : max > 150 ? 50 : max > 40 ? 20 : 5;
+    const ticks = []; for (let v = step; v <= max; v += step) ticks.push(v);
+    const top = Math.max(max, ticks[ticks.length - 1] || max);
+    const busiest = range.reduce((a, k) => (tot(k) > tot(a) ? k : a), range[0]);
+    const zoom = state.zoom && by.has(state.zoom) ? state.zoom : busiest;
+    const bar = (label, c, href, tip, minor) => {
+      const t = c.w + c.n;
+      return `<a class="tl-bar" href="${href}" data-tip="${esc(tip)}" aria-label="${esc(tip)}">
+        <span class="tl-col">${c.w ? `<i class="w" style="height:${(c.w / top) * 100}%"></i>` : ""}${c.n ? `<i class="n" style="height:${(c.n / top) * 100}%"></i>` : ""}${t === max ? `<span class="tl-val" style="bottom:${(t / top) * 100}%">${num(t)}</span>` : ""}</span>
+        <span class="tl-x${minor ? " minor" : ""}">${label}</span></a>`;
+    };
+    const tipOf = (lab, c) => `${lab}: ${num(c.w + c.n)} ${P(c.w + c.n, "letter", "letters", "Brief", "Briefe")} · ${num(c.w)} ${T("year written in full", "Jahr ausgeschrieben")} · ${num(c.n)} ${T("century from neighbours", "Jahrhundert aus der Nachbarschaft")}`;
+    const grid = (vals, tp) => `<span class="tl-grid" aria-hidden="true">${vals.map((v) => `<span style="bottom:${(v / tp) * 100}%"><b>${num(v)}</b></span>`).join("")}</span>`;
+    const decBars = range.map((k, i) => bar(i % 2 === 0 || range.length < 12 ? String(k) : "", by.get(k) || { w: 0, n: 0 }, decLink([k]), tipOf(T(`${k}s`, `${k}er`), by.get(k) || { w: 0, n: 0 }), range.length >= 12 && i % 4 !== 0)).join("");
+    /* the years of one decade */
+    const yc = new Map();
+    for (const l of dated) if (Math.floor(l.y / 10) * 10 === zoom) { const c = yc.get(l.y) || { w: 0, n: 0 }; l.yu ? c.n++ : c.w++; yc.set(l.y, c); }
+    const ymax = Math.max(1, ...[...yc.values()].map((c) => c.w + c.n));
+    const ystep = ymax > 100 ? 50 : ymax > 40 ? 20 : ymax > 10 ? 5 : 1;
+    const yticks = []; for (let v = ystep; v <= ymax; v += ystep) yticks.push(v);
+    const ytop = Math.max(ymax, yticks[yticks.length - 1] || ymax);
+    const ybar = (y) => {
+      const c = yc.get(y) || { w: 0, n: 0 }, t = c.w + c.n;
+      const tip = tipOf(String(y), c);
+      return `<a class="tl-bar" href="#/search?yr=${y}" data-tip="${esc(tip)}" aria-label="${esc(tip)}">
+        <span class="tl-col">${c.w ? `<i class="w" style="height:${(c.w / ytop) * 100}%"></i>` : ""}${c.n ? `<i class="n" style="height:${(c.n / ytop) * 100}%"></i>` : ""}${t && t === ymax ? `<span class="tl-val" style="bottom:${(t / ytop) * 100}%">${num(t)}</span>` : ""}</span>
+        <span class="tl-x">${String(y).slice(2)}</span></a>`;
+    };
+    const written = dated.filter((l) => !l.yu).length;
+    return `<section class="overview tl" aria-labelledby="tl-h">
+      <h2 id="tl-h">${T("Letters by decade", "Briefe nach Jahrzehnt")}</h2>
+      <p class="small muted">${T(`${num(dated.length)} of ${num(ls.length)} letters have a year; ${num(ls.length - dated.length)} have none that could be read. Click a bar to search those letters.`,
+        `${num(dated.length)} von ${num(ls.length)} Briefen haben ein Jahr; ${num(ls.length - dated.length)} haben keines, das sich lesen liess. Ein Klick auf einen Balken sucht diese Briefe.`)}</p>
+      <div class="tl-legend small"><span><i class="w"></i>${T("year written in full", "Jahr ausgeschrieben")} (${num(written)})</span>
+        <span><i class="n"></i>${T("century taken from neighbouring letters: uncertain", "Jahrhundert aus benachbarten Briefen: unsicher")} (${num(dated.length - written)})</span></div>
+      <div class="tl-chart" role="group" aria-label="${T("Letters per decade", "Briefe pro Jahrzehnt")}">${grid(ticks, top)}<div class="tl-bars">${decBars}</div></div>
+      <p class="small muted tl-out">${before.length ? `<a href="${decLink(before)}">${T(`Before ${lo}: ${num(sumOf(before))} letters`, `Vor ${lo}: ${num(sumOf(before))} Briefe`)}</a> (${before[0]}–${before[before.length - 1] + 9})` : ""}
+        ${before.length && after.length ? " · " : ""}${after.length ? `<a href="${decLink(after)}">${T(`After ${hi + 9}: ${num(sumOf(after))} letters`, `Nach ${hi + 9}: ${num(sumOf(after))} Briefe`)}</a> (${T("up to", "bis")} ${after[after.length - 1] + 9})` : ""}
+        ${before.length || after.length ? T(" — a year far from the rest is more likely misread than not.", " – ein Jahr weit weg von den übrigen ist eher falsch gelesen als nicht.") : ""}</p>
+      <div class="tl-zoomhead"><h3 id="tl-zh">${T("Years of the", "Jahre der")}</h3>
+        <select id="tl-zoom" aria-labelledby="tl-zh">${range.filter((k) => tot(k)).map((k) => `<option value="${k}" ${k === zoom ? "selected" : ""}>${T(`${k}s`, `${k}er`)} (${num(tot(k))})</option>`).join("")}</select></div>
+      <div class="tl-chart tl-years" role="group" aria-label="${T("Letters per year", "Briefe pro Jahr")}">${grid(yticks, ytop)}<div class="tl-bars">${Array.from({ length: 10 }, (_, i) => ybar(zoom + i)).join("")}</div></div>
+      <details class="tl-table small"><summary>${T("Table", "Tabelle")}</summary><div class="scroll"><table class="scores">
+        <thead><tr><th>${T("Decade", "Jahrzehnt")}</th><th>${T("Letters", "Briefe")}</th><th>${T("year written", "Jahr ausgeschrieben")}</th><th>${T("century from neighbours", "Jahrhundert aus Nachbarn")}</th></tr></thead>
+        <tbody>${decs.map((k) => `<tr><td><a href="${decLink([k])}">${T(`${k}s`, `${k}er`)}</a></td><td class="n">${num(tot(k))}</td><td class="n">${num(by.get(k).w)}</td><td class="n">${num(by.get(k).n)}</td></tr>`).join("")}</tbody></table></div></details>
+      <p class="small muted">${T(`Dates are read by rule (scripts/dates.py) from the date line that the machine-drafted regest quotes from a machine reading; nothing is checked by a person.
+          A day computed from a feast is a date in the Julian calendar, which Bern kept until 1701. Where only the last digits of the year are written, the century comes from the dated letters around it in the same volume and is uncertain.`,
+        `Die Daten sind nach Regeln (scripts/dates.py) aus der Datumszeile gelesen, die der Maschinenentwurf des Regests aus einer maschinellen Lesung zitiert; niemand hat sie geprüft.
+          Ein aus einem Fest berechneter Tag ist ein Datum im julianischen Kalender, den Bern bis 1701 behielt. Wo vom Jahr nur die letzten Ziffern geschrieben sind, stammt das Jahrhundert von den datierten Briefen in der Nähe im selben Band und ist unsicher.`)}</p>
+    </section>`;
+  }
+
+  function keywordsHtml() {
+    const voc = state.index.vocabulary;
+    if (!voc || !state.kw.size) return `<p class="small muted kw-soon">${T("Keywords will follow.", "Schlagwörter folgen.")}</p>`;
+    const ls = state.index.letters;
+    const withKw = ls.filter((l) => l.k && l.k.length).length;
+    const terms = [...state.kw.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0], "de"));
+    const max = terms[0][1];
+    const row = ([k, c]) => `<a class="kwrow" href="#/search?kw=${encodeURIComponent(k)}"><span class="kl" lang="de">${esc(k)}</span><span class="kb"><i style="width:${(c / max) * 100}%"></i></span><span class="kn">${num(c)}</span></a>`;
+    const TOP = 40;
+    return `<section class="overview kwov" aria-labelledby="kw-h">
+      <h2 id="kw-h">${T("Keywords", "Schlagwörter")}</h2>
+      <p class="small muted">${T(`${num(withKw)} of ${num(ls.length)} letters have keywords, ${num(terms.length)} different terms. A language model assigned them from the machine-drafted regests, choosing from the ${num(voc.terms)} keywords of the St. Gallen Missives edition; unchecked. Click a keyword to search its letters.`,
+        `${num(withKw)} von ${num(ls.length)} Briefen haben Schlagwörter, ${num(terms.length)} verschiedene. Ein Sprachmodell hat sie aus den maschinell entworfenen Regesten vergeben, gewählt aus den ${num(voc.terms)} Schlagwörtern der Edition der St. Galler Missiven; ungeprüft. Ein Klick auf ein Schlagwort sucht seine Briefe.`)}</p>
+      <div class="kwlist">${terms.slice(0, TOP).map(row).join("")}</div>
+      ${terms.length > TOP ? `<details class="kwmore"><summary>${T(`Show all ${num(terms.length)}`, `Alle ${num(terms.length)} anzeigen`)}</summary><div class="kwlist">${terms.slice(TOP).map(row).join("")}</div></details>` : ""}
+    </section>`;
+  }
+
+  /* hover / focus tooltip on the timeline bars */
+  function tlTip(ev) {
+    const b = ev.target.closest && ev.target.closest(".tl-bar");
+    if (!b) { if (ev.type === "mouseout" || ev.type === "focusout") hideTip(); return; }
+    hideTip();
+    tipEl = document.createElement("div");
+    tipEl.className = "tip";
+    tipEl.textContent = b.dataset.tip;
+    document.body.appendChild(tipEl);
+    const r = b.getBoundingClientRect(), w = tipEl.offsetWidth;
+    tipEl.style.left = Math.max(8, Math.min(window.innerWidth - w - 8, r.left + r.width / 2 - w / 2)) + "px";
+    tipEl.style.top = Math.max(8, r.top - tipEl.offsetHeight - 6) + "px";
+    tipEl.style.pointerEvents = "none";
+  }
+
   async function boot() {
     [state.index, state.readers] = await Promise.all([json("data/index.json"), json("data/readers.json")]);
     state.pos = new Map(state.index.letters.map((l, i) => [l.id, i]));
+    /* keyword term -> number of letters; empty until keywords/assigned.jsonl exists */
+    state.kw = new Map();
+    for (const l of state.index.letters) for (const k of l.k || []) state.kw.set(k, (state.kw.get(k) || 0) + 1);
     if (!state.readers.some((r) => r.id === state.reader)) state.reader = state.readers.length ? state.readers[0].id : "";
     window.addEventListener("hashchange", route);
     document.querySelectorAll("[data-lang]").forEach((b) => b.addEventListener("click", () => setLang(b.dataset.lang)));
@@ -112,7 +274,7 @@
       <span class="th">${l.tk ? `<img src="${thumb(l.tk)}" alt="" loading="lazy" width="44" height="60">` : ""}</span>
       <span class="num">${T("No.", "Nr.")} ${esc(l.nr)}</span>
       <span class="body"><a class="who" href="${href}">${esc(titleOf(l))}</a>
-        <span class="small muted">${num(l.n)} ${P(l.n, "page", "pages", "Seite", "Seiten")}${l.x ? ` + ${num(l.x)} ${P(l.x, "further scan", "further scans", "weitere Aufnahme", "weitere Aufnahmen")}` : ""}</span>
+        <span class="small muted">${l.y ? `${esc(shortDate(l))} · ` : ""}${num(l.n)} ${P(l.n, "page", "pages", "Seite", "Seiten")}${l.x ? ` + ${num(l.x)} ${P(l.x, "further scan", "further scans", "weitere Aufnahme", "weitere Aufnahmen")}` : ""}</span>
         ${l.h ? `<span class="reg">${esc(l.h)} ${draftMark()}</span>` : ""}${extra}</span>
     </div>`;
   }
@@ -136,6 +298,7 @@
           ${drafted ? T(`${num(drafted)} letters have a heading and regest drafted by a language model: machine drafts, unchecked.`,
             `${num(drafted)} Briefe haben eine von einem Sprachmodell entworfene Überschrift und ein Regest: Maschinenentwürfe, ungeprüft.`) : ""}</p>
       </section>
+      <div class="ovgrid">${timelineHtml()}${keywordsHtml()}</div>
       <div class="filters">
         <input id="q" type="search" placeholder="${T("Filter by shelfmark, number, sender, recipient…", "Nach Signatur, Nummer, Absender, Empfänger filtern…")}" value="${esc(state.filter)}" aria-label="${T("Filter letters", "Briefe filtern")}">
         <span id="count" class="muted small"></span>
@@ -160,6 +323,13 @@
       }).join("") || `<p class="empty">${T("No letter matches.", "Kein Brief passt.")}</p>`;
     };
     q.addEventListener("input", draw);
+    const tl = app.querySelector(".tl");
+    if (tl) {
+      ["mouseover", "focusin"].forEach((e) => tl.addEventListener(e, tlTip));
+      ["mouseout", "focusout"].forEach((e) => tl.addEventListener(e, (ev) => { if (!ev.relatedTarget || !ev.relatedTarget.closest || !ev.relatedTarget.closest(".tl-bar")) hideTip(); }));
+      const z = document.getElementById("tl-zoom");
+      z && z.addEventListener("change", () => { state.zoom = +z.value; const y = window.scrollY; hideTip(); showList(); window.scrollTo(0, y); const z2 = document.getElementById("tl-zoom"); z2 && z2.focus(); });
+    }
     app.querySelector(".shelves").addEventListener("click", (ev) => {
       const a = ev.target.closest("[data-shelf]");
       if (!a) return;
@@ -225,7 +395,8 @@
         <li><b>Keine Edition, keine Ground Truth.</b> Keine Seite ist von Menschen transkribiert oder geprüft. Die erste Lesung ist die automatische Lesung in Transkribus (PyLaia, Modell «Medieval_Scripts_M2.4»), unkorrigiert.</li>
         <li><b>Überschriften und Regesten sind Maschinenentwürfe.</b> Ein offenes Sprachmodell (Qwen3.8-27B auf dem GPUStack der Universität Bern) entwirft sie aus der besten vorhandenen Lesung eines Briefs, mit Briefen der St. Galler Edition als Stilvorlagen. Niemand hat sie geprüft; Namen und Daten können falsch sein. Briefe ohne Entwurf zeigen keinen.</li>
         <li><b>Lesungen vergleichen</b>: Wo eine Seite mehrere Lesungen hat, zeigt «Vergleichen mit …» Wort für Wort, was die eine Lesung hat und die andere nicht. Die Prozentzahl ist <i>Abweichung, nie Qualität</i>.</li>
-        <li><b>Suche</b> im Text einer Lesung, Brief für Brief, mit «Schreibvarianten zulassen» (u/v/w, i/y/j, ſ/s, Doppelbuchstaben, ů/uo/u, ä/ae/a, Worttrennung am Zeilenende) und Facetten nach Signatur, Jahrzehnt, Absender, Empfänger und Regest (die letzten vier aus den Maschinenentwürfen).</li>
+        <li><b>Suche</b> im Text einer Lesung, Brief für Brief, mit «Schreibvarianten zulassen» (u/v/w, i/y/j, ſ/s, Doppelbuchstaben, ů/uo/u, ä/ae/a, Worttrennung am Zeilenende) und Facetten nach Signatur, Jahrzehnt und Jahr, Schlagwort, Absender, Empfänger und Regest.</li>
+        <li><b>Daten.</b> Jahr und Tag jedes Briefs sind nach Regeln aus der Datumszeile gelesen, die der Regestentwurf aus einer maschinellen Lesung zitiert (<code>scripts/dates.py</code>). Ein aus einem Fest berechneter Tag ist julianisch; wo vom Jahr nur die letzten Ziffern geschrieben sind, stammt das Jahrhundert von den benachbarten datierten Briefen und ist unsicher. Schlagwörter vergibt ein Sprachmodell aus den Regestentwürfen, gewählt aus dem Vokabular der St. Galler Edition; ungeprüft.</li>
       </ul>
       <h2>Geplant</h2>
       <p>Weitere Leser: Gemini 4 Argon, Gemini 3.8 Flash, ein feinjustiertes Qwen3.5-4B (Kurrent, ganze Seiten), kraken und TrOCR; Regestentwürfe für alle Briefe. Danach die automatische Auszeichnung von Personen, Orten und Daten (NER) und ihre Verknüpfung mit Normdaten.</p>
@@ -244,7 +415,8 @@
         <li><b>No edition, no ground truth.</b> No page has been transcribed or checked by a person. The first reading is the automatic one in Transkribus (PyLaia, model "Medieval_Scripts_M2.4"), uncorrected.</li>
         <li><b>Headings and regests are machine drafts.</b> An open language model (Qwen3.8-27B on the University of Bern's GPUStack) drafts them from the best reading a letter has, with letters of the St. Gallen edition as style examples. Nobody has checked them; names and dates may be wrong. Letters without a draft show none.</li>
         <li><b>Compare readings</b>: where a page has more than one reading, "Compare with …" marks word by word what one reading has and the other lacks. The percentage is <i>disagreement, never quality</i>.</li>
-        <li><b>Search</b> in the text of one reading, letter by letter, with "tolerant spelling" (u/v/w, i/y/j, ſ/s, doubled letters, ů/uo/u, ä/ae/a, words broken at the line end) and facets for shelfmark, decade, sender, recipient and regest (the last four from the machine drafts).</li>
+        <li><b>Search</b> in the text of one reading, letter by letter, with "tolerant spelling" (u/v/w, i/y/j, ſ/s, doubled letters, ů/uo/u, ä/ae/a, words broken at the line end) and facets for shelfmark, decade and year, keyword, sender, recipient and regest.</li>
+        <li><b>Dates.</b> Each letter's year and day are read by rule from the date line that the regest draft quotes from a machine reading (<code>scripts/dates.py</code>). A day computed from a feast is Julian; where only the last digits of the year are written, the century comes from the neighbouring dated letters and is uncertain. Keywords are assigned by a language model from the regest drafts, chosen from the St. Gallen edition's vocabulary; unchecked.</li>
       </ul>
       <h2>Planned</h2>
       <p>More readers: Gemini 4 Argon, Gemini 3.8 Flash, a fine-tuned Qwen3.5-4B (Kurrent, whole pages), kraken and TrOCR; regest drafts for every letter. Then automatic tagging of persons, places and dates (NER) and linking them to authority files.</p>
@@ -261,7 +433,9 @@
      in the URL. */
   const FACETS = [
     { k: "sh", en: "Shelfmark", de: "Signatur" },
-    { k: "dec", en: "Decade (draft)", de: "Jahrzehnt (Entwurf)" },
+    { k: "dec", en: "Decade", de: "Jahrzehnt" },
+    { k: "yr", en: "Year", de: "Jahr" },
+    { k: "kw", en: "Keyword (machine)", de: "Schlagwort (maschinell)" },
     { k: "snd", en: "Sender (draft)", de: "Absender (Entwurf)" },
     { k: "rcp", en: "Recipient (draft)", de: "Empfänger (Entwurf)" },
     { k: "dr", en: "Regest", de: "Regest" },
@@ -324,13 +498,17 @@
     return (a > 0 ? "…" : "") + out.replace(/\n/g, " / ") + (b < text.length ? "…" : "") + (spans.length > 1 ? ` <span class="muted">(${spans.length}×)</span>` : "");
   }
 
-  function facetValue(l, k) {
-    if (k === "sh") return l.shelf;
-    if (k === "dec") return l.y ? String(Math.floor(l.y / 10) * 10) : "";
-    if (k === "snd") return l.s || "";
-    if (k === "rcp") return l.r || "";
-    if (k === "dr") return l.h ? "yes" : "no";
-    return "";
+  /* a letter's values for a facet: one, or none, or (keywords) several */
+  function facetValues(l, k) {
+    const one = (v) => (v ? [v] : []);
+    if (k === "sh") return one(l.shelf);
+    if (k === "dec") return one(l.y ? String(Math.floor(l.y / 10) * 10) : "");
+    if (k === "yr") return one(l.y ? String(l.y) : "");
+    if (k === "kw") return l.k || [];
+    if (k === "snd") return one(l.s);
+    if (k === "rcp") return one(l.r);
+    if (k === "dr") return [l.h ? "yes" : "no"];
+    return [];
   }
   function facetLabel(k, v) {
     if (k === "sh") return "BAT " + v;
@@ -353,8 +531,8 @@
               Without words, the facets alone select letters.`,
               `Der Text jedes Briefs, wie eine Maschine ihn gelesen hat. Die Lesungen sind unkorrigiert: Ein falsch gelesenes Wort wird unter seiner richtigen Schreibung nicht gefunden; Varianten versuchen oder Schreibvarianten zulassen.
               Ohne Suchwort wählen die Facetten allein Briefe aus.`)}</p>
-        <p class="small muted">${T("Decade, sender and recipient come from the regests drafted by a language model: machine drafts, unchecked, and so far only for some letters.",
-          "Jahrzehnt, Absender und Empfänger stammen aus den Regestentwürfen eines Sprachmodells: Maschinenentwürfe, ungeprüft und bisher nur für einige Briefe.")}</p>
+        <p class="small muted">${T("Decade and year are read by rule from the date line of the machine-drafted regest (an abbreviated year takes its century from neighbouring letters and is uncertain); sender and recipient come from the regest drafts; keywords were assigned by a language model from those drafts. All machine-made, unchecked.",
+          "Jahrzehnt und Jahr sind nach Regeln aus der Datumszeile des Regestentwurfs gelesen (ein abgekürztes Jahr nimmt sein Jahrhundert von benachbarten Briefen und ist unsicher); Absender und Empfänger stammen aus den Regestentwürfen; die Schlagwörter hat ein Sprachmodell aus diesen Entwürfen vergeben. Alles maschinell, ungeprüft.")}</p>
       </section>
       <div class="sbar">
         <input id="sq" type="search" value="${esc(ui.q)}" placeholder="${T('Words or "a phrase" in the text…', 'Wörter oder «eine Wendung» im Text…')}" aria-label="${T("Search the text", "Text durchsuchen")}">
@@ -381,7 +559,7 @@
     };
     const sortVals = (k, counts) => [...counts.entries()].sort((a, b) => {
       if (k === "sh") return shelfOrder.indexOf(a[0]) - shelfOrder.indexOf(b[0]);
-      if (k === "dec") return +a[0] - +b[0];
+      if (k === "dec" || k === "yr") return +a[0] - +b[0];
       if (k === "dr") return a[0] === "yes" ? -1 : 1;
       return b[1] - a[1] || a[0].localeCompare(b[0], "de");
     });
@@ -416,7 +594,7 @@
         $("sres").innerHTML = `<p class="empty">${readers.length ? T("Type a word to search, or choose a facet.", "Ein Wort eingeben oder eine Facette wählen.") : T("No reading to search yet.", "Noch keine Lesung zum Durchsuchen.")}</p>`;
         return;
       }
-      const passes = (h, except) => FACETS.every((f) => f.k === except || !sel[f.k].size || sel[f.k].has(facetValue(h.l, f.k)));
+      const passes = (h, except) => FACETS.every((f) => f.k === except || !sel[f.k].size || facetValues(h.l, f.k).some((v) => sel[f.k].has(v)));
       const rows = base.filter((h) => passes(h, null));
       $("fsel").textContent = nSel ? `(${nSel} ${T("selected", "gewählt")})` : "";
       $("facets").innerHTML = facetsHtml(base, passes);
@@ -438,12 +616,14 @@
     function facetsHtml(base, passes) {
       return FACETS.map((f) => {
         const counts = new Map();
-        for (const h of base) if (passes(h, f.k)) { const v = facetValue(h.l, f.k); if (v) counts.set(v, (counts.get(v) || 0) + 1); }
+        for (const h of base) if (passes(h, f.k)) for (const v of facetValues(h.l, f.k)) counts.set(v, (counts.get(v) || 0) + 1);
         for (const v of sel[f.k]) if (!counts.has(v)) counts.set(v, 0);
         const vals = sortVals(f.k, counts);
         if (!vals.length) return "";
         const ff = (ui.ff[f.k] || "").toLowerCase();
-        return `<details class="facet" open data-k="${f.k}"><summary>${T(f.en, f.de)}${sel[f.k].size ? ` <span class="badge">${sel[f.k].size}</span>` : ""} <span class="muted small">${vals.length}</span></summary>
+        /* the year list is long: open once a decade or a year is chosen */
+        const open = f.k !== "yr" || sel.yr.size || sel.dec.size;
+        return `<details class="facet" ${open ? "open" : ""} data-k="${f.k}"><summary>${T(f.en, f.de)}${sel[f.k].size ? ` <span class="badge">${sel[f.k].size}</span>` : ""} <span class="muted small">${vals.length}</span></summary>
           ${vals.length > 12 ? `<input class="ffilter" type="search" data-ff="${f.k}" value="${esc(ui.ff[f.k] || "")}" placeholder="${T("Filter…", "Filtern…")}" aria-label="${T("Filter", "Filtern")} ${T(f.en, f.de)}">` : ""}
           <ul>${vals.map(([v, n]) => `<li ${ff && !facetLabel(f.k, v).toLowerCase().includes(ff) ? "hidden" : ""}><label class="${n ? "" : "zero"}"><input type="checkbox" data-k="${f.k}" value="${esc(v)}" ${sel[f.k].has(v) ? "checked" : ""}>
             <span class="fl">${esc(facetLabel(f.k, v))}</span><span class="fc">${num(n)}</span></label></li>`).join("")}</ul></details>`;
@@ -530,7 +710,9 @@
           </div>
           <div class="muted small">${T("Transkribus page", "Transkribus-Seite")} ${esc(page.key)}</div>
           <h1>${esc(titleOf(letter))}</h1>
-          ${draftBlock(letter.draft)}
+          ${dateBlock(letter.date)}
+          ${kwChips(letter.keywords)}
+          ${draftBlock(letter.draft, letter.date)}
           ${linksBlock(letter.links)}
           <div class="pages"><span class="lbl">${T("Page", "Seite")}</span>${pages.slice(0, main).map(pgBtn).join("")}
             ${pages.length > main ? `<span class="lbl extra-lbl">${T("Further scan", "Weitere Aufnahme")}</span>${pages.slice(main).map((p, i) => pgBtn(p, main + i)).join("")}` : ""}
@@ -587,13 +769,18 @@
     </details>`;
   }
 
-  function draftBlock(d) {
+  function draftBlock(d, dt) {
     if (!d) return "";
-    const when = [d.place, d.date_text].filter(Boolean).map(esc).join(", ");
+    /* the date line and the year are shown above, read by rule (dates.py); here only
+       where the drafting model's own year differs from that */
+    const ruled = dt && (dt.date_text || dt.year);
+    const when = (ruled ? [d.place] : [d.place, d.date_text]).filter(Boolean).map(esc).join(", ");
+    const yr = ruled ? (d.year && d.year !== dt.year ? T(`the drafting model read the year as ${esc(d.year)}`, `das Sprachmodell las das Jahr als ${esc(d.year)}`) : "")
+      : d.year ? T(`year read as ${esc(d.year)} (unchecked)`, `Jahr gelesen als ${esc(d.year)} (ungeprüft)`) : "";
     return `<details class="regest draft" ${store.get("regest", true) ? "open" : ""}>
       <summary>${T("Regest — machine draft", "Regest – Maschinenentwurf")}</summary>
       ${d.heading ? `<div class="meta"><span class="parties">${esc(d.heading)}</span></div>` : ""}
-      ${when || d.year ? `<p class="small muted">${when}${d.year ? `${when ? " · " : ""}${T(`year read as ${esc(d.year)} (unchecked)`, `Jahr gelesen als ${esc(d.year)} (ungeprüft)`)}` : ""}</p>` : ""}
+      ${when || yr ? `<p class="small muted">${when}${yr ? `${when ? " · " : ""}${yr}` : ""}</p>` : ""}
       <p lang="de">${esc(d.regest)}</p>
       <p class="small muted">${T(`Heading and regest drafted by ${esc(d.model || "a language model")} from the uncorrected reading ${esc(readerLabel(d.reader))}, not checked by anyone${LANG === "en" ? "; in German" : ""}. Names and dates may be wrong.`,
         `Überschrift und Regest entworfen von ${esc(d.model || "einem Sprachmodell")} aus der unkorrigierten Lesung ${esc(readerLabel(d.reader))}, von niemandem geprüft. Namen und Daten können falsch sein.`)}</p>
