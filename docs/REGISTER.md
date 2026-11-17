@@ -271,11 +271,6 @@ entries checked by a person) is still needed.
 - R-0: a check sample by a person, so that the grades are measured on Thun.
 - R-3: office holders by year (Schultheissen of Thun and Bern, Stadtschreiber);
   offices are therefore not used to join persons.
-- The letter view's entity view is built from the Argon reading. That reading is
-  not in `readings/readers.json`: it is not shown, and adding it is a person's
-  decision. Until then, the names of a letter appear as a list of register
-  entries above the regest. The entity tips link to the register as soon as the
-  reading is shown.
 - The SSRQ place database was asked only for spellings tagged at least twice.
 - The gold sample for the tagger (N-1), and with it any Thun figure for the
   tagging.
