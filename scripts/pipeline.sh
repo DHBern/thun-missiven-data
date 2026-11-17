@@ -9,7 +9,8 @@
 #
 # The checkout (~/thun-missiven-data) belongs to the pipeline: each cycle resets
 # it to origin/main. Code never reaches main this way; only readings/,
-# entities/, regests/, dates/ and keywords/ may change, or the cycle stops.
+# entities/, regests/, dates/, keywords/ and registers/ may change, or the cycle
+# stops. The register itself (scripts/register.py) is built by hand, not here.
 #
 # No joint reading here: St. Gallen weighs each voter by its error against the
 # edition, and the Thun Missiven have no edition or ground truth to weigh by.
@@ -20,7 +21,7 @@ PY=${THM_PY:-$HOME/sg-missiven-venv/bin/python}   # lxml + rapidfuzz; SG's venv 
 STATE=${THM_STATE:-$HOME/thun-pipeline}
 GH_REPO=DHBern/thun-missiven-data
 BRANCH=data/auto
-DATA_PATHS=(readings entities regests dates keywords)
+DATA_PATHS=(readings entities regests dates keywords registers)
 DRY=${1:-}
 
 mkdir -p "$STATE"

@@ -16,8 +16,8 @@ ist aus dem der [St. Galler Missiven](https://github.com/DHBern/sg-missiven-data
 - **Die Bilder zeigt der Viewer, ausgeliefert von Transkribus.** Die Digitalisierung erfolgte
   durch die Universität Zürich (Lehrstuhl Prof. Simon Teuscher). Die Bilder liegen nicht in diesem
   Repository; der Viewer lädt sie über IIIF von `files.transkribus.eu` (`readings/images.tsv`).
-- **Nichts hier ist Ground Truth.** Es gibt keine Edition, keine TEI, keine Register und keine
-  geprüfte Transkription. Jede Lesung ist maschinell und unkorrigiert, und keine wird bewertet.
+- **Nichts hier ist Ground Truth.** Es gibt keine Edition, keine TEI, kein geprüftes Register und
+  keine geprüfte Transkription. Jede Lesung ist maschinell und unkorrigiert, und keine wird bewertet.
   Wo eine Seite mehrere Lesungen hat, misst der Build nur, wie stark zwei Lesungen voneinander
   **abweichen** – Abweichung, nie Qualität: Sie sagt nicht, welche der beiden recht hat.
 - **Die Einheit ist der Brief.** Die Transkribus-Dokumente (je rund hundert Briefe) sind nach
@@ -46,7 +46,8 @@ ist aus dem der [St. Galler Missiven](https://github.com/DHBern/sg-missiven-data
 | Qwen3.5-4B, feinjustiert auf Kurrent (ganze Seiten) | geplant |
 | kraken (Berner Kanzlei, Kursive Inzigkofen) | geplant |
 | TrOCR (Kurrent XVI–XVII, mittelalterlich) | geplant |
-| Automatische Auszeichnung von Personen, Orten, Daten (NER) und Verknüpfung mit Normdaten | geplant |
+| Automatische Auszeichnung von Personen, Orten, Organisationen, Daten (hmBERT der St. Galler Edition, Lesung Gemini 4 Argon; `entities/`) | Basislauf, an Thun nicht gemessen |
+| Register (Personen, Orte, Organisationen), aus der Auszeichnung generiert und mit HLS, SSRQ, Königsfelden und St. Gallen abgeglichen, mit Karte (`registers/`, [docs/REGISTER.md](docs/REGISTER.md)) | veröffentlicht, automatisch, ungeprüft |
 
 ## Inhalt
 
@@ -57,6 +58,7 @@ ist aus dem der [St. Galler Missiven](https://github.com/DHBern/sg-missiven-data
 | `readings/images.tsv` | eine Zeile pro Seite: Brief, Seite (r/v), Vermerk, Bilddatei, `tk` (IIIF-Kennung auf `files.transkribus.eu`), Bildgrösse |
 | `dates/dates.jsonl` | Jahr und, wo die Zeile einen nennt, Tag jedes Briefs, nach Regeln aus der Datumszeile gelesen (`scripts/dates.py`): Tage im julianischen Kalender, mit `how` (in Ziffern oder aus einem Fest berechnet); ein abgekürztes Jahr nimmt sein Jahrhundert von den benachbarten datierten Briefen (`century: "neighbours"`, unsicher) |
 | `keywords/vocabulary.json`, `keywords/assigned.jsonl` | Schlagwörter: das Vokabular der St. Galler Edition und die maschinell vergebenen Schlagwörter pro Brief (`scripts/keywords.py`; die letzte Zeile gilt). Ohne `assigned.jsonl` zeigt der Viewer keine Schlagwörter |
+| `registers/places.json`, `registers/persons.json`, `registers/orgs.json` | das automatisch generierte Register (`scripts/register.py`, von Hand gestartet): jeder Eintrag mit allen Schreibungen, Briefen, Seiten, Jahren, Rollen, abgestuften Kandidaten aus HLS, SSRQ, Königsfelden und St. Gallen und, bei Orten, Koordinaten eines Kandidaten; `links/registers/st-gallen.json` die Verweise auf Einträge des St. Galler Registers ([docs/REGISTER.md](docs/REGISTER.md)) |
 | `regests/drafts.jsonl` | maschinell entworfene Überschrift und Regest pro Brief (die letzte Zeile gilt), mit Lesung, Modell und Prompt |
 | `readings/<leser>.jsonl` | eine Zeile pro Seite: `key`, `text` (eine Zeile pro Textzeile) |
 | `readings/readers.json` | wer jeder Leser ist, mit Vorbehalten (`label`, `kind`, `about`, `caveat`; deutsch in `*_de`) |

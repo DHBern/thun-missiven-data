@@ -1,0 +1,1924 @@
+{
+ "about": "Register entries of the Thun Missives that name an entry of the St. Gallen Missives register (the edition's, or one generated there whose best candidate is the same HLS article). Automatic, unchecked; grade = the Thun candidate's grade. Thun side only (scripts/register.py).",
+ "viewer": "https://dhbern.github.io/sg-missiven-data/",
+ "date": "2026-11-17",
+ "links": [
+  {
+   "entry": "pl-72fec05e",
+   "kind": "place",
+   "name": "Thun",
+   "other": "auto-pla-795c2a99c0",
+   "label": "Thun",
+   "how": "same HLS article",
+   "grade": "wahrscheinlich"
+  },
+  {
+   "entry": "pl-e55761e1",
+   "kind": "place",
+   "name": "Bern",
+   "other": "stadtasg-places-13",
+   "label": "Bern",
+   "how": "register",
+   "grade": "möglich"
+  },
+  {
+   "entry": "pl-de420fa4",
+   "kind": "place",
+   "name": "Basel",
+   "other": "stadtasg-places-133",
+   "label": "Basel",
+   "how": "register",
+   "grade": "möglich"
+  },
+  {
+   "entry": "pl-63d47b36",
+   "kind": "place",
+   "name": "Zürich",
+   "other": "stadtasg-places-32",
+   "label": "Zürich",
+   "how": "register",
+   "grade": "wahrscheinlich"
+  },
+  {
+   "entry": "pl-63d47b36",
+   "kind": "place",
+   "name": "Zürich",
+   "other": "auto-pla-910a83ba3d",
+   "label": "Zurigo",
+   "how": "same HLS article",
+   "grade": "wahrscheinlich"
+  },
+  {
+   "entry": "pl-32b93f0c",
+   "kind": "place",
+   "name": "Fribourg",
+   "other": "stadtasg-places-197",
+   "label": "Fribourg",
+   "how": "register",
+   "grade": "wahrscheinlich"
+  },
+  {
+   "entry": "pl-32b93f0c",
+   "kind": "place",
+   "name": "Fribourg",
+   "other": "stadtasg-places-342",
+   "label": "Freiburg",
+   "how": "register",
+   "grade": "möglich"
+  },
+  {
+   "entry": "pl-7ad21dba",
+   "kind": "place",
+   "name": "Baden",
+   "other": "stadtasg-places-53",
+   "label": "Baden",
+   "how": "register",
+   "grade": "möglich"
+  },
+  {
+   "entry": "pl-7ad21dba",
+   "kind": "place",
+   "name": "Baden",
+   "other": "stadtasg-places-148",
+   "label": "Baden",
+   "how": "register",
+   "grade": "möglich"
+  },
+  {
+   "entry": "pl-a25a2c87",
+   "kind": "place",
+   "name": "Luzern",
+   "other": "stadtasg-places-69",
+   "label": "Luzern",
+   "how": "register",
+   "grade": "wahrscheinlich"
+  },
+  {
+   "entry": "pl-6048583b",
+   "kind": "place",
+   "name": "Schwyz",
+   "other": "auto-pla-49f8997619",
+   "label": "Schwyts",
+   "how": "same HLS article",
+   "grade": "wahrscheinlich"
+  },
+  {
+   "entry": "pl-b574edb1",
+   "kind": "place",
+   "name": "Lenzburg",
+   "other": "stadtasg-places-400",
+   "label": "Lenzburg",
+   "how": "register",
+   "grade": "wahrscheinlich"
+  },
+  {
+   "entry": "pl-c8d4c292",
+   "kind": "place",
+   "name": "Konstanz",
+   "other": "stadtasg-places-7",
+   "label": "Konstanz",
+   "how": "register",
+   "grade": "wahrscheinlich"
+  },
+  {
+   "entry": "pl-fb2034b4",
+   "kind": "place",
+   "name": "Riein",
+   "other": "stadtasg-places-92",
+   "label": "Rhein",
+   "how": "register",
+   "grade": "möglich"
+  },
+  {
+   "entry": "pl-9e4a8a78",
+   "kind": "place",
+   "name": "Büren",
+   "other": "stadtasg-places-426",
+   "label": "Oberbüren",
+   "how": "register",
+   "grade": "möglich"
+  },
+  {
+   "entry": "pl-ba2e8ff6",
+   "kind": "place",
+   "name": "Österreich",
+   "other": "stadtasg-places-91",
+   "label": "Österreich",
+   "how": "register",
+   "grade": "wahrscheinlich"
+  },
+  {
+   "entry": "pl-af4fcf38",
+   "kind": "place",
+   "name": "Savoyen",
+   "other": "stadtasg-places-437",
+   "label": "Savoyen",
+   "how": "register",
+   "grade": "wahrscheinlich"
+  },
+  {
+   "entry": "pl-af4fcf38",
+   "kind": "place",
+   "name": "Savoyen",
+   "other": "auto-pla-af4fcf3884",
+   "label": "Saffoy",
+   "how": "same HLS article",
+   "grade": "wahrscheinlich"
+  },
+  {
+   "entry": "pl-af4fcf38",
+   "kind": "place",
+   "name": "Savoyen",
+   "other": "auto-pla-baaef96303",
+   "label": "Safoey",
+   "how": "same HLS article",
+   "grade": "wahrscheinlich"
+  },
+  {
+   "entry": "pl-af4fcf38",
+   "kind": "place",
+   "name": "Savoyen",
+   "other": "auto-pla-9536cd963c",
+   "label": "Savoye",
+   "how": "same HLS article",
+   "grade": "wahrscheinlich"
+  },
+  {
+   "entry": "pl-b80afda2",
+   "kind": "place",
+   "name": "Aargau",
+   "other": "stadtasg-places-266",
+   "label": "Aargau",
+   "how": "register",
+   "grade": "wahrscheinlich"
+  },
+  {
+   "entry": "pl-fa465dfb",
+   "kind": "place",
+   "name": "Zug",
+   "other": "stadtasg-places-10",
+   "label": "Zug",
+   "how": "register",
+   "grade": "wahrscheinlich"
+  },
+  {
+   "entry": "pl-d71a91e2",
+   "kind": "place",
+   "name": "Frankreich",
+   "other": "stadtasg-places-131",
+   "label": "Frankreich",
+   "how": "register",
+   "grade": "wahrscheinlich"
+  },
+  {
+   "entry": "pl-d71a91e2",
+   "kind": "place",
+   "name": "Frankreich",
+   "other": "auto-pla-23e591e8c3",
+   "label": "France",
+   "how": "same HLS article",
+   "grade": "wahrscheinlich"
+  },
+  {
+   "entry": "pl-d71a91e2",
+   "kind": "place",
+   "name": "Frankreich",
+   "other": "auto-pla-94d8ac955b",
+   "label": "Franckhreich",
+   "how": "same HLS article",
+   "grade": "wahrscheinlich"
+  },
+  {
+   "entry": "pl-e1cd7e9a",
+   "kind": "place",
+   "name": "Unterwalden",
+   "other": "stadtasg-places-72",
+   "label": "Unterwalden",
+   "how": "register",
+   "grade": "wahrscheinlich"
+  },
+  {
+   "entry": "pl-4c942095",
+   "kind": "place",
+   "name": "Murten",
+   "other": "stadtasg-places-310",
+   "label": "Murten",
+   "how": "register",
+   "grade": "wahrscheinlich"
+  },
+  {
+   "entry": "pl-64be9d8d",
+   "kind": "place",
+   "name": "Solothurn",
+   "other": "auto-pla-3c2461fdf0",
+   "label": "Solathorn",
+   "how": "same HLS article",
+   "grade": "wahrscheinlich"
+  },
+  {
+   "entry": "pl-257bce49",
+   "kind": "place",
+   "name": "Rapperswil",
+   "other": "stadtasg-places-225",
+   "label": "Rapperswil",
+   "how": "register",
+   "grade": "möglich"
+  },
+  {
+   "entry": "pl-ef26d7ea",
+   "kind": "place",
+   "name": "Wiler",
+   "other": "stadtasg-places-25",
+   "label": "Weiler",
+   "how": "register",
+   "grade": "möglich"
+  },
+  {
+   "entry": "pl-0bf79976",
+   "kind": "place",
+   "name": "Appenzell",
+   "other": "stadtasg-places-8",
+   "label": "Appenzell",
+   "how": "register",
+   "grade": "wahrscheinlich"
+  },
+  {
+   "entry": "pl-354cc8a7",
+   "kind": "place",
+   "name": "Erlach",
+   "other": "stadtasg-places-267",
+   "label": "Erlach",
+   "how": "register",
+   "grade": "wahrscheinlich"
+  },
+  {
+   "entry": "pl-2fcf7653",
+   "kind": "place",
+   "name": "Schweiz",
+   "other": "stadtasg-places-71",
+   "label": "Schwyz",
+   "how": "register",
+   "grade": "möglich"
+  },
+  {
+   "entry": "pl-2fcf7653",
+   "kind": "place",
+   "name": "Schweiz",
+   "other": "auto-pla-116976b4f6",
+   "label": "Helvetia",
+   "how": "same HLS article",
+   "grade": "wahrscheinlich"
+  },
+  {
+   "entry": "pl-2fcf7653",
+   "kind": "place",
+   "name": "Schweiz",
+   "other": "auto-pla-c5f6b73372",
+   "label": "Suisse",
+   "how": "same HLS article",
+   "grade": "wahrscheinlich"
+  },
+  {
+   "entry": "pl-2fcf7653",
+   "kind": "place",
+   "name": "Schweiz",
+   "other": "auto-pla-dec56e4159",
+   "label": "Helvetie",
+   "how": "same HLS article",
+   "grade": "wahrscheinlich"
+  },
+  {
+   "entry": "pl-a066ee4a",
+   "kind": "place",
+   "name": "Lachen",
+   "other": "auto-pla-1397a43d84",
+   "label": "Lachen",
+   "how": "same HLS article",
+   "grade": "wahrscheinlich"
+  },
+  {
+   "entry": "pl-fa87ffde",
+   "kind": "place",
+   "name": "Mailand",
+   "other": "auto-pla-c95ac6496d",
+   "label": "Mediolanum",
+   "how": "same HLS article",
+   "grade": "wahrscheinlich"
+  },
+  {
+   "entry": "pl-fa87ffde",
+   "kind": "place",
+   "name": "Mailand",
+   "other": "auto-pla-09b05c4009",
+   "label": "Meylandt",
+   "how": "same HLS article",
+   "grade": "wahrscheinlich"
+  },
+  {
+   "entry": "pl-11d8ea8b",
+   "kind": "place",
+   "name": "Sitten",
+   "other": "auto-pla-65dbb71c3e",
+   "label": "Sion",
+   "how": "same HLS article",
+   "grade": "wahrscheinlich"
+  },
+  {
+   "entry": "pl-131c984a",
+   "kind": "place",
+   "name": "Nidau",
+   "other": "auto-pla-a7738e0e3f",
+   "label": "Nidaw",
+   "how": "same HLS article",
+   "grade": "wahrscheinlich"
+  },
+  {
+   "entry": "pl-8c7eaf27",
+   "kind": "place",
+   "name": "St. Gallen",
+   "other": "stadtasg-places-38",
+   "label": "St. Gallen",
+   "how": "register",
+   "grade": "wahrscheinlich"
+  },
+  {
+   "entry": "pl-8c7eaf27",
+   "kind": "place",
+   "name": "St. Gallen",
+   "other": "auto-pla-08935c3a14",
+   "label": "St. Gal",
+   "how": "same HLS article",
+   "grade": "wahrscheinlich"
+  },
+  {
+   "entry": "pl-8c7eaf27",
+   "kind": "place",
+   "name": "St. Gallen",
+   "other": "auto-pla-d9ec6f2a4e",
+   "label": "San Gallo",
+   "how": "same HLS article",
+   "grade": "wahrscheinlich"
+  },
+  {
+   "entry": "pl-2c1b4a53",
+   "kind": "place",
+   "name": "Herblingen",
+   "other": "auto-pla-2c1b4a53d5",
+   "label": "Herblingen",
+   "how": "same HLS article",
+   "grade": "wahrscheinlich"
+  },
+  {
+   "entry": "pl-a64229e2",
+   "kind": "place",
+   "name": "Solothurn",
+   "other": "stadtasg-places-49",
+   "label": "Solothurn",
+   "how": "register",
+   "grade": "möglich"
+  },
+  {
+   "entry": "pl-a64229e2",
+   "kind": "place",
+   "name": "Solothurn",
+   "other": "auto-pla-ce2b7dfbb8",
+   "label": "Soleurre",
+   "how": "same HLS article",
+   "grade": "wahrscheinlich"
+  },
+  {
+   "entry": "pl-98910a8f",
+   "kind": "place",
+   "name": "Aarberg",
+   "other": "auto-pla-98910a8f9a",
+   "label": "Arberg",
+   "how": "same HLS article",
+   "grade": "wahrscheinlich"
+  },
+  {
+   "entry": "pl-e04ef88a",
+   "kind": "place",
+   "name": "Strassburg",
+   "other": "stadtasg-places-112",
+   "label": "Strassburg",
+   "how": "register",
+   "grade": "wahrscheinlich"
+  },
+  {
+   "entry": "pl-e04ef88a",
+   "kind": "place",
+   "name": "Strassburg",
+   "other": "auto-pla-6fc84c0ea3",
+   "label": "Strasbourg",
+   "how": "same HLS article",
+   "grade": "wahrscheinlich"
+  },
+  {
+   "entry": "pl-e45d24ce",
+   "kind": "place",
+   "name": "Rottweil",
+   "other": "stadtasg-places-158",
+   "label": "Rottweil",
+   "how": "register",
+   "grade": "wahrscheinlich"
+  },
+  {
+   "entry": "pl-e45d24ce",
+   "kind": "place",
+   "name": "Rottweil",
+   "other": "auto-pla-d57d0c72c0",
+   "label": "Rottweiler",
+   "how": "same HLS article",
+   "grade": "wahrscheinlich"
+  },
+  {
+   "entry": "pl-e966b03b",
+   "kind": "place",
+   "name": "Weesen",
+   "other": "stadtasg-places-335",
+   "label": "Weesen",
+   "how": "register",
+   "grade": "wahrscheinlich"
+  },
+  {
+   "entry": "pl-e4025700",
+   "kind": "place",
+   "name": "Wil",
+   "other": "stadtasg-places-102",
+   "label": "Wil",
+   "how": "register",
+   "grade": "möglich"
+  },
+  {
+   "entry": "pl-efb9661a",
+   "kind": "place",
+   "name": "Lindau",
+   "other": "stadtasg-places-24",
+   "label": "Lindau",
+   "how": "register",
+   "grade": "möglich"
+  },
+  {
+   "entry": "pl-3f13b17d",
+   "kind": "place",
+   "name": "Frankfurt",
+   "other": "stadtasg-places-16",
+   "label": "Frankfurt am Main",
+   "how": "register",
+   "grade": "wahrscheinlich"
+  },
+  {
+   "entry": "pl-cfbbb60e",
+   "kind": "place",
+   "name": "Lothringen",
+   "other": "auto-pla-cfbbb60e45",
+   "label": "Lottringen",
+   "how": "same HLS article",
+   "grade": "wahrscheinlich"
+  },
+  {
+   "entry": "pl-cfbbb60e",
+   "kind": "place",
+   "name": "Lothringen",
+   "other": "auto-pla-d9c9a4bdd4",
+   "label": "Lothringen",
+   "how": "same HLS article",
+   "grade": "wahrscheinlich"
+  },
+  {
+   "entry": "pl-619721e3",
+   "kind": "place",
+   "name": "Sarnen",
+   "other": "auto-pla-e10bfeba77",
+   "label": "Sarnen",
+   "how": "same HLS article",
+   "grade": "wahrscheinlich"
+  },
+  {
+   "entry": "pl-913f09b5",
+   "kind": "place",
+   "name": "Zofingen",
+   "other": "auto-pla-913f09b50d",
+   "label": "Zofingen",
+   "how": "same HLS article",
+   "grade": "wahrscheinlich"
+  },
+  {
+   "entry": "pl-97cd580e",
+   "kind": "place",
+   "name": "Mellingen",
+   "other": "auto-pla-97cd580ee1",
+   "label": "Mellingen",
+   "how": "same HLS article",
+   "grade": "wahrscheinlich"
+  },
+  {
+   "entry": "pl-44d5394f",
+   "kind": "place",
+   "name": "Brugg",
+   "other": "auto-pla-71d396549c",
+   "label": "Brugg",
+   "how": "same HLS article",
+   "grade": "wahrscheinlich"
+  },
+  {
+   "entry": "pl-52529833",
+   "kind": "place",
+   "name": "Biel",
+   "other": "stadtasg-places-412",
+   "label": "Biel",
+   "how": "register",
+   "grade": "wahrscheinlich"
+  },
+  {
+   "entry": "pl-5f9af7e5",
+   "kind": "place",
+   "name": "Feldkirch",
+   "other": "stadtasg-places-89",
+   "label": "Feldkirch",
+   "how": "register",
+   "grade": "wahrscheinlich"
+  },
+  {
+   "entry": "pl-5f9af7e5",
+   "kind": "place",
+   "name": "Feldkirch",
+   "other": "auto-pla-484c2251c6",
+   "label": "Veldtkhuerch",
+   "how": "same HLS article",
+   "grade": "wahrscheinlich"
+  },
+  {
+   "entry": "pl-cd8f0b94",
+   "kind": "place",
+   "name": "Gottshaus",
+   "other": "stadtasg-places-319",
+   "label": "Lindau Kanonissenstift",
+   "how": "register",
+   "grade": "möglich"
+  },
+  {
+   "entry": "pl-c9f5ccc1",
+   "kind": "place",
+   "name": "Berlin",
+   "other": "auto-pla-c9f5ccc177",
+   "label": "Berlin",
+   "how": "same HLS article",
+   "grade": "wahrscheinlich"
+  },
+  {
+   "entry": "pl-a1e17a20",
+   "kind": "place",
+   "name": "Rom",
+   "other": "stadtasg-places-55",
+   "label": "Rom",
+   "how": "register",
+   "grade": "wahrscheinlich"
+  },
+  {
+   "entry": "pl-a1e17a20",
+   "kind": "place",
+   "name": "Rom",
+   "other": "auto-pla-a6b6ea31c4",
+   "label": "Roma",
+   "how": "same HLS article",
+   "grade": "wahrscheinlich"
+  },
+  {
+   "entry": "pl-051ea4e3",
+   "kind": "place",
+   "name": "Nürnberg",
+   "other": "stadtasg-places-21",
+   "label": "Nürnberg",
+   "how": "register",
+   "grade": "wahrscheinlich"
+  },
+  {
+   "entry": "pl-2c6d680f",
+   "kind": "place",
+   "name": "Uri",
+   "other": "stadtasg-places-70",
+   "label": "Uri",
+   "how": "register",
+   "grade": "wahrscheinlich"
+  },
+  {
+   "entry": "pl-c4f329d0",
+   "kind": "place",
+   "name": "Bollingen",
+   "other": "auto-pla-c4f329d0a1",
+   "label": "Bollingen",
+   "how": "same HLS article",
+   "grade": "wahrscheinlich"
+  },
+  {
+   "entry": "pl-3c4bd4d0",
+   "kind": "place",
+   "name": "Paris",
+   "other": "auto-pla-3c4bd4d0d0",
+   "label": "Paris",
+   "how": "same HLS article",
+   "grade": "wahrscheinlich"
+  },
+  {
+   "entry": "pl-55406bbb",
+   "kind": "place",
+   "name": "Tirol",
+   "other": "stadtasg-places-99",
+   "label": "Tirol",
+   "how": "register",
+   "grade": "wahrscheinlich"
+  },
+  {
+   "entry": "pl-2a96136c",
+   "kind": "place",
+   "name": "Schwaben",
+   "other": "stadtasg-places-108",
+   "label": "Schwaben",
+   "how": "register",
+   "grade": "wahrscheinlich"
+  },
+  {
+   "entry": "pl-bd7fb4c9",
+   "kind": "place",
+   "name": "Bregenz",
+   "other": "stadtasg-places-60",
+   "label": "Bregenz",
+   "how": "register",
+   "grade": "wahrscheinlich"
+  },
+  {
+   "entry": "pl-dbf63f53",
+   "kind": "place",
+   "name": "Bodensee",
+   "other": "stadtasg-places-157",
+   "label": "Bodensee",
+   "how": "register",
+   "grade": "wahrscheinlich"
+  },
+  {
+   "entry": "pl-fe81e1a1",
+   "kind": "place",
+   "name": "Zypern",
+   "other": "auto-pla-fe81e1a132",
+   "label": "Zypern",
+   "how": "same HLS article",
+   "grade": "wahrscheinlich"
+  },
+  {
+   "entry": "pl-35c49253",
+   "kind": "place",
+   "name": "Genf",
+   "other": "stadtasg-places-169",
+   "label": "Genf",
+   "how": "register",
+   "grade": "wahrscheinlich"
+  },
+  {
+   "entry": "pl-09f2c8ad",
+   "kind": "place",
+   "name": "Erbach",
+   "other": "stadtasg-places-302",
+   "label": "Erbach",
+   "how": "register",
+   "grade": "möglich"
+  },
+  {
+   "entry": "pl-c1a2a723",
+   "kind": "place",
+   "name": "Chur",
+   "other": "stadtasg-places-114",
+   "label": "Chur",
+   "how": "register",
+   "grade": "wahrscheinlich"
+  },
+  {
+   "entry": "pl-e5c97b79",
+   "kind": "place",
+   "name": "Küssnacht",
+   "other": "auto-pla-7f19f4c077",
+   "label": "Küßnacht",
+   "how": "same HLS article",
+   "grade": "wahrscheinlich"
+  },
+  {
+   "entry": "pl-a1ad78e0",
+   "kind": "place",
+   "name": "Sant Niclaus",
+   "other": "stadtasg-places-337",
+   "label": "St. Nikolaus Pfarrkirche",
+   "how": "register",
+   "grade": "möglich"
+  },
+  {
+   "entry": "pl-566dcecd",
+   "kind": "place",
+   "name": "Ulm",
+   "other": "stadtasg-places-28",
+   "label": "Ulm",
+   "how": "register",
+   "grade": "wahrscheinlich"
+  },
+  {
+   "entry": "pl-2bb4f923",
+   "kind": "place",
+   "name": "Brandemburg",
+   "other": "stadtasg-places-147",
+   "label": "Brandenburg",
+   "how": "register",
+   "grade": "möglich"
+  },
+  {
+   "entry": "pl-eaf14a01",
+   "kind": "place",
+   "name": "Lyon",
+   "other": "stadtasg-places-196",
+   "label": "Lyon",
+   "how": "register",
+   "grade": "wahrscheinlich"
+  },
+  {
+   "entry": "pl-eaf14a01",
+   "kind": "place",
+   "name": "Lyon",
+   "other": "auto-pla-a442cbed83",
+   "label": "Leyden",
+   "how": "same HLS article",
+   "grade": "wahrscheinlich"
+  },
+  {
+   "entry": "pl-7f04a971",
+   "kind": "place",
+   "name": "Memingen",
+   "other": "stadtasg-places-221",
+   "label": "Memmingen",
+   "how": "register",
+   "grade": "möglich"
+  },
+  {
+   "entry": "pl-829e786d",
+   "kind": "place",
+   "name": "Frankenfurt",
+   "other": "stadtasg-places-16",
+   "label": "Frankfurt am Main",
+   "how": "register",
+   "grade": "möglich"
+  },
+  {
+   "entry": "pl-9f0f7746",
+   "kind": "place",
+   "name": "Zurzach",
+   "other": "stadtasg-places-101",
+   "label": "Zurzach",
+   "how": "register",
+   "grade": "wahrscheinlich"
+  },
+  {
+   "entry": "pl-6eb24f54",
+   "kind": "place",
+   "name": "Tal",
+   "other": "stadtasg-places-295",
+   "label": "Thal",
+   "how": "register",
+   "grade": "möglich"
+  },
+  {
+   "entry": "pl-ef3200f7",
+   "kind": "place",
+   "name": "Marbach",
+   "other": "stadtasg-places-121",
+   "label": "Marbach",
+   "how": "register",
+   "grade": "wahrscheinlich"
+  },
+  {
+   "entry": "pl-2d3971aa",
+   "kind": "place",
+   "name": "Burgund",
+   "other": "stadtasg-places-281",
+   "label": "Burgund",
+   "how": "register",
+   "grade": "möglich"
+  },
+  {
+   "entry": "pl-36884c9a",
+   "kind": "place",
+   "name": "Brunnen",
+   "other": "auto-pla-36884c9a55",
+   "label": "Brunnen",
+   "how": "same HLS article",
+   "grade": "wahrscheinlich"
+  },
+  {
+   "entry": "pl-0d0ce3ab",
+   "kind": "place",
+   "name": "Oberbüren",
+   "other": "stadtasg-places-426",
+   "label": "Oberbüren",
+   "how": "register",
+   "grade": "wahrscheinlich"
+  },
+  {
+   "entry": "org-0c2db76e",
+   "kind": "org",
+   "name": "Schultheiss und Rat zu Thun",
+   "other": "stadtasg-actors-1144",
+   "label": "Bürgermeister und Rat zu Thun",
+   "how": "register",
+   "grade": "möglich"
+  },
+  {
+   "entry": "org-77b73ce2",
+   "kind": "org",
+   "name": "Schultheiss und Rat zu Bern",
+   "other": "stadtasg-actors-514",
+   "label": "Schultheiss und Rat zu Bern",
+   "how": "register",
+   "grade": "wahrscheinlich"
+  },
+  {
+   "entry": "org-9e1cb63d",
+   "kind": "org",
+   "name": "Schultheiss und Rat zu Solothurn",
+   "other": "stadtasg-actors-944",
+   "label": "Schultheiss und Rat zu Solothurn",
+   "how": "register",
+   "grade": "wahrscheinlich"
+  },
+  {
+   "entry": "org-6866477f",
+   "kind": "org",
+   "name": "Schultheiss und Rat zu Luzern",
+   "other": "stadtasg-actors-575",
+   "label": "Schultheiss und Rat zu Luzern",
+   "how": "register",
+   "grade": "wahrscheinlich"
+  },
+  {
+   "entry": "org-a1e270f1",
+   "kind": "org",
+   "name": "Schultheiss und Rat zu Solotorn",
+   "other": "stadtasg-actors-944",
+   "label": "Schultheiss und Rat zu Solothurn",
+   "how": "register",
+   "grade": "wahrscheinlich"
+  },
+  {
+   "entry": "org-579dee91",
+   "kind": "org",
+   "name": "Rat zu Basel",
+   "other": "stadtasg-actors-530",
+   "label": "Bürgermeister und Rat zu Basel",
+   "how": "register",
+   "grade": "möglich"
+  },
+  {
+   "entry": "org-38c1637b",
+   "kind": "org",
+   "name": "Schultheiss und Rat zu Thuon",
+   "other": "stadtasg-actors-1144",
+   "label": "Bürgermeister und Rat zu Thun",
+   "how": "register",
+   "grade": "möglich"
+  },
+  {
+   "entry": "org-58984e3f",
+   "kind": "org",
+   "name": "Rat zu Zürich",
+   "other": "stadtasg-actors-503",
+   "label": "Bürgermeister und Rat zu Zürich",
+   "how": "register",
+   "grade": "möglich"
+  },
+  {
+   "entry": "org-9f9678e0",
+   "kind": "org",
+   "name": "Bürgermeister und Rat zu Zürich",
+   "other": "stadtasg-actors-503",
+   "label": "Bürgermeister und Rat zu Zürich",
+   "how": "register",
+   "grade": "wahrscheinlich"
+  },
+  {
+   "entry": "org-a7f547fe",
+   "kind": "org",
+   "name": "Bürgermeister und Rat zu Basel",
+   "other": "stadtasg-actors-530",
+   "label": "Bürgermeister und Rat zu Basel",
+   "how": "register",
+   "grade": "wahrscheinlich"
+  },
+  {
+   "entry": "org-d8eb70bd",
+   "kind": "org",
+   "name": "Burgmeister",
+   "other": "stadtasg-actors-508",
+   "label": "Bürgermeister und Rat zu Radolfzell",
+   "how": "register",
+   "grade": "möglich"
+  },
+  {
+   "entry": "org-e2087c4a",
+   "kind": "org",
+   "name": "Bürgermeister und Rat zu Schaffhausen",
+   "other": "stadtasg-actors-28",
+   "label": "Bürgermeister und Rat zu Schaffhausen",
+   "how": "register",
+   "grade": "wahrscheinlich"
+  },
+  {
+   "entry": "org-7678deb6",
+   "kind": "org",
+   "name": "Bürgermeister und Rat zu St. Gallen",
+   "other": "stadtasg-actors-148",
+   "label": "Bürgermeister und Rat zu St. Gallen",
+   "how": "register",
+   "grade": "wahrscheinlich"
+  },
+  {
+   "entry": "org-7678deb6",
+   "kind": "org",
+   "name": "Bürgermeister und Rat zu St. Gallen",
+   "other": "stadtasg-actors-629",
+   "label": "Statthalter und Rat zu St. Gallen",
+   "how": "register",
+   "grade": "möglich"
+  },
+  {
+   "entry": "org-f1c50294",
+   "kind": "org",
+   "name": "Rat zu Schweiz",
+   "other": "stadtasg-actors-522",
+   "label": "Ammann und Rat zu Schwyz",
+   "how": "register",
+   "grade": "möglich"
+  },
+  {
+   "entry": "org-42c33f9c",
+   "kind": "org",
+   "name": "Rat zu Chur",
+   "other": "stadtasg-actors-518",
+   "label": "Bürgermeister und Rat zu Chur",
+   "how": "register",
+   "grade": "möglich"
+  },
+  {
+   "entry": "org-30daf28e",
+   "kind": "org",
+   "name": "Rat zu Schwyz",
+   "other": "stadtasg-actors-522",
+   "label": "Ammann und Rat zu Schwyz",
+   "how": "register",
+   "grade": "möglich"
+  },
+  {
+   "entry": "org-095ecd98",
+   "kind": "org",
+   "name": "Rat zu Biel",
+   "other": "stadtasg-actors-1209",
+   "label": "Bürgermeister und Rat zu Biel",
+   "how": "register",
+   "grade": "möglich"
+  },
+  {
+   "entry": "org-0162b09c",
+   "kind": "org",
+   "name": "Bürgermeister und Rat zu Thun",
+   "other": "stadtasg-actors-1144",
+   "label": "Bürgermeister und Rat zu Thun",
+   "how": "register",
+   "grade": "wahrscheinlich"
+  },
+  {
+   "entry": "org-8477781c",
+   "kind": "org",
+   "name": "Schultheiss und Rat zu Solotrn",
+   "other": "stadtasg-actors-944",
+   "label": "Schultheiss und Rat zu Solothurn",
+   "how": "register",
+   "grade": "wahrscheinlich"
+  },
+  {
+   "entry": "per-f625f6b8",
+   "kind": "person",
+   "name": "Muller",
+   "other": "stadtasg-actors-291",
+   "label": "Müller, Hans",
+   "how": "register",
+   "grade": "möglich"
+  },
+  {
+   "entry": "per-0e4d3620",
+   "kind": "person",
+   "name": "muller",
+   "other": "stadtasg-actors-291",
+   "label": "Müller, Hans",
+   "how": "register",
+   "grade": "möglich"
+  },
+  {
+   "entry": "per-98f4fca3",
+   "kind": "person",
+   "name": "Mueller",
+   "other": "stadtasg-actors-291",
+   "label": "Müller, Hans",
+   "how": "register",
+   "grade": "möglich"
+  },
+  {
+   "entry": "per-0f2fc94e",
+   "kind": "person",
+   "name": "Hans Schilling",
+   "other": "stadtasg-actors-354",
+   "label": "Schnagg, Hans",
+   "how": "register",
+   "grade": "möglich"
+  },
+  {
+   "entry": "per-f1651a53",
+   "kind": "person",
+   "name": "Hanns Schnijder",
+   "other": "stadtasg-actors-1286",
+   "label": "Schwyzer, Hans",
+   "how": "register",
+   "grade": "möglich"
+  },
+  {
+   "entry": "per-f1651a53",
+   "kind": "person",
+   "name": "Hanns Schnijder",
+   "other": "stadtasg-actors-1359",
+   "label": "Schirmer, Hans",
+   "how": "register",
+   "grade": "möglich"
+  },
+  {
+   "entry": "per-9bfc4f02",
+   "kind": "person",
+   "name": "Hans Schnider",
+   "other": "stadtasg-actors-1359",
+   "label": "Schirmer, Hans",
+   "how": "register",
+   "grade": "möglich"
+  },
+  {
+   "entry": "per-88d78ef9",
+   "kind": "person",
+   "name": "Rutman",
+   "other": "stadtasg-actors-402",
+   "label": "Rüttimann, Konrad",
+   "how": "register",
+   "grade": "möglich"
+  },
+  {
+   "entry": "per-dbd3d598",
+   "kind": "person",
+   "name": "Hans Kuni",
+   "other": "stadtasg-actors-894",
+   "label": "Kunz, Hans",
+   "how": "register",
+   "grade": "möglich"
+  },
+  {
+   "entry": "per-c799edd7",
+   "kind": "person",
+   "name": "Hannsen Schuetzen",
+   "other": "stadtasg-actors-689",
+   "label": "Schürpf, Hans",
+   "how": "register",
+   "grade": "möglich"
+  },
+  {
+   "entry": "per-e5bc2337",
+   "kind": "person",
+   "name": "Margarethen",
+   "other": "stadtasg-actors-418",
+   "label": "Buchmüller, Margaretha",
+   "how": "register",
+   "grade": "möglich"
+  },
+  {
+   "entry": "per-2600c379",
+   "kind": "person",
+   "name": "Friden",
+   "other": "stadtasg-actors-115",
+   "label": "Stüdeli, Friedrich",
+   "how": "register",
+   "grade": "möglich"
+  },
+  {
+   "entry": "per-ae3977b6",
+   "kind": "person",
+   "name": "Friden",
+   "other": "stadtasg-actors-115",
+   "label": "Stüdeli, Friedrich",
+   "how": "register",
+   "grade": "möglich"
+  },
+  {
+   "entry": "per-94d86c4f",
+   "kind": "person",
+   "name": "Hans Gruober",
+   "other": "stadtasg-actors-140",
+   "label": "Gruber, Hans",
+   "how": "register",
+   "grade": "möglich"
+  },
+  {
+   "entry": "per-6d5b2acd",
+   "kind": "person",
+   "name": "Petr",
+   "other": "stadtasg-actors-187",
+   "label": "Zwick, Peter",
+   "how": "register",
+   "grade": "möglich"
+  },
+  {
+   "entry": "per-eb7dda40",
+   "kind": "person",
+   "name": "Sigmunden von Oesterich",
+   "other": "stadtasg-actors-416",
+   "label": "Habsburg-Österreich, Sigismund von",
+   "how": "register",
+   "grade": "wahrscheinlich"
+  },
+  {
+   "entry": "per-e28a5c3a",
+   "kind": "person",
+   "name": "Hans Harnescher",
+   "other": "stadtasg-actors-486",
+   "label": "Harscher, Hans",
+   "how": "register",
+   "grade": "möglich"
+  },
+  {
+   "entry": "per-63428a1f",
+   "kind": "person",
+   "name": "Hans Pfisters",
+   "other": "stadtasg-actors-156",
+   "label": "Pfister, Hans",
+   "how": "register",
+   "grade": "wahrscheinlich"
+  },
+  {
+   "entry": "per-24b1050c",
+   "kind": "person",
+   "name": "Hannsen Seiler",
+   "other": "stadtasg-actors-1097",
+   "label": "Sailer, Hans",
+   "how": "register",
+   "grade": "wahrscheinlich"
+  },
+  {
+   "entry": "per-ee31c22f",
+   "kind": "person",
+   "name": "Hans Scherer",
+   "other": "stadtasg-actors-181",
+   "label": "Maier, Hans",
+   "how": "register",
+   "grade": "möglich"
+  },
+  {
+   "entry": "per-d67096e0",
+   "kind": "person",
+   "name": "Hanns Scherrer",
+   "other": "stadtasg-actors-964",
+   "label": "Schanner, Hans",
+   "how": "register",
+   "grade": "möglich"
+  },
+  {
+   "entry": "per-6f1b7816",
+   "kind": "person",
+   "name": "Heini Schmids",
+   "other": "stadtasg-actors-379",
+   "label": "Schmid, Heinrich",
+   "how": "register",
+   "grade": "möglich"
+  },
+  {
+   "entry": "per-2a9505f2",
+   "kind": "person",
+   "name": "Heinin Schmids",
+   "other": "stadtasg-actors-379",
+   "label": "Schmid, Heinrich",
+   "how": "register",
+   "grade": "möglich"
+  },
+  {
+   "entry": "per-306e58cb",
+   "kind": "person",
+   "name": "Heini Schmit",
+   "other": "stadtasg-actors-379",
+   "label": "Schmid, Heinrich",
+   "how": "register",
+   "grade": "möglich"
+  },
+  {
+   "entry": "per-eaf3056f",
+   "kind": "person",
+   "name": "Henssen",
+   "other": "stadtasg-actors-200",
+   "label": "Barter, Hans",
+   "how": "register",
+   "grade": "möglich"
+  },
+  {
+   "entry": "per-d38e9b74",
+   "kind": "person",
+   "name": "Henslin Scherer",
+   "other": "stadtasg-actors-181",
+   "label": "Maier, Hans",
+   "how": "register",
+   "grade": "möglich"
+  },
+  {
+   "entry": "per-9e943b56",
+   "kind": "person",
+   "name": "Johannes Murer",
+   "other": "stadtasg-actors-656",
+   "label": "Maurer, Hans",
+   "how": "register",
+   "grade": "möglich"
+  },
+  {
+   "entry": "per-cdee6223",
+   "kind": "person",
+   "name": "Ludwig von Diesbach",
+   "other": "stadtasg-actors-958",
+   "label": "Diesbach, Ludwig von",
+   "how": "register",
+   "grade": "sicher"
+  },
+  {
+   "entry": "per-4ea550f0",
+   "kind": "person",
+   "name": "Petters von Watt",
+   "other": "stadtasg-actors-173",
+   "label": "Watt, Peter von",
+   "how": "register",
+   "grade": "wahrscheinlich"
+  },
+  {
+   "entry": "per-bb54ab1a",
+   "kind": "person",
+   "name": "Schmid",
+   "other": "stadtasg-actors-379",
+   "label": "Schmid, Heinrich",
+   "how": "register",
+   "grade": "möglich"
+  },
+  {
+   "entry": "per-0d10714f",
+   "kind": "person",
+   "name": "Stuklin",
+   "other": "stadtasg-actors-248",
+   "label": "Gelter, Stüdli",
+   "how": "register",
+   "grade": "möglich"
+  },
+  {
+   "entry": "per-802def26",
+   "kind": "person",
+   "name": "von Landenberg",
+   "other": "stadtasg-actors-700",
+   "label": "Landenberg, Hugo von",
+   "how": "register",
+   "grade": "möglich"
+  },
+  {
+   "entry": "per-ede5b099",
+   "kind": "person",
+   "name": "Albrecht von Oesterrich",
+   "other": "stadtasg-actors-64",
+   "label": "Habsburg-Österreich, Albrecht VI. von",
+   "how": "register",
+   "grade": "möglich"
+  },
+  {
+   "entry": "per-ede5b099",
+   "kind": "person",
+   "name": "Albrecht von Oesterrich",
+   "other": "stadtasg-actors-49",
+   "label": "Habsburg-Österreich, Friedrich III. von",
+   "how": "register",
+   "grade": "möglich"
+  },
+  {
+   "entry": "per-8f85b262",
+   "kind": "person",
+   "name": "Anna Muellers",
+   "other": "stadtasg-actors-291",
+   "label": "Müller, Hans",
+   "how": "register",
+   "grade": "möglich"
+  },
+  {
+   "entry": "per-81202c95",
+   "kind": "person",
+   "name": "Andres Klinger",
+   "other": "stadtasg-actors-282",
+   "label": "Klinger, Hans",
+   "how": "register",
+   "grade": "möglich"
+  },
+  {
+   "entry": "per-081962bf",
+   "kind": "person",
+   "name": "Hachen",
+   "other": "stadtasg-actors-220",
+   "label": "Häch, Ulrich",
+   "how": "register",
+   "grade": "möglich"
+  },
+  {
+   "entry": "per-90b955b2",
+   "kind": "person",
+   "name": "Hannß Bären",
+   "other": "stadtasg-actors-200",
+   "label": "Barter, Hans",
+   "how": "register",
+   "grade": "möglich"
+  },
+  {
+   "entry": "per-a33e5cef",
+   "kind": "person",
+   "name": "Hans Gruenenberg",
+   "other": "stadtasg-actors-140",
+   "label": "Gruber, Hans",
+   "how": "register",
+   "grade": "möglich"
+  },
+  {
+   "entry": "per-75cc5bc9",
+   "kind": "person",
+   "name": "Hans Keser",
+   "other": "stadtasg-actors-135",
+   "label": "Kessler, Hans",
+   "how": "register",
+   "grade": "wahrscheinlich"
+  },
+  {
+   "entry": "per-bb2a33f9",
+   "kind": "person",
+   "name": "Hans Mair",
+   "other": "stadtasg-actors-181",
+   "label": "Maier, Hans",
+   "how": "register",
+   "grade": "möglich"
+  },
+  {
+   "entry": "per-bb2a33f9",
+   "kind": "person",
+   "name": "Hans Mair",
+   "other": "stadtasg-actors-596",
+   "label": "Mayer, Hans",
+   "how": "register",
+   "grade": "möglich"
+  },
+  {
+   "entry": "per-99957960",
+   "kind": "person",
+   "name": "Hanns Schaly",
+   "other": "stadtasg-actors-25",
+   "label": "Schad, Hans",
+   "how": "register",
+   "grade": "möglich"
+  },
+  {
+   "entry": "per-99957960",
+   "kind": "person",
+   "name": "Hanns Schaly",
+   "other": "stadtasg-actors-1012",
+   "label": "Schenkli, Johannes",
+   "how": "register",
+   "grade": "möglich"
+  },
+  {
+   "entry": "per-757f50fd",
+   "kind": "person",
+   "name": "Hans Schenck",
+   "other": "stadtasg-actors-1012",
+   "label": "Schenkli, Johannes",
+   "how": "register",
+   "grade": "möglich"
+  },
+  {
+   "entry": "per-c3a19062",
+   "kind": "person",
+   "name": "Hans Scher",
+   "other": "stadtasg-actors-1286",
+   "label": "Schwyzer, Hans",
+   "how": "register",
+   "grade": "möglich"
+  },
+  {
+   "entry": "per-c3a19062",
+   "kind": "person",
+   "name": "Hans Scher",
+   "other": "stadtasg-actors-1359",
+   "label": "Schirmer, Hans",
+   "how": "register",
+   "grade": "möglich"
+  },
+  {
+   "entry": "per-731449ba",
+   "kind": "person",
+   "name": "Hanns Schindler",
+   "other": "stadtasg-actors-170",
+   "label": "Schnider, Hans",
+   "how": "register",
+   "grade": "möglich"
+  },
+  {
+   "entry": "per-731449ba",
+   "kind": "person",
+   "name": "Hanns Schindler",
+   "other": "stadtasg-actors-964",
+   "label": "Schanner, Hans",
+   "how": "register",
+   "grade": "möglich"
+  },
+  {
+   "entry": "per-bd9b1cb2",
+   "kind": "person",
+   "name": "Hans Schnuwli",
+   "other": "stadtasg-actors-1012",
+   "label": "Schenkli, Johannes",
+   "how": "register",
+   "grade": "möglich"
+  },
+  {
+   "entry": "per-7efe97f9",
+   "kind": "person",
+   "name": "Hans Schoen",
+   "other": "stadtasg-actors-354",
+   "label": "Schnagg, Hans",
+   "how": "register",
+   "grade": "möglich"
+  },
+  {
+   "entry": "per-7efe97f9",
+   "kind": "person",
+   "name": "Hans Schoen",
+   "other": "stadtasg-actors-170",
+   "label": "Schnider, Hans",
+   "how": "register",
+   "grade": "möglich"
+  },
+  {
+   "entry": "per-7efe97f9",
+   "kind": "person",
+   "name": "Hans Schoen",
+   "other": "stadtasg-actors-1012",
+   "label": "Schenkli, Johannes",
+   "how": "register",
+   "grade": "möglich"
+  },
+  {
+   "entry": "per-a851ee76",
+   "kind": "person",
+   "name": "Hanns, Schuetz",
+   "other": "stadtasg-actors-708",
+   "label": "Schüb, Hans",
+   "how": "register",
+   "grade": "möglich"
+  },
+  {
+   "entry": "per-ff0851a8",
+   "kind": "person",
+   "name": "Hans Stentzli",
+   "other": "stadtasg-actors-306",
+   "label": "Steinlin, Hans",
+   "how": "register",
+   "grade": "möglich"
+  },
+  {
+   "entry": "per-01e54702",
+   "kind": "person",
+   "name": "Hannsen Gerwer",
+   "other": "stadtasg-actors-316",
+   "label": "Gerster, Johann",
+   "how": "register",
+   "grade": "möglich"
+  },
+  {
+   "entry": "per-dc779f00",
+   "kind": "person",
+   "name": "Hansen Gruober",
+   "other": "stadtasg-actors-140",
+   "label": "Gruber, Hans",
+   "how": "register",
+   "grade": "wahrscheinlich"
+  },
+  {
+   "entry": "per-8a171d7d",
+   "kind": "person",
+   "name": "Hansen Hundsspisser",
+   "other": "stadtasg-actors-442",
+   "label": "Hüniswiler, Hans",
+   "how": "register",
+   "grade": "möglich"
+  },
+  {
+   "entry": "per-b3463416",
+   "kind": "person",
+   "name": "Hannsen Schoepfer",
+   "other": "stadtasg-actors-689",
+   "label": "Schürpf, Hans",
+   "how": "register",
+   "grade": "möglich"
+  },
+  {
+   "entry": "per-b3463416",
+   "kind": "person",
+   "name": "Hannsen Schoepfer",
+   "other": "stadtasg-actors-181",
+   "label": "Maier, Hans",
+   "how": "register",
+   "grade": "möglich"
+  },
+  {
+   "entry": "per-d2a5e484",
+   "kind": "person",
+   "name": "Hannsen Schuoler",
+   "other": "stadtasg-actors-181",
+   "label": "Maier, Hans",
+   "how": "register",
+   "grade": "möglich"
+  },
+  {
+   "entry": "per-765f3115",
+   "kind": "person",
+   "name": "Hansen vo Mulern",
+   "other": "stadtasg-actors-291",
+   "label": "Müller, Hans",
+   "how": "register",
+   "grade": "möglich"
+  },
+  {
+   "entry": "per-2377bf0c",
+   "kind": "person",
+   "name": "Hannßen von Hofstettenn",
+   "other": "stadtasg-actors-920",
+   "label": "Hofstetten, Anna von",
+   "how": "register",
+   "grade": "möglich"
+  },
+  {
+   "entry": "per-6c5c7a9d",
+   "kind": "person",
+   "name": "Heinin Suter",
+   "other": "stadtasg-actors-271",
+   "label": "Suter, Heinrich",
+   "how": "register",
+   "grade": "möglich"
+  },
+  {
+   "entry": "per-5e4bf88e",
+   "kind": "person",
+   "name": "Heinrichs muellers",
+   "other": "stadtasg-actors-448",
+   "label": "Mühlegg, Heinrich",
+   "how": "register",
+   "grade": "möglich"
+  },
+  {
+   "entry": "per-49b12147",
+   "kind": "person",
+   "name": "Heinrich Schoen",
+   "other": "stadtasg-actors-82",
+   "label": "Schlosser, Heinrich",
+   "how": "register",
+   "grade": "möglich"
+  },
+  {
+   "entry": "per-49b12147",
+   "kind": "person",
+   "name": "Heinrich Schoen",
+   "other": "stadtasg-actors-379",
+   "label": "Schmid, Heinrich",
+   "how": "register",
+   "grade": "möglich"
+  },
+  {
+   "entry": "per-adee1fb4",
+   "kind": "person",
+   "name": "Heinricus",
+   "other": "stadtasg-actors-116",
+   "label": "Zeph, Heinrich",
+   "how": "register",
+   "grade": "möglich"
+  },
+  {
+   "entry": "per-3f0395dd",
+   "kind": "person",
+   "name": "Hensli Schnider",
+   "other": "stadtasg-actors-170",
+   "label": "Schnider, Hans",
+   "how": "register",
+   "grade": "möglich"
+  },
+  {
+   "entry": "per-0aaeb539",
+   "kind": "person",
+   "name": "Henslin vo",
+   "other": "stadtasg-actors-200",
+   "label": "Barter, Hans",
+   "how": "register",
+   "grade": "möglich"
+  },
+  {
+   "entry": "per-d6eb362e",
+   "kind": "person",
+   "name": "Jacob Schmid",
+   "other": "stadtasg-actors-639",
+   "label": "Schad, Jacob",
+   "how": "register",
+   "grade": "möglich"
+  },
+  {
+   "entry": "per-4b8c5fbe",
+   "kind": "person",
+   "name": "Johanes Risten",
+   "other": "stadtasg-actors-962",
+   "label": "Rissler, Johannes",
+   "how": "register",
+   "grade": "möglich"
+  },
+  {
+   "entry": "per-a055dfcb",
+   "kind": "person",
+   "name": "Caspar Wirtz",
+   "other": "stadtasg-actors-270",
+   "label": "Wirth, Kaspar",
+   "how": "register",
+   "grade": "möglich"
+  },
+  {
+   "entry": "per-5aff2156",
+   "kind": "person",
+   "name": "Clauws Sniders",
+   "other": "stadtasg-actors-303",
+   "label": "Schneider, Klaus",
+   "how": "register",
+   "grade": "wahrscheinlich"
+  },
+  {
+   "entry": "per-54a7e556",
+   "kind": "person",
+   "name": "Clewi Kuntzis",
+   "other": "stadtasg-actors-308",
+   "label": "Künzli, Konrad",
+   "how": "register",
+   "grade": "möglich"
+  },
+  {
+   "entry": "per-cc3b9315",
+   "kind": "person",
+   "name": "Kueni Kuntz",
+   "other": "stadtasg-actors-308",
+   "label": "Künzli, Konrad",
+   "how": "register",
+   "grade": "möglich"
+  },
+  {
+   "entry": "per-0765da8b",
+   "kind": "person",
+   "name": "Cueni Schindler",
+   "other": "stadtasg-actors-188",
+   "label": "Schedler, Konrad",
+   "how": "register",
+   "grade": "möglich"
+  },
+  {
+   "entry": "per-ca08acf0",
+   "kind": "person",
+   "name": "Cuntz Schnyder",
+   "other": "stadtasg-actors-303",
+   "label": "Schneider, Klaus",
+   "how": "register",
+   "grade": "möglich"
+  },
+  {
+   "entry": "per-50c97fd1",
+   "kind": "person",
+   "name": "Cuonrat Stokker",
+   "other": "stadtasg-actors-34",
+   "label": "Storchenegger, Konrad",
+   "how": "register",
+   "grade": "möglich"
+  },
+  {
+   "entry": "per-8006a01b",
+   "kind": "person",
+   "name": "Cuonratz",
+   "other": "stadtasg-actors-141",
+   "label": "Brotbeck, Konrad",
+   "how": "register",
+   "grade": "möglich"
+  },
+  {
+   "entry": "per-07e88384",
+   "kind": "person",
+   "name": "Mettger",
+   "other": "stadtasg-actors-259",
+   "label": "Mettler, Hans",
+   "how": "register",
+   "grade": "möglich"
+  },
+  {
+   "entry": "per-debf4990",
+   "kind": "person",
+   "name": "Niclas Halter",
+   "other": "stadtasg-actors-349",
+   "label": "Halder, Klaus",
+   "how": "register",
+   "grade": "möglich"
+  },
+  {
+   "entry": "per-01e3cea6",
+   "kind": "person",
+   "name": "Peter Herwe",
+   "other": "stadtasg-actors-617",
+   "label": "Herren, Peter",
+   "how": "register",
+   "grade": "möglich"
+  },
+  {
+   "entry": "per-f90d9994",
+   "kind": "person",
+   "name": "Peters kuenigs",
+   "other": "stadtasg-actors-118",
+   "label": "Küng, Peter",
+   "how": "register",
+   "grade": "möglich"
+  },
+  {
+   "entry": "per-dfc8e39b",
+   "kind": "person",
+   "name": "Peterman von Raron",
+   "other": "stadtasg-actors-453",
+   "label": "Raron, Petermann von",
+   "how": "register",
+   "grade": "wahrscheinlich"
+  },
+  {
+   "entry": "per-fb5be60e",
+   "kind": "person",
+   "name": "Schmit",
+   "other": "stadtasg-actors-374",
+   "label": "Schmitter, Ulrich",
+   "how": "register",
+   "grade": "möglich"
+  },
+  {
+   "entry": "per-fb5be60e",
+   "kind": "person",
+   "name": "Schmit",
+   "other": "stadtasg-actors-379",
+   "label": "Schmid, Heinrich",
+   "how": "register",
+   "grade": "möglich"
+  },
+  {
+   "entry": "per-f97cdb7f",
+   "kind": "person",
+   "name": "Schoff",
+   "other": "stadtasg-actors-484",
+   "label": "Schorpp, Konrad",
+   "how": "register",
+   "grade": "möglich"
+  },
+  {
+   "entry": "per-a8edf206",
+   "kind": "person",
+   "name": "Schopffen",
+   "other": "stadtasg-actors-484",
+   "label": "Schorpp, Konrad",
+   "how": "register",
+   "grade": "möglich"
+  },
+  {
+   "entry": "per-07579d50",
+   "kind": "person",
+   "name": "Stugli",
+   "other": "stadtasg-actors-248",
+   "label": "Gelter, Stüdli",
+   "how": "register",
+   "grade": "möglich"
+  },
+  {
+   "entry": "per-24e7e469",
+   "kind": "person",
+   "name": "Ulli Bertschi",
+   "other": "stadtasg-actors-649",
+   "label": "Bertschi, Egli",
+   "how": "register",
+   "grade": "möglich"
+  },
+  {
+   "entry": "per-73c563bc",
+   "kind": "person",
+   "name": "Uelli Schuler",
+   "other": "stadtasg-actors-435",
+   "label": "Schüber, Ulrich",
+   "how": "register",
+   "grade": "möglich"
+  },
+  {
+   "entry": "per-73c563bc",
+   "kind": "person",
+   "name": "Uelli Schuler",
+   "other": "stadtasg-actors-183",
+   "label": "Schläpfer, Uli",
+   "how": "register",
+   "grade": "möglich"
+  },
+  {
+   "entry": "per-5c3c0b9f",
+   "kind": "person",
+   "name": "Uollin Schertz",
+   "other": "stadtasg-actors-435",
+   "label": "Schüber, Ulrich",
+   "how": "register",
+   "grade": "möglich"
+  },
+  {
+   "entry": "per-cf71459e",
+   "kind": "person",
+   "name": "Wolff von Brandis",
+   "other": "stadtasg-actors-48",
+   "label": "Brandis, Wolfhart V. von",
+   "how": "register",
+   "grade": "möglich"
+  },
+  {
+   "entry": "per-cf71459e",
+   "kind": "person",
+   "name": "Wolff von Brandis",
+   "other": "stadtasg-actors-54",
+   "label": "Brandis, Wolfhart VI. von",
+   "how": "register",
+   "grade": "möglich"
+  },
+  {
+   "entry": "per-5ae04fd2",
+   "kind": "person",
+   "name": "Uolrich Schertz",
+   "other": "stadtasg-actors-435",
+   "label": "Schüber, Ulrich",
+   "how": "register",
+   "grade": "möglich"
+  },
+  {
+   "entry": "per-5ae04fd2",
+   "kind": "person",
+   "name": "Uolrich Schertz",
+   "other": "stadtasg-actors-374",
+   "label": "Schmitter, Ulrich",
+   "how": "register",
+   "grade": "möglich"
+  }
+ ]
+}

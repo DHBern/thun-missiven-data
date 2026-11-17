@@ -62,7 +62,7 @@ in `~/thun-pipeline/status.jsonl`.
    library, deterministic) → `dates/dates.jsonl`.
 4. **Check:**
    - no reader's page count and not the page list may drop;
-   - only `readings/`, `entities/`, `regests/`, `dates/` and `keywords/` may change;
+   - only `readings/`, `entities/`, `regests/`, `dates/`, `keywords/` and `registers/` may change;
    - `build_site.py` must run without error.
 5. **Publish:** one rolling branch `data/auto`, one PR "Readings update
    (automatic, tei)", merged by the script once the checks pass (St. Gallen's
@@ -76,6 +76,28 @@ error rate against the edition. The Thun Missiven have no edition and no ground
 truth to weigh voters against, so the step is left out and the script is not
 in this repository. It can come back once there is something to measure
 against (for example a few dozen pages corrected by hand).
+
+## The register (by hand, now and then)
+
+The register of persons, places and organisations (`registers/*.json`,
+docs/REGISTER.md) is **not** built by the cycle: it asks four authority
+servers several thousand questions (HLS, SSRQ and Königsfelden through our MCP
+servers on tei, which need the UniBE network; the SSRQ place database
+loci.ssrq-sds-fds.ch at 5–15 s an answer; Wikidata for coordinates) and takes
+one to two hours the first time. Run it by hand after a new tagging
+(`entities/`), on a machine in the UniBE network:
+
+```bash
+python scripts/register.py link --workers 4   # registers/*.json, links/registers/st-gallen.json
+python scripts/register.py docs               # docs/places_without_coordinates.md
+python scripts/build_site.py                  # check the site builds
+```
+
+Answers are cached in `registers/.cache/` (ignored by git): a rerun asks only
+for what is new. The cycle may carry `registers/` (it is a data path), and
+the site builds without it: `build_site.py` skips missing register files, and
+the viewer then shows no register, map or register facets. A register older than
+the tagging still builds; names whose position changed are just not linked.
 
 ## Deploying (by hand, once)
 

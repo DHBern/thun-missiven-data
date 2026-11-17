@@ -5,3 +5,6 @@
 site/data/
 __pycache__/
 *.pyc
+
+# register lookups (scripts/register.py): answers of the authority servers
+registers/.cache/
