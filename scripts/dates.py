@@ -144,7 +144,7 @@ FIXED = [
     (r"petri ad vincula|vincula petri|peters? (?:tag )?ze ougst|petri kettenfeier", (8, 1)),
     (r"oswald", (8, 5)),
     (r"(?:sixt|affer|afra)", (8, 7)),
-    (r"laurent|lorentz|lorenz", (8, 10)),
+    (r"lauren[ct]|lorentz|lorenz", (8, 10)),
     (r"assumption|himelfart (?:unser|marie)|unser (?:lieben )?frowen tag (?:ze|im) ougst|frowen tag der (?:erren|ersten)", (8, 15)),
     (r"bartholom|bartlom", (8, 24)),
     (r"augustin", (8, 28)),
@@ -241,11 +241,12 @@ def number(tok: str) -> int | None:
 
 
 GERMAN = {"ein": 1, "eins": 1, "einem": 1, "zwei": 2, "zwey": 2, "zwo": 2, "dri": 3, "drü": 3, "dru": 3, "drie": 3,
+          "druzehen": 13, "vierzehen": 14, "vierzechen": 14, "funfzehen": 15, "einlif": 11, "einlift": 11,
           "vier": 4, "fier": 4, "funf": 5, "funff": 5, "fünf": 5, "sechs": 6, "sachs": 6, "siben": 7, "sibe": 7,
           "sibne": 7, "acht": 8, "achte": 8, "nun": 9, "nune": 9, "zehen": 10, "zechen": 10, "einlif": 11, "elf": 11,
           "zwolf": 12, "zwelf": 12, "zwentzig": 20, "zwenzig": 20, "drissig": 30, "drisig": 30, "viertzig": 40,
           "fiertzig": 40, "funfzig": 50, "funftzig": 50, "sechzig": 60, "sechtzig": 60, "sibenzig": 70,
-          "sibentzig": 70, "achtzig": 80, "nunzig": 90, "nuntzig": 90}
+          "sibentzig": 70, "achtzig": 80, "nunzig": 90, "nuntzig": 90, "drissigo": 30, "drissig": 30}
 LATIN_UNITS = {"primo": 1, "secundo": 2, "tercio": 3, "tertio": 3, "quarto": 4, "quinto": 5, "sexto": 6,
                "septimo": 7, "octavo": 8, "nono": 9, "decimo": 10, "vicesimo": 20, "vigesimo": 20,
                "tricesimo": 30, "tricefimo": 30, "quadragesimo": 40, "quinquagesimo": 50, "sexagesimo": 60,
@@ -257,10 +258,17 @@ DOMINI = r"\b(?:domini|dominj|dni|dnj|dno|dmi|dmj|dm|dn|dom|d|etc|ec|et cetera|c
 
 def german_year(t: str) -> int | None:
     """"tusent funff hundert zwentzig unnd sechs", "fier hundert un sibe" (thousand implied)."""
+    t = re.sub(r"hund\s*t\b|hundt\b", "hundert", t)
     if not re.search(r"hundert|tusent|tuseng|tusend", t):
         return None
+    t = re.sub(r"(hundert|tusent|tuseng|tusend)", r" \1 ", t)  # "druezehenhundert" -> "druezehen hundert"
     total, cur = 0, 0
     for w in re.findall(r"[a-z]+", t):
+        if w.startswith("drue"):
+            w = "dru" + w[4:]
+        if w not in GERMAN and not w.endswith(("zehen", "zechen")):  # ordinals: "einliften", "drissigosten"
+            stem = re.sub(r"(?<=.{3})(osten|esten|isten|sten|ten|ste|en)$", "", w)
+            w = stem if stem in GERMAN else w
         w2 = re.sub(r"(zehen|zechen)$", "", w) if w.endswith(("zehen", "zechen")) and w not in ("zehen", "zechen") else None
         if w in GERMAN:
             cur += GERMAN[w]
@@ -321,6 +329,34 @@ def read_year(t: str) -> tuple[int | None, bool]:
     return total, total >= 1000
 
 
+FEAST_NAMES = {(1, 1): "Neujahr", (1, 6): "Dreikönige", (1, 13): "St. Hilarius", (1, 14): "St. Felix",
+    (1, 17): "St. Antonius", (1, 20): "St. Sebastian", (1, 21): "St. Agnes", (1, 22): "St. Vinzenz",
+    (1, 25): "Pauli Bekehrung", (2, 2): "Lichtmess", (2, 3): "St. Blasius", (2, 5): "St. Agatha", (2, 6): "St. Dorothea",
+    (2, 14): "St. Valentin", (2, 22): "Petri Stuhlfeier", (2, 24): "St. Matthias", (3, 12): "St. Gregor",
+    (3, 17): "St. Gertrud", (3, 21): "St. Benedikt", (3, 25): "Mariä Verkündigung", (4, 4): "St. Ambrosius",
+    (4, 23): "St. Georg", (4, 25): "St. Markus", (5, 1): "Philipp und Jakob", (5, 3): "Kreuzauffindung",
+    (5, 12): "St. Pankraz", (5, 25): "St. Urban", (6, 5): "St. Bonifatius", (6, 15): "St. Vitus",
+    (6, 22): "Zehntausend Ritter", (6, 24): "Johannes der Täufer", (6, 29): "Peter und Paul",
+    (7, 2): "Mariä Heimsuchung", (7, 4): "St. Ulrich", (7, 13): "St. Margaretha", (7, 22): "Maria Magdalena",
+    (7, 25): "St. Jakob", (7, 26): "St. Anna", (8, 1): "Petri Kettenfeier", (8, 5): "St. Oswald", (8, 7): "St. Afra",
+    (8, 10): "St. Laurentius", (8, 15): "Mariä Himmelfahrt", (8, 24): "St. Bartholomäus", (8, 28): "St. Augustin",
+    (8, 29): "Johannes Enthauptung", (9, 1): "St. Verena", (9, 8): "Mariä Geburt", (9, 14): "Kreuzerhöhung",
+    (9, 21): "St. Matthäus", (9, 22): "St. Mauritius", (9, 29): "St. Michael", (10, 2): "St. Leodegar",
+    (10, 4): "St. Franziskus", (10, 16): "St. Gallus", (10, 18): "St. Lukas", (10, 21): "Elftausend Jungfrauen",
+    (10, 28): "Simon und Juda", (11, 1): "Allerheiligen", (11, 2): "Allerseelen", (11, 11): "St. Martin",
+    (11, 16): "St. Othmar", (11, 19): "St. Elisabeth", (11, 22): "St. Cäcilia", (11, 23): "St. Clemens",
+    (11, 25): "St. Katharina", (11, 26): "St. Konrad", (11, 30): "St. Andreas", (12, 4): "St. Barbara",
+    (12, 6): "St. Nikolaus", (12, 8): "Mariä Empfängnis", (12, 13): "St. Lucia", (12, 21): "St. Thomas",
+    (12, 25): "Weihnachten", (12, 26): "St. Stephan", (12, 27): "Johannes Evangelist", (12, 28): "Unschuldige Kinder",
+    (12, 31): "St. Silvester"}
+MOVABLE_NAMES = {-63: "Septuagesima", -56: "Sexagesima", -49: "Estomihi (Herrenfasnacht)", -46: "Aschermittwoch",
+    -42: "Invocavit (alte Fasnacht)", -35: "Reminiscere", -28: "Oculi", -21: "Laetare (Mittfasten)", -14: "Judica",
+    -7: "Palmsonntag", -3: "Gründonnerstag", -2: "Karfreitag", 0: "Ostern", 7: "Quasimodogeniti",
+    14: "Misericordia Domini", 21: "Jubilate", 28: "Cantate", 35: "Rogate", 39: "Auffahrt", 42: "Exaudi",
+    49: "Pfingsten", 56: "Trinitatis", 60: "Fronleichnam"}
+LAST_FEAST: list[str] = [""]
+
+
 def read_day(t: str, year: int | None) -> tuple[tuple[int, int, int] | None, str]:
     """((y, m, d) Julian, how) or (None, why not)."""
     if year is None:
@@ -347,12 +383,14 @@ def read_day(t: str, year: int | None) -> tuple[tuple[int, int, int] | None, str
         m = re.search(pform(pat), t)
         if m:
             feast_j, feast_name = jdn(year, mo, d), m.group(0)
+            LAST_FEAST[0] = FEAST_NAMES.get((mo, d), "")
             break
     if feast_j is None:
         for pat, off in MOVABLE:
             m = re.search(pform(pat), t)
             if m:
                 feast_j, feast_name = easter(year) + off, m.group(0)
+                LAST_FEAST[0] = MOVABLE_NAMES.get(off, "")
                 break
     if feast_j is None:
         return None, "no day"
@@ -448,7 +486,10 @@ def main() -> None:
                 if fits and rec["year"] not in fits:
                     rec["weekday_fits"] = fits
         if "year" in rec:
+            LAST_FEAST[0] = ""
             day, how = read_day(norm(r["date_text"]), rec["year"])
+            if day and how not in ("figures", "figures (ultima)", "figures (penultima)") and LAST_FEAST[0]:
+                rec["feast"] = LAST_FEAST[0]
             if day:
                 yy, mm, dd = day
                 said = None

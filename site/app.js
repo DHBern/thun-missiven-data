@@ -77,6 +77,8 @@
   }
   /* short date for a list row: the day, else the year, "?" when the century is not written */
   const shortDate = (l) => (l.d ? dayLabel(l.d) : l.y ? String(l.y) : "") + (l.y && l.yu ? "?" : "");
+  const WD_DE = { Mo: "Montag", Di: "Dienstag", Mi: "Mittwoch", Do: "Donnerstag", Fr: "Freitag", Sa: "Samstag", So: "Sonntag" };
+  const WD_EN = { Mo: "Monday", Di: "Tuesday", Mi: "Wednesday", Do: "Thursday", Fr: "Friday", Sa: "Saturday", So: "Sunday" };
   const HOW = {
     "figures": ["read from the date line, where the day is written in figures", "aus der Datumszeile, wo der Tag in Ziffern steht"],
     "figures (ultima)": ["read from the date line: the last day of the month", "aus der Datumszeile: der letzte Tag des Monats"],
@@ -95,7 +97,19 @@
     const line = dt.date_text ? `<span class="dline">${T("Date line (machine reading)", "Datumszeile (maschinelle Lesung)")}: <q lang="und">${esc(dt.date_text)}</q></span>` : "";
     if (!dt.year) return `<div class="ldate"><p class="small muted">${T("No year could be read from the date line.", "Aus der Datumszeile liess sich kein Jahr lesen.")} ${line}</p></div>`;
     const head = dt.date ? `${esc(dayLabel(dt.date, dt.weekday))} <span class="cal">${T("(Julian)", "(julianisch)")}</span>` : esc(dt.year) + (dt.century !== "written" ? "?" : "");
-    const how = HOW[dt.how] ? T(...HOW[dt.how]) : (dt.how || "");
+    let how = HOW[dt.how] ? T(...HOW[dt.how]) : (dt.how || "");
+    if (dt.feast) {  // name the feast the day was counted from
+      const f = esc(dt.feast);
+      const named = {
+        "feast day": [`computed: the feast day, ${f}`, `berechnet: der Festtag ${f}`],
+        "eve of a feast": [`computed: the eve of ${f}`, `berechnet: der Vorabend von ${f}`],
+        "weekday after a feast": [`computed: the ${esc(dt.weekday ? WD_EN[dt.weekday] || dt.weekday : "weekday")} after ${f}`, `berechnet: ${esc(dt.weekday ? WD_DE[dt.weekday] || dt.weekday : "Wochentag")} nach ${f}`],
+        "weekday before a feast": [`computed: the ${esc(dt.weekday ? WD_EN[dt.weekday] || dt.weekday : "weekday")} before ${f}`, `berechnet: ${esc(dt.weekday ? WD_DE[dt.weekday] || dt.weekday : "Wochentag")} vor ${f}`],
+        "day after a feast": [`computed: the day after ${f}`, `berechnet: der Tag nach ${f}`],
+        "octave of a feast": [`computed: the octave of ${f}`, `berechnet: die Oktav von ${f}`],
+      }[dt.how];
+      if (named) how = T(...named);
+    }
     const notes = [];
     if (dt.century === "neighbours") notes.push(T("Only the last digits of the year are written; the century is taken from the dated letters around it in the same volume, so the year is uncertain.",
       "Vom Jahr sind nur die letzten Ziffern geschrieben; das Jahrhundert ist von den datierten Briefen in der Nähe im selben Band genommen, das Jahr ist darum unsicher."));
