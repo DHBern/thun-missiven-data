@@ -1,13 +1,16 @@
 # Register: persons, places and organisations (generated automatically)
 
-Status 17.11.2026. Plan steps R-1, R-2, R-4 and R-5 of
+Status 18.11.2026 (rebuilt from the combined tagging). Plan steps R-1, R-2, R-4 and R-5 of
 [NER_REGISTER_PLAN.md](NER_REGISTER_PLAN.md); R-0 (a check sample made by a
 person) and R-3 (office holders by year) are **not done**.
 
 The Thun Missives have no edition and no register. Everything here is
 **generated automatically** from the tagging in `entities/gemini-4-argon.jsonl`.
-That tagging comes from St. Gallen's hmBERT model on the Gemini 4 Argon reading,
-and the model has **not been measured on Thun**. Every link is a proposal,
+That tagging is St. Gallen's combined method on the Gemini 4 Argon reading
+(`scripts/ner_llm.py`: hmBERT and qwen3.8-27b propose, gpt-oss-120b decides; until
+17.11.2026 hmBERT alone, kept in `entities/hmbert/`), and it has **not been measured
+on Thun**. The spot-check figures further down were made on the hmBERT register of
+17.11. Every link is a proposal,
 graded by the rules St. Gallen wrote and measured for its own generated entries
 (DHBern/sg-missiven-data `docs/REGISTER.md`, `scripts/auto_register.py`,
 `scripts/ssrq_match.py`). No person has checked any of it.
@@ -16,10 +19,10 @@ graded by the rules St. Gallen wrote and measured for its own generated entries
 
 | File | Content |
 |---|---|
-| `registers/places.json` | 1,376 places |
-| `registers/persons.json` | 4,631 persons |
-| `registers/orgs.json` | 276 organisations |
-| `links/registers/st-gallen.json` | 213 links from Thun entries to entries of the St. Gallen register (Thun side only) |
+| `registers/places.json` | 1,210 places (215 on the map) |
+| `registers/persons.json` | 4,123 persons |
+| `registers/orgs.json` | 205 organisations |
+| `links/registers/st-gallen.json` | 211 links from Thun entries to entries of the St. Gallen register (Thun side only) |
 | `docs/places_without_coordinates.md` | the places not on the map, and why |
 
 Each entry carries:
@@ -39,7 +42,7 @@ in `registers/.cache/`, which is not committed.
 
 ## R-1: entries from the tags
 
-18,564 tagged names of type person, organisation or place.
+15,380 tagged names of type person, organisation or place (18.11.; 18,564 with hmBERT alone).
 
 - **Places.** Names are folded as in St. Gallen (u/v/w, i/y, doubled letters,
   ph/f, th/t, tz/z, ck/k, ä/e …). A trailing inflection joins its stem (Berne →
@@ -137,13 +140,17 @@ Each of these is marked in the code:
 - The organisation rule «wahrscheinlich» (the formula is a St. Gallen main name)
   is new and not measured.
 
-### The run of 17.11.2026
+### The run of 18.11.2026 (combined tagging)
 
 | | sicher | wahrscheinlich | möglich | no candidate |
 |---|---:|---:|---:|---:|
-| Places (1,376) | – | 220 | 364 | 792 |
-| Persons (4,631) | 14 | 47 | 156 | 4,414 |
-| Organisations (276) | – | 10 | 42 | 224 |
+| Places (1,210) | – | 219 | 334 | 657 |
+| Persons (4,123) | 15 | 52 | 140 | 3,916 |
+| Organisations (205) | – | 10 | 21 | 174 |
+
+The run of 17.11.2026 on hmBERT's tags alone: places 1,376 (220 / 364), persons 4,631
+(14 / 47 / 156), organisations 276 (10 / 42). The counts in the rest of this file
+(dropped names, frequent entries, map coverage, spot check) are from that run.
 
 Best candidate by source:
 
@@ -192,7 +199,7 @@ overview map shows these. 316 more have coordinates only from a «möglich»
 candidate; the map shows them on request, dashed. Places named in the letters
 on the map: 1,333 letters.
 
-1,163 places are not on the map. They are listed in
+995 places are not on the map (18.11.; 1,163 on 17.11.). They are listed in
 [places_without_coordinates.md](places_without_coordinates.md) with the reason
 for each.
 

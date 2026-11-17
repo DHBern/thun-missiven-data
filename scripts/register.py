@@ -7,8 +7,8 @@ docs/NER_REGISTER_PLAN.md, docs/REGISTER.md).
     register.py docs                   # docs/places_without_coordinates.md
     register.py sample [--n 30]        # a random draw for the spot check (docs/REGISTER.md)
 
-Input: ``entities/gemini-4-argon.jsonl`` (St. Gallen's hmBERT model on the
-Argon reading, not measured on Thun), ``readings/letters.tsv`` (page -> letter)
+Input: ``entities/gemini-4-argon.jsonl`` (St. Gallen's combined tagger on the
+Argon reading, scripts/ner_llm.py; not measured on Thun), ``readings/letters.tsv`` (page -> letter)
 and ``dates/dates.jsonl`` (the letters' years; persons are dated by these, not by
 page years).
 
@@ -1292,8 +1292,8 @@ def build(workers: int, sg: str | None, kinds: set[str]) -> None:
         return dict(sorted(c.items()))
 
     common = {"date": today, "reader": READER, "measured": MEASURED,
-              "about": "Generated automatically from the automatic tagging (St. Gallen's hmBERT model on the Gemini 4 "
-                       "Argon reading, not measured on Thun) by scripts/register.py. No entry and no link is checked by "
+              "about": "Generated automatically from the automatic tagging (St. Gallen's combined tagger on the Gemini 4 "
+                       "Argon reading: hmBERT and qwen3.8 propose, gpt-oss-120b decides; not measured on Thun) by scripts/register.py. No entry and no link is checked by "
                        "a person; every link is a proposal graded sicher / wahrscheinlich / möglich by St. Gallen's rules "
                        "(docs/REGISTER.md). occ: [page, start, end] of each tagged mention."}
     OUT.mkdir(exist_ok=True)
