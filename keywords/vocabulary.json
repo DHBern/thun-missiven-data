@@ -1,66 +1,2415 @@
 {
-  "about": "Keyword vocabulary for the Thun Missiven, made for this collection from a reading of its regest drafts (15./17.11.2026), not taken from another edition. Six groups; each keyword has a short definition, which is what the model is shown. A letter gets one to four keywords. Proposals the model makes for missing keywords are collected in keywords/proposals.tsv, to extend the vocabulary by hand.",
-  "version": 1,
-  "groups": [
-    {"id": "recht", "de": "Recht und Gericht", "en": "Law and courts", "keywords": [
-      {"id": "schuld", "de": "Schuld und Pfand", "en": "Debt and pledge", "def": "Geldschulden, Zahlungsforderungen, Pfänder, Pfändung, Bürgschaft"},
-      {"id": "erbe", "de": "Erbe und Testament", "en": "Inheritance and wills", "def": "Erbschaft, Erbteilung, letzter Wille, Nachlass Verstorbener"},
-      {"id": "ehe", "de": "Ehe und Familie", "en": "Marriage and family", "def": "Eheschliessung, Ehestreit, Trennung, Unterhalt von Kindern, uneheliche Kinder"},
-      {"id": "vormundschaft", "de": "Vormundschaft", "en": "Guardianship", "def": "Vögte und Pfleger für Witwen, Waisen, Unmündige"},
-      {"id": "rechtstag", "de": "Rechtstag und Verfahren", "en": "Court days and procedure", "def": "Ansetzen oder Verschieben eines Rechtstags, Ladung vor Gericht, Kundschaft, Zeugen, Appellation nach Bern"},
-      {"id": "schiedsgericht", "de": "Gütliche Einigung", "en": "Settlement and arbitration", "def": "Schlichtung, Vermittlung durch Freunde oder Räte, Schiedsspruch, Vergleich"},
-      {"id": "haft", "de": "Gefangenschaft", "en": "Imprisonment", "def": "Verhaftung, Gefangene, Freilassung, Urfehde"},
-      {"id": "frevel", "de": "Frevel und Busse", "en": "Offences and fines", "def": "Frevel, Einung, Bussen, Schmähung, Beleidigung, Schlägerei"},
-      {"id": "gewalt", "de": "Totschlag und schwere Verbrechen", "en": "Homicide and grave crime", "def": "Totschlag, Mord, Raub, Brandstiftung, Diebstahl, Hinrichtung"},
-      {"id": "gnade", "de": "Gnade und Wiederaufnahme", "en": "Pardon and readmission", "def": "Huld, Gnade, Aufhebung eines Stadtverweises, Erlaubnis zur Rückkehr in die Stadt, Geleit"},
-      {"id": "burgrecht", "de": "Bürgerrecht und Aufenthalt", "en": "Citizenship and residence", "def": "Burgrecht, Ausburger, Aufnahme als Bürger, Wohnsitz, Hintersassen"}
-    ]},
-    {"id": "wirtschaft", "de": "Wirtschaft", "en": "Economy", "keywords": [
-      {"id": "handel", "de": "Handel und Kaufleute", "en": "Trade and merchants", "def": "Kauf und Verkauf, Kaufleute, Märkte, Waren, Tuch"},
-      {"id": "zoll", "de": "Zoll und Geleit", "en": "Tolls", "def": "Zölle, Zollfreiheit, Geleitgeld, Ohmgeld"},
-      {"id": "steuer", "de": "Steuern und Abgaben", "en": "Taxes and dues", "def": "Tellen, Steuern, Abgaben an die Stadt, Befreiung davon"},
-      {"id": "zins", "de": "Zinsen und Renten", "en": "Rents and interest", "def": "Bodenzinse, Gülten, Zehnten, Renten, Zinsbriefe"},
-      {"id": "gueter", "de": "Grundbesitz und Lehen", "en": "Land and fiefs", "def": "Güter, Matten, Häuser, Lehen, Erblehen, Grenzen, Nutzungsrechte"},
-      {"id": "getreide", "de": "Getreide und Mühlen", "en": "Grain and mills", "def": "Korn, Dinkel, Mühlen, Brot, Bäcker, Versorgung"},
-      {"id": "wein", "de": "Wein und Wirtshäuser", "en": "Wine and inns", "def": "Wein, Weinhandel, Wirte, Tavernen"},
-      {"id": "vieh", "de": "Vieh und Alpwirtschaft", "en": "Livestock and alpine farming", "def": "Rinder, Pferde, Schafe, Alpen, Weiden, Viehhandel"},
-      {"id": "fischerei", "de": "Fischerei", "en": "Fishing", "def": "Fischer, Fischrechte, Netze, Fache in Aare und See"},
-      {"id": "wald", "de": "Wald und Holz", "en": "Forest and timber", "def": "Holz, Holzschlag, Wälder, Flösse"},
-      {"id": "schifffahrt", "de": "Schifffahrt und Wasserwege", "en": "Navigation and waterways", "def": "Schiffleute, Schiffe, Flösserei, Aare, Thunersee, Wasserbau"},
-      {"id": "handwerk", "de": "Handwerk und Gewerbe", "en": "Crafts and trades", "def": "Handwerker, Meister, Knechte, Zünfte, Bergbau, Eisenwerk"},
-      {"id": "bau", "de": "Bauwesen", "en": "Building", "def": "Stadtmauern, Brücken, Tore, Gräben, Häuser, Glocken, Bauaufträge"}
-    ]},
-    {"id": "kirche", "de": "Kirche und Fürsorge", "en": "Church and care", "keywords": [
-      {"id": "pfarrei", "de": "Pfarreien und Geistliche", "en": "Parishes and clergy", "def": "Pfarrer, Kapläne, Pfründen, Kirchensatz, Besetzung von Pfarreien"},
-      {"id": "kloster", "de": "Klöster und Stifte", "en": "Monasteries and chapters", "def": "Interlaken, Engelberg, Einsiedeln, Amsoldingen und andere geistliche Häuser"},
-      {"id": "fromm", "de": "Ablass, Stiftungen, Frömmigkeit", "en": "Indulgences, foundations, piety", "def": "Ablass, Jahrzeiten, Messstiftungen, Wallfahrt, Almosen"},
-      {"id": "geistlgericht", "de": "Geistliches Gericht", "en": "Church courts", "def": "Bischof, Offizial, Bann, Ehegericht, geistliche Klage"},
-      {"id": "spital", "de": "Spital und Armenfürsorge", "en": "Hospital and poor relief", "def": "Spital, Siechenhaus, Pfründer, Arme, Bettler, Kranke"},
-      {"id": "reformation", "de": "Reformation", "en": "Reformation", "def": "Glaubensfragen, Disputation, Messe, Mandate in Glaubenssachen ab etwa 1520"}
-    ]},
-    {"id": "politik", "de": "Herrschaft und Politik", "en": "Government and politics", "keywords": [
-      {"id": "befehl", "de": "Weisungen Berns", "en": "Orders from Bern", "def": "Bern befiehlt, verbietet oder verlangt Bericht; Mandate an Thun"},
-      {"id": "aemter", "de": "Ämter und Verwaltung", "en": "Offices and administration", "def": "Schultheiss, Statthalter, Rat, Venner, Vögte, Wahlen, Eide, Stadtschreiber"},
-      {"id": "stadtrecht", "de": "Stadtrecht und Freiheiten", "en": "Town law and liberties", "def": "Rechte und Freiheiten der Stadt Thun, alte Gewohnheit, Satzungen, Gerichtsbarkeit"},
-      {"id": "landschaft", "de": "Oberland und Landschaft", "en": "Oberland and countryside", "def": "Simmental, Frutigen, Hasli, Sigriswil, Steffisburg und andere Gemeinden und Herrschaften um Thun"},
-      {"id": "adel", "de": "Adel und Herrschaften", "en": "Nobility and lordships", "def": "Herren von Bubenberg, Scharnachtal, Strättligen und andere Adlige, Herrschaftsrechte"},
-      {"id": "eidgenossen", "de": "Eidgenossenschaft", "en": "Confederation", "def": "Tagsatzung, eidgenössische Orte, Bünde, Mahnungen der Eidgenossen"},
-      {"id": "gesandtschaft", "de": "Boten und Tagleistungen", "en": "Envoys and meetings", "def": "Boten, Gesandtschaften, Ratsboten, Versammlungen, Tage"},
-      {"id": "unruhen", "de": "Unruhen und Aufruhr", "en": "Unrest and revolt", "def": "Aufläufe, Gerüchte von Unruhen, Widerstand von Untertanen"}
-    ]},
-    {"id": "krieg", "de": "Krieg und fremde Mächte", "en": "War and foreign powers", "keywords": [
-      {"id": "aufgebot", "de": "Aufgebot und Kriegszug", "en": "Levy and campaigns", "def": "Mannschaft stellen, ausziehen, Banner, Harnisch, Kriegskosten, Feldlager"},
-      {"id": "zuerichkrieg", "de": "Alter Zürichkrieg", "en": "Old Zurich War", "def": "Konflikt zwischen Zürich und Schwyz bzw. den Eidgenossen, 1436–1450"},
-      {"id": "burgund", "de": "Burgunderkriege", "en": "Burgundian Wars", "def": "Karl der Kühne, Burgund, 1474–1477"},
-      {"id": "savoyen", "de": "Savoyen und Westen", "en": "Savoy and the west", "def": "Savoyen, Freiburg, Waadt, Wallis als Gegner oder Partner"},
-      {"id": "reislauf", "de": "Reislauf und fremde Dienste", "en": "Mercenary service", "def": "Söldner, Werbung, Pensionen, Frankreich, Mailand, Verbot des Reislaufens"},
-      {"id": "oesterreich", "de": "Österreich und Reich", "en": "Austria and the Empire", "def": "Herzöge von Österreich, König und Kaiser, Reich"}
-    ]},
-    {"id": "andere", "de": "Anderes", "en": "Other", "keywords": [
-      {"id": "privat", "de": "Private Briefe", "en": "Private letters", "def": "Briefe zwischen Eheleuten, Verwandten, Freunden; Familiennachrichten"},
-      {"id": "seuche", "de": "Seuchen und Not", "en": "Plague and hardship", "def": "Pest, Sterben, Teuerung, Hunger, Unwetter, Feuer"},
-      {"id": "liste", "de": "Verzeichnisse und Rechnungen", "en": "Lists and accounts", "def": "Kein Brief: Rödel, Abrechnungen, Zinsverzeichnisse, Notizen"},
-      {"id": "unlesbar", "de": "Inhalt unklar", "en": "Content unclear", "def": "Die Lesung ist so beschädigt oder unvollständig, dass der Inhalt nicht zu erkennen ist"}
-    ]}
-  ]
+ "about": "The keyword vocabulary of the St. Gallen Missiven edition (TEI textClass/keywords of its 808 letters), used unchanged for the Thun Missiven so that both collections share one vocabulary. sg_count: how many edited St. Gallen letters carry the term.",
+ "source": "Briefverkehr der Stadt St. Gallen 1400–1650, Stadtarchiv und Vadianische Sammlung St. Gallen (TEI, CC BY-SA 4.0), https://missiven.stadtarchiv.ch/",
+ "version": 2,
+ "terms": [
+  {
+   "term": "Unterstützung",
+   "sg_count": 184
+  },
+  {
+   "term": "Bote",
+   "sg_count": 180
+  },
+  {
+   "term": "Konflikt",
+   "sg_count": 166
+  },
+  {
+   "term": "Schriftliche Antwort",
+   "sg_count": 159
+  },
+  {
+   "term": "Majestät",
+   "sg_count": 94
+  },
+  {
+   "term": "Gericht",
+   "sg_count": 82
+  },
+  {
+   "term": "Ammann",
+   "sg_count": 80
+  },
+  {
+   "term": "Verhandlung",
+   "sg_count": 79
+  },
+  {
+   "term": "Geld",
+   "sg_count": 78
+  },
+  {
+   "term": "König",
+   "sg_count": 78
+  },
+  {
+   "term": "Antwort",
+   "sg_count": 76
+  },
+  {
+   "term": "Krieg",
+   "sg_count": 74
+  },
+  {
+   "term": "Ratsdelegation",
+   "sg_count": 67
+  },
+  {
+   "term": "Rechtstag",
+   "sg_count": 67
+  },
+  {
+   "term": "Vogt",
+   "sg_count": 67
+  },
+  {
+   "term": "Kaiser",
+   "sg_count": 66
+  },
+  {
+   "term": "Schulden",
+   "sg_count": 64
+  },
+  {
+   "term": "Graf",
+   "sg_count": 58
+  },
+  {
+   "term": "Fürst",
+   "sg_count": 56
+  },
+  {
+   "term": "Abt",
+   "sg_count": 55
+  },
+  {
+   "term": "Beilage",
+   "sg_count": 55
+  },
+  {
+   "term": "Termin",
+   "sg_count": 55
+  },
+  {
+   "term": "Kind",
+   "sg_count": 52
+  },
+  {
+   "term": "Klage",
+   "sg_count": 52
+  },
+  {
+   "term": "Kloster",
+   "sg_count": 52
+  },
+  {
+   "term": "Gerichtsverhandlung",
+   "sg_count": 50
+  },
+  {
+   "term": "Rechtshilfe",
+   "sg_count": 50
+  },
+  {
+   "term": "Erbe",
+   "sg_count": 49
+  },
+  {
+   "term": "Herzog",
+   "sg_count": 49
+  },
+  {
+   "term": "Bischof",
+   "sg_count": 47
+  },
+  {
+   "term": "Tagsatzung",
+   "sg_count": 46
+  },
+  {
+   "term": "Urteil",
+   "sg_count": 46
+  },
+  {
+   "term": "Ehefrau",
+   "sg_count": 44
+  },
+  {
+   "term": "Schultheiss",
+   "sg_count": 43
+  },
+  {
+   "term": "Witwe",
+   "sg_count": 42
+  },
+  {
+   "term": "Abschrift",
+   "sg_count": 40
+  },
+  {
+   "term": "Zins",
+   "sg_count": 40
+  },
+  {
+   "term": "Frieden",
+   "sg_count": 37
+  },
+  {
+   "term": "Zeiger",
+   "sg_count": 35
+  },
+  {
+   "term": "Geleit",
+   "sg_count": 34
+  },
+  {
+   "term": "Anwalt",
+   "sg_count": 33
+  },
+  {
+   "term": "Handel",
+   "sg_count": 32
+  },
+  {
+   "term": "Knecht",
+   "sg_count": 32
+  },
+  {
+   "term": "Kopie",
+   "sg_count": 32
+  },
+  {
+   "term": "Religion",
+   "sg_count": 32
+  },
+  {
+   "term": "Schuldforderung",
+   "sg_count": 32
+  },
+  {
+   "term": "Bürgerrecht",
+   "sg_count": 31
+  },
+  {
+   "term": "Herberge",
+   "sg_count": 31
+  },
+  {
+   "term": "Eile",
+   "sg_count": 29
+  },
+  {
+   "term": "Gesandter",
+   "sg_count": 29
+  },
+  {
+   "term": "Kirche",
+   "sg_count": 29
+  },
+  {
+   "term": "Reich",
+   "sg_count": 29
+  },
+  {
+   "term": "Reichsstadt",
+   "sg_count": 29
+  },
+  {
+   "term": "Ritter",
+   "sg_count": 29
+  },
+  {
+   "term": "Stadtschreiber",
+   "sg_count": 29
+  },
+  {
+   "term": "Strafe",
+   "sg_count": 29
+  },
+  {
+   "term": "Landmann",
+   "sg_count": 28
+  },
+  {
+   "term": "Schriftlich",
+   "sg_count": 28
+  },
+  {
+   "term": "Armut",
+   "sg_count": 27
+  },
+  {
+   "term": "Befragung",
+   "sg_count": 27
+  },
+  {
+   "term": "Darlehen",
+   "sg_count": 27
+  },
+  {
+   "term": "Eid",
+   "sg_count": 27
+  },
+  {
+   "term": "Entwurf",
+   "sg_count": 27
+  },
+  {
+   "term": "Kaufmann",
+   "sg_count": 27
+  },
+  {
+   "term": "Landvogt",
+   "sg_count": 27
+  },
+  {
+   "term": "Recht",
+   "sg_count": 27
+  },
+  {
+   "term": "Vermittlung",
+   "sg_count": 27
+  },
+  {
+   "term": "Feindschaft",
+   "sg_count": 26
+  },
+  {
+   "term": "Sohn",
+   "sg_count": 26
+  },
+  {
+   "term": "Hauptmann",
+   "sg_count": 25
+  },
+  {
+   "term": "Mündlich",
+   "sg_count": 24
+  },
+  {
+   "term": "Obrigkeit",
+   "sg_count": 24
+  },
+  {
+   "term": "Angriff",
+   "sg_count": 23
+  },
+  {
+   "term": "Beschlagnahmung",
+   "sg_count": 23
+  },
+  {
+   "term": "Bündnis",
+   "sg_count": 23
+  },
+  {
+   "term": "Gefangennahme",
+   "sg_count": 23
+  },
+  {
+   "term": "Meister",
+   "sg_count": 23
+  },
+  {
+   "term": "Spital",
+   "sg_count": 23
+  },
+  {
+   "term": "Tod",
+   "sg_count": 23
+  },
+  {
+   "term": "Vater",
+   "sg_count": 23
+  },
+  {
+   "term": "Hab und Gut",
+   "sg_count": 22
+  },
+  {
+   "term": "Kurfürst",
+   "sg_count": 22
+  },
+  {
+   "term": "Leinwand",
+   "sg_count": 22
+  },
+  {
+   "term": "Papst",
+   "sg_count": 22
+  },
+  {
+   "term": "Versammlung",
+   "sg_count": 22
+  },
+  {
+   "term": "Vormundschaft",
+   "sg_count": 22
+  },
+  {
+   "term": "Gerücht",
+   "sg_count": 21
+  },
+  {
+   "term": "Solddienst",
+   "sg_count": 21
+  },
+  {
+   "term": "Söldner",
+   "sg_count": 21
+  },
+  {
+   "term": "Amt",
+   "sg_count": 20
+  },
+  {
+   "term": "Empfehlung",
+   "sg_count": 20
+  },
+  {
+   "term": "Gefangenschaft",
+   "sg_count": 20
+  },
+  {
+   "term": "Handwerk",
+   "sg_count": 20
+  },
+  {
+   "term": "Münze",
+   "sg_count": 20
+  },
+  {
+   "term": "Zahlung",
+   "sg_count": 20
+  },
+  {
+   "term": "Evangelisch",
+   "sg_count": 19
+  },
+  {
+   "term": "Markt",
+   "sg_count": 19
+  },
+  {
+   "term": "Junker",
+   "sg_count": 18
+  },
+  {
+   "term": "Kauf",
+   "sg_count": 18
+  },
+  {
+   "term": "Priester",
+   "sg_count": 17
+  },
+  {
+   "term": "Verkauf",
+   "sg_count": 17
+  },
+  {
+   "term": "Verwandtschaft",
+   "sg_count": 17
+  },
+  {
+   "term": "Acht",
+   "sg_count": 16
+  },
+  {
+   "term": "Dorf",
+   "sg_count": 16
+  },
+  {
+   "term": "Familie",
+   "sg_count": 16
+  },
+  {
+   "term": "Freiherr",
+   "sg_count": 16
+  },
+  {
+   "term": "Rechnung",
+   "sg_count": 16
+  },
+  {
+   "term": "Schaden",
+   "sg_count": 16
+  },
+  {
+   "term": "Schule",
+   "sg_count": 16
+  },
+  {
+   "term": "Warnung",
+   "sg_count": 16
+  },
+  {
+   "term": "Bruder",
+   "sg_count": 15
+  },
+  {
+   "term": "Diebstahl",
+   "sg_count": 15
+  },
+  {
+   "term": "Ehre",
+   "sg_count": 15
+  },
+  {
+   "term": "Feuer",
+   "sg_count": 15
+  },
+  {
+   "term": "Gut",
+   "sg_count": 15
+  },
+  {
+   "term": "Krankheit",
+   "sg_count": 15
+  },
+  {
+   "term": "Pfand",
+   "sg_count": 15
+  },
+  {
+   "term": "Richter",
+   "sg_count": 15
+  },
+  {
+   "term": "Schloss",
+   "sg_count": 15
+  },
+  {
+   "term": "Steuer",
+   "sg_count": 15
+  },
+  {
+   "term": "Bericht",
+   "sg_count": 14
+  },
+  {
+   "term": "Gesandtschaft",
+   "sg_count": 14
+  },
+  {
+   "term": "Grafschaft",
+   "sg_count": 14
+  },
+  {
+   "term": "Herrschaft",
+   "sg_count": 14
+  },
+  {
+   "term": "Pferd",
+   "sg_count": 14
+  },
+  {
+   "term": "Prozess",
+   "sg_count": 14
+  },
+  {
+   "term": "Stadtrecht",
+   "sg_count": 14
+  },
+  {
+   "term": "Verleumdung",
+   "sg_count": 14
+  },
+  {
+   "term": "Zeuge",
+   "sg_count": 14
+  },
+  {
+   "term": "Altbürgermeister",
+   "sg_count": 13
+  },
+  {
+   "term": "Gefängnis",
+   "sg_count": 13
+  },
+  {
+   "term": "Gerichtsort",
+   "sg_count": 13
+  },
+  {
+   "term": "Gulden",
+   "sg_count": 13
+  },
+  {
+   "term": "Lohn",
+   "sg_count": 13
+  },
+  {
+   "term": "Pfalzgraf",
+   "sg_count": 13
+  },
+  {
+   "term": "Ratsbote",
+   "sg_count": 13
+  },
+  {
+   "term": "Rückzahlung",
+   "sg_count": 13
+  },
+  {
+   "term": "Schwager",
+   "sg_count": 13
+  },
+  {
+   "term": "Säckelmeister",
+   "sg_count": 13
+  },
+  {
+   "term": "Tochter",
+   "sg_count": 13
+  },
+  {
+   "term": "Totschlag",
+   "sg_count": 13
+  },
+  {
+   "term": "Vollmacht",
+   "sg_count": 13
+  },
+  {
+   "term": "Waffe",
+   "sg_count": 13
+  },
+  {
+   "term": "Ehe",
+   "sg_count": 12
+  },
+  {
+   "term": "Erbteilung",
+   "sg_count": 12
+  },
+  {
+   "term": "Gefangener",
+   "sg_count": 12
+  },
+  {
+   "term": "Geselle",
+   "sg_count": 12
+  },
+  {
+   "term": "Geständnis",
+   "sg_count": 12
+  },
+  {
+   "term": "Getreide",
+   "sg_count": 12
+  },
+  {
+   "term": "Heirat",
+   "sg_count": 12
+  },
+  {
+   "term": "Korn",
+   "sg_count": 12
+  },
+  {
+   "term": "Kosten",
+   "sg_count": 12
+  },
+  {
+   "term": "Mutter",
+   "sg_count": 12
+  },
+  {
+   "term": "Satisfaktion",
+   "sg_count": 12
+  },
+  {
+   "term": "Schulmeister",
+   "sg_count": 12
+  },
+  {
+   "term": "Schutz",
+   "sg_count": 12
+  },
+  {
+   "term": "Statthalter",
+   "sg_count": 12
+  },
+  {
+   "term": "Transport",
+   "sg_count": 12
+  },
+  {
+   "term": "Untertan",
+   "sg_count": 12
+  },
+  {
+   "term": "Hofgericht",
+   "sg_count": 11
+  },
+  {
+   "term": "Kundschaft",
+   "sg_count": 11
+  },
+  {
+   "term": "Quittung",
+   "sg_count": 11
+  },
+  {
+   "term": "Reformation",
+   "sg_count": 11
+  },
+  {
+   "term": "Tuch",
+   "sg_count": 11
+  },
+  {
+   "term": "Unruhe",
+   "sg_count": 11
+  },
+  {
+   "term": "Urkunde",
+   "sg_count": 11
+  },
+  {
+   "term": "Zeitung",
+   "sg_count": 11
+  },
+  {
+   "term": "Arbeit",
+   "sg_count": 10
+  },
+  {
+   "term": "Beschwerde",
+   "sg_count": 10
+  },
+  {
+   "term": "Delikt",
+   "sg_count": 10
+  },
+  {
+   "term": "Diener",
+   "sg_count": 10
+  },
+  {
+   "term": "Drohung",
+   "sg_count": 10
+  },
+  {
+   "term": "Ehemann",
+   "sg_count": 10
+  },
+  {
+   "term": "Mord",
+   "sg_count": 10
+  },
+  {
+   "term": "Not",
+   "sg_count": 10
+  },
+  {
+   "term": "Ordnung",
+   "sg_count": 10
+  },
+  {
+   "term": "Pfrund",
+   "sg_count": 10
+  },
+  {
+   "term": "Prediger",
+   "sg_count": 10
+  },
+  {
+   "term": "Reise",
+   "sg_count": 10
+  },
+  {
+   "term": "Stift",
+   "sg_count": 10
+  },
+  {
+   "term": "Truchsess",
+   "sg_count": 10
+  },
+  {
+   "term": "Verpfändung",
+   "sg_count": 10
+  },
+  {
+   "term": "Werkmeister",
+   "sg_count": 10
+  },
+  {
+   "term": "Zoll",
+   "sg_count": 10
+  },
+  {
+   "term": "Zustimmung",
+   "sg_count": 10
+  },
+  {
+   "term": "Überfall",
+   "sg_count": 10
+  },
+  {
+   "term": "Arzt",
+   "sg_count": 9
+  },
+  {
+   "term": "Büchse",
+   "sg_count": 9
+  },
+  {
+   "term": "Frist",
+   "sg_count": 9
+  },
+  {
+   "term": "Kapital",
+   "sg_count": 9
+  },
+  {
+   "term": "Landgericht",
+   "sg_count": 9
+  },
+  {
+   "term": "Pfalz",
+   "sg_count": 9
+  },
+  {
+   "term": "Rechtsstreit",
+   "sg_count": 9
+  },
+  {
+   "term": "Schiff",
+   "sg_count": 9
+  },
+  {
+   "term": "See",
+   "sg_count": 9
+  },
+  {
+   "term": "Sicherheit",
+   "sg_count": 9
+  },
+  {
+   "term": "Terminverschiebung",
+   "sg_count": 9
+  },
+  {
+   "term": "Unschuld",
+   "sg_count": 9
+  },
+  {
+   "term": "Verbot",
+   "sg_count": 9
+  },
+  {
+   "term": "Befehl",
+   "sg_count": 8
+  },
+  {
+   "term": "Belagerung",
+   "sg_count": 8
+  },
+  {
+   "term": "Eidgenössischer Abschied",
+   "sg_count": 8
+  },
+  {
+   "term": "Geistliches Gericht",
+   "sg_count": 8
+  },
+  {
+   "term": "Gläubiger",
+   "sg_count": 8
+  },
+  {
+   "term": "Gottesdienst",
+   "sg_count": 8
+  },
+  {
+   "term": "Kanzler",
+   "sg_count": 8
+  },
+  {
+   "term": "Leinwanddiebstahl",
+   "sg_count": 8
+  },
+  {
+   "term": "Mandat",
+   "sg_count": 8
+  },
+  {
+   "term": "Obligation",
+   "sg_count": 8
+  },
+  {
+   "term": "Reichstag",
+   "sg_count": 8
+  },
+  {
+   "term": "Schiesspulver",
+   "sg_count": 8
+  },
+  {
+   "term": "Schwäbischer Städtebund",
+   "sg_count": 8
+  },
+  {
+   "term": "Silber",
+   "sg_count": 8
+  },
+  {
+   "term": "Spitalmeister",
+   "sg_count": 8
+  },
+  {
+   "term": "Vertrag",
+   "sg_count": 8
+  },
+  {
+   "term": "Waise",
+   "sg_count": 8
+  },
+  {
+   "term": "Wirtshaus",
+   "sg_count": 8
+  },
+  {
+   "term": "Aufruhr",
+   "sg_count": 7
+  },
+  {
+   "term": "Bann",
+   "sg_count": 7
+  },
+  {
+   "term": "Bau",
+   "sg_count": 7
+  },
+  {
+   "term": "Begnadigung",
+   "sg_count": 7
+  },
+  {
+   "term": "Bürge",
+   "sg_count": 7
+  },
+  {
+   "term": "Bürgschaft",
+   "sg_count": 7
+  },
+  {
+   "term": "Entschädigung",
+   "sg_count": 7
+  },
+  {
+   "term": "Freiheit",
+   "sg_count": 7
+  },
+  {
+   "term": "Freilassung",
+   "sg_count": 7
+  },
+  {
+   "term": "Friedensverhandlung",
+   "sg_count": 7
+  },
+  {
+   "term": "Kriegsgefahr",
+   "sg_count": 7
+  },
+  {
+   "term": "Landgraf",
+   "sg_count": 7
+  },
+  {
+   "term": "Lehen",
+   "sg_count": 7
+  },
+  {
+   "term": "Leihe",
+   "sg_count": 7
+  },
+  {
+   "term": "Leutpriester",
+   "sg_count": 7
+  },
+  {
+   "term": "Metzger",
+   "sg_count": 7
+  },
+  {
+   "term": "Raub",
+   "sg_count": 7
+  },
+  {
+   "term": "Rechtmässigkeit",
+   "sg_count": 7
+  },
+  {
+   "term": "Reformator",
+   "sg_count": 7
+  },
+  {
+   "term": "Register",
+   "sg_count": 7
+  },
+  {
+   "term": "Schreiber",
+   "sg_count": 7
+  },
+  {
+   "term": "Schuldbrief",
+   "sg_count": 7
+  },
+  {
+   "term": "Supplikation",
+   "sg_count": 7
+  },
+  {
+   "term": "Türkenkrieg",
+   "sg_count": 7
+  },
+  {
+   "term": "Vieh",
+   "sg_count": 7
+  },
+  {
+   "term": "Anfrage",
+   "sg_count": 6
+  },
+  {
+   "term": "Armagnake",
+   "sg_count": 6
+  },
+  {
+   "term": "Bekleidung",
+   "sg_count": 6
+  },
+  {
+   "term": "Bestätigung",
+   "sg_count": 6
+  },
+  {
+   "term": "Betrug",
+   "sg_count": 6
+  },
+  {
+   "term": "Busse",
+   "sg_count": 6
+  },
+  {
+   "term": "Dekan",
+   "sg_count": 6
+  },
+  {
+   "term": "Ehestreit",
+   "sg_count": 6
+  },
+  {
+   "term": "Gant",
+   "sg_count": 6
+  },
+  {
+   "term": "Heer",
+   "sg_count": 6
+  },
+  {
+   "term": "Hof",
+   "sg_count": 6
+  },
+  {
+   "term": "Jahrmarkt",
+   "sg_count": 6
+  },
+  {
+   "term": "Kanzlei",
+   "sg_count": 6
+  },
+  {
+   "term": "Kirchenpfleger",
+   "sg_count": 6
+  },
+  {
+   "term": "Kornmarkt",
+   "sg_count": 6
+  },
+  {
+   "term": "Landrecht",
+   "sg_count": 6
+  },
+  {
+   "term": "Markgraf",
+   "sg_count": 6
+  },
+  {
+   "term": "Münzordnung",
+   "sg_count": 6
+  },
+  {
+   "term": "Preis",
+   "sg_count": 6
+  },
+  {
+   "term": "Ratschlag",
+   "sg_count": 6
+  },
+  {
+   "term": "Rechtsanspruch",
+   "sg_count": 6
+  },
+  {
+   "term": "Reichskammergericht",
+   "sg_count": 6
+  },
+  {
+   "term": "Religionskonflikt",
+   "sg_count": 6
+  },
+  {
+   "term": "Salpeter",
+   "sg_count": 6
+  },
+  {
+   "term": "Schiedsgericht",
+   "sg_count": 6
+  },
+  {
+   "term": "Schwester",
+   "sg_count": 6
+  },
+  {
+   "term": "Sekretsiegel",
+   "sg_count": 6
+  },
+  {
+   "term": "Teuerung",
+   "sg_count": 6
+  },
+  {
+   "term": "Truppe",
+   "sg_count": 6
+  },
+  {
+   "term": "Versorgung",
+   "sg_count": 6
+  },
+  {
+   "term": "Zeugenaussage",
+   "sg_count": 6
+  },
+  {
+   "term": "Zunftmeister",
+   "sg_count": 6
+  },
+  {
+   "term": "Appellation",
+   "sg_count": 5
+  },
+  {
+   "term": "Auftrag",
+   "sg_count": 5
+  },
+  {
+   "term": "Bleicher",
+   "sg_count": 5
+  },
+  {
+   "term": "Buch",
+   "sg_count": 5
+  },
+  {
+   "term": "Dienst",
+   "sg_count": 5
+  },
+  {
+   "term": "Ehrverletzung",
+   "sg_count": 5
+  },
+  {
+   "term": "Einbürgerung",
+   "sg_count": 5
+  },
+  {
+   "term": "Erbstreit",
+   "sg_count": 5
+  },
+  {
+   "term": "Erzherzog",
+   "sg_count": 5
+  },
+  {
+   "term": "Evangelium",
+   "sg_count": 5
+  },
+  {
+   "term": "Fisch",
+   "sg_count": 5
+  },
+  {
+   "term": "Flucht",
+   "sg_count": 5
+  },
+  {
+   "term": "Friedensschluss",
+   "sg_count": 5
+  },
+  {
+   "term": "Friedenssicherung",
+   "sg_count": 5
+  },
+  {
+   "term": "Giesser",
+   "sg_count": 5
+  },
+  {
+   "term": "Hauptgut",
+   "sg_count": 5
+  },
+  {
+   "term": "Haus",
+   "sg_count": 5
+  },
+  {
+   "term": "Heimkehr",
+   "sg_count": 5
+  },
+  {
+   "term": "Herzogtum",
+   "sg_count": 5
+  },
+  {
+   "term": "Kläger",
+   "sg_count": 5
+  },
+  {
+   "term": "Leibding",
+   "sg_count": 5
+  },
+  {
+   "term": "Läufer",
+   "sg_count": 5
+  },
+  {
+   "term": "Mönch",
+   "sg_count": 5
+  },
+  {
+   "term": "Pfarrer",
+   "sg_count": 5
+  },
+  {
+   "term": "Pfarrkirche",
+   "sg_count": 5
+  },
+  {
+   "term": "Reichsstand",
+   "sg_count": 5
+  },
+  {
+   "term": "Reichstaler",
+   "sg_count": 5
+  },
+  {
+   "term": "Religionskrieg",
+   "sg_count": 5
+  },
+  {
+   "term": "Rückgabe",
+   "sg_count": 5
+  },
+  {
+   "term": "Schmähung",
+   "sg_count": 5
+  },
+  {
+   "term": "Schuld",
+   "sg_count": 5
+  },
+  {
+   "term": "Stadtgericht",
+   "sg_count": 5
+  },
+  {
+   "term": "Verdacht",
+   "sg_count": 5
+  },
+  {
+   "term": "Vetter",
+   "sg_count": 5
+  },
+  {
+   "term": "Vorstadt",
+   "sg_count": 5
+  },
+  {
+   "term": "Wein",
+   "sg_count": 5
+  },
+  {
+   "term": "Wirt",
+   "sg_count": 5
+  },
+  {
+   "term": "Wohnortswechsel",
+   "sg_count": 5
+  },
+  {
+   "term": "Zehnt",
+   "sg_count": 5
+  },
+  {
+   "term": "Aufnahme",
+   "sg_count": 4
+  },
+  {
+   "term": "Botenlohn",
+   "sg_count": 4
+  },
+  {
+   "term": "Brandstiftung",
+   "sg_count": 4
+  },
+  {
+   "term": "Einigung",
+   "sg_count": 4
+  },
+  {
+   "term": "Einladung",
+   "sg_count": 4
+  },
+  {
+   "term": "Einquartierung",
+   "sg_count": 4
+  },
+  {
+   "term": "Eroberung",
+   "sg_count": 4
+  },
+  {
+   "term": "Fischer",
+   "sg_count": 4
+  },
+  {
+   "term": "Fürbitte",
+   "sg_count": 4
+  },
+  {
+   "term": "Fürkauf",
+   "sg_count": 4
+  },
+  {
+   "term": "Garn",
+   "sg_count": 4
+  },
+  {
+   "term": "Geschenk",
+   "sg_count": 4
+  },
+  {
+   "term": "Geschwister",
+   "sg_count": 4
+  },
+  {
+   "term": "Glocke",
+   "sg_count": 4
+  },
+  {
+   "term": "Kalender",
+   "sg_count": 4
+  },
+  {
+   "term": "Kardinal",
+   "sg_count": 4
+  },
+  {
+   "term": "Katholisch",
+   "sg_count": 4
+  },
+  {
+   "term": "Konkurs",
+   "sg_count": 4
+  },
+  {
+   "term": "Konvent",
+   "sg_count": 4
+  },
+  {
+   "term": "Landfrieden",
+   "sg_count": 4
+  },
+  {
+   "term": "Leibeigenschaft",
+   "sg_count": 4
+  },
+  {
+   "term": "Lüge",
+   "sg_count": 4
+  },
+  {
+   "term": "Mahnung",
+   "sg_count": 4
+  },
+  {
+   "term": "Metall",
+   "sg_count": 4
+  },
+  {
+   "term": "Mündliche Antwort",
+   "sg_count": 4
+  },
+  {
+   "term": "Nutzungsrecht",
+   "sg_count": 4
+  },
+  {
+   "term": "Pension",
+   "sg_count": 4
+  },
+  {
+   "term": "Pfründner",
+   "sg_count": 4
+  },
+  {
+   "term": "Privileg",
+   "sg_count": 4
+  },
+  {
+   "term": "Prädikant",
+   "sg_count": 4
+  },
+  {
+   "term": "Rathaus",
+   "sg_count": 4
+  },
+  {
+   "term": "Reichsabschied",
+   "sg_count": 4
+  },
+  {
+   "term": "Salz",
+   "sg_count": 4
+  },
+  {
+   "term": "Schadenersatz",
+   "sg_count": 4
+  },
+  {
+   "term": "Spitalpfleger",
+   "sg_count": 4
+  },
+  {
+   "term": "Stadtverweis",
+   "sg_count": 4
+  },
+  {
+   "term": "Textilwirtschaft",
+   "sg_count": 4
+  },
+  {
+   "term": "Versprechen",
+   "sg_count": 4
+  },
+  {
+   "term": "Verteidigung",
+   "sg_count": 4
+  },
+  {
+   "term": "Wegzug",
+   "sg_count": 4
+  },
+  {
+   "term": "Wucher",
+   "sg_count": 4
+  },
+  {
+   "term": "Absage",
+   "sg_count": 3
+  },
+  {
+   "term": "Achtbrief",
+   "sg_count": 3
+  },
+  {
+   "term": "Almosen",
+   "sg_count": 3
+  },
+  {
+   "term": "Altar",
+   "sg_count": 3
+  },
+  {
+   "term": "Arrest",
+   "sg_count": 3
+  },
+  {
+   "term": "Aufrüstung",
+   "sg_count": 3
+  },
+  {
+   "term": "Augenschein",
+   "sg_count": 3
+  },
+  {
+   "term": "Ausbürger",
+   "sg_count": 3
+  },
+  {
+   "term": "Auslieferung",
+   "sg_count": 3
+  },
+  {
+   "term": "Bauer",
+   "sg_count": 3
+  },
+  {
+   "term": "Bettel",
+   "sg_count": 3
+  },
+  {
+   "term": "Bewerbung",
+   "sg_count": 3
+  },
+  {
+   "term": "Bleiche",
+   "sg_count": 3
+  },
+  {
+   "term": "Einwilligung",
+   "sg_count": 3
+  },
+  {
+   "term": "Fischereiordnung",
+   "sg_count": 3
+  },
+  {
+   "term": "Fleisch",
+   "sg_count": 3
+  },
+  {
+   "term": "Fleischkauf",
+   "sg_count": 3
+  },
+  {
+   "term": "Geheimer Rat",
+   "sg_count": 3
+  },
+  {
+   "term": "Gehorsam",
+   "sg_count": 3
+  },
+  {
+   "term": "Gemeinnutzen",
+   "sg_count": 3
+  },
+  {
+   "term": "Gredhaus",
+   "sg_count": 3
+  },
+  {
+   "term": "Gredmeister",
+   "sg_count": 3
+  },
+  {
+   "term": "Hintersasse",
+   "sg_count": 3
+  },
+  {
+   "term": "Holz",
+   "sg_count": 3
+  },
+  {
+   "term": "Information",
+   "sg_count": 3
+  },
+  {
+   "term": "Kommandant",
+   "sg_count": 3
+  },
+  {
+   "term": "Kornkauf",
+   "sg_count": 3
+  },
+  {
+   "term": "Kornmangel",
+   "sg_count": 3
+  },
+  {
+   "term": "Korrespondenz",
+   "sg_count": 3
+  },
+  {
+   "term": "Kriegsbeute",
+   "sg_count": 3
+  },
+  {
+   "term": "Kriegshilfe",
+   "sg_count": 3
+  },
+  {
+   "term": "Körperverletzung",
+   "sg_count": 3
+  },
+  {
+   "term": "Landschreiber",
+   "sg_count": 3
+  },
+  {
+   "term": "Leder",
+   "sg_count": 3
+  },
+  {
+   "term": "Messe",
+   "sg_count": 3
+  },
+  {
+   "term": "Niederlage",
+   "sg_count": 3
+  },
+  {
+   "term": "Prokurator",
+   "sg_count": 3
+  },
+  {
+   "term": "Prozessakte",
+   "sg_count": 3
+  },
+  {
+   "term": "Qualitätskontrolle",
+   "sg_count": 3
+  },
+  {
+   "term": "Scharfrichter",
+   "sg_count": 3
+  },
+  {
+   "term": "Schau",
+   "sg_count": 3
+  },
+  {
+   "term": "Schmähschrift",
+   "sg_count": 3
+  },
+  {
+   "term": "Schneider",
+   "sg_count": 3
+  },
+  {
+   "term": "Schütze",
+   "sg_count": 3
+  },
+  {
+   "term": "Sieg",
+   "sg_count": 3
+  },
+  {
+   "term": "Strasse",
+   "sg_count": 3
+  },
+  {
+   "term": "Studium",
+   "sg_count": 3
+  },
+  {
+   "term": "Truppenaufgebot",
+   "sg_count": 3
+  },
+  {
+   "term": "Verlobung",
+   "sg_count": 3
+  },
+  {
+   "term": "Vogtei",
+   "sg_count": 3
+  },
+  {
+   "term": "Waffenstillstand",
+   "sg_count": 3
+  },
+  {
+   "term": "Weide",
+   "sg_count": 3
+  },
+  {
+   "term": "Zinsbrief",
+   "sg_count": 3
+  },
+  {
+   "term": "Zunft",
+   "sg_count": 3
+  },
+  {
+   "term": "Zurechtweisung",
+   "sg_count": 3
+  },
+  {
+   "term": "Ablösung",
+   "sg_count": 2
+  },
+  {
+   "term": "Achtbuch",
+   "sg_count": 2
+  },
+  {
+   "term": "Adel",
+   "sg_count": 2
+  },
+  {
+   "term": "Agent",
+   "sg_count": 2
+  },
+  {
+   "term": "Artillerie",
+   "sg_count": 2
+  },
+  {
+   "term": "Asyl",
+   "sg_count": 2
+  },
+  {
+   "term": "Beleidigung",
+   "sg_count": 2
+  },
+  {
+   "term": "Bischöfliches Gericht",
+   "sg_count": 2
+  },
+  {
+   "term": "Blutrache",
+   "sg_count": 2
+  },
+  {
+   "term": "Bürgerschaft",
+   "sg_count": 2
+  },
+  {
+   "term": "Christentum",
+   "sg_count": 2
+  },
+  {
+   "term": "Ehegericht",
+   "sg_count": 2
+  },
+  {
+   "term": "Ehevertrag",
+   "sg_count": 2
+  },
+  {
+   "term": "Einwohner",
+   "sg_count": 2
+  },
+  {
+   "term": "Eisen",
+   "sg_count": 2
+  },
+  {
+   "term": "Fastenzeit",
+   "sg_count": 2
+  },
+  {
+   "term": "Fenster",
+   "sg_count": 2
+  },
+  {
+   "term": "Fleischpreis",
+   "sg_count": 2
+  },
+  {
+   "term": "Fremde",
+   "sg_count": 2
+  },
+  {
+   "term": "Friedensgebot",
+   "sg_count": 2
+  },
+  {
+   "term": "Fürstin",
+   "sg_count": 2
+  },
+  {
+   "term": "Gebet",
+   "sg_count": 2
+  },
+  {
+   "term": "Geburt",
+   "sg_count": 2
+  },
+  {
+   "term": "Gerichtsbarkeit",
+   "sg_count": 2
+  },
+  {
+   "term": "Glaubensgenosse",
+   "sg_count": 2
+  },
+  {
+   "term": "Gräfin",
+   "sg_count": 2
+  },
+  {
+   "term": "Hofmeister",
+   "sg_count": 2
+  },
+  {
+   "term": "Hungertod",
+   "sg_count": 2
+  },
+  {
+   "term": "Identifizierung",
+   "sg_count": 2
+  },
+  {
+   "term": "Kaufhaus",
+   "sg_count": 2
+  },
+  {
+   "term": "Kaution",
+   "sg_count": 2
+  },
+  {
+   "term": "Kirchenbann",
+   "sg_count": 2
+  },
+  {
+   "term": "Kriegserklärung",
+   "sg_count": 2
+  },
+  {
+   "term": "Kriegsvorbereitung",
+   "sg_count": 2
+  },
+  {
+   "term": "Krämer",
+   "sg_count": 2
+  },
+  {
+   "term": "Landgrafschaft",
+   "sg_count": 2
+  },
+  {
+   "term": "Landgräfin",
+   "sg_count": 2
+  },
+  {
+   "term": "Landsknecht",
+   "sg_count": 2
+  },
+  {
+   "term": "Lehenherr",
+   "sg_count": 2
+  },
+  {
+   "term": "Leumund",
+   "sg_count": 2
+  },
+  {
+   "term": "Mange",
+   "sg_count": 2
+  },
+  {
+   "term": "Marktrecht",
+   "sg_count": 2
+  },
+  {
+   "term": "Maschine",
+   "sg_count": 2
+  },
+  {
+   "term": "Niederlassung",
+   "sg_count": 2
+  },
+  {
+   "term": "Notar",
+   "sg_count": 2
+  },
+  {
+   "term": "Pest",
+   "sg_count": 2
+  },
+  {
+   "term": "Pfarrei",
+   "sg_count": 2
+  },
+  {
+   "term": "Pfeifer",
+   "sg_count": 2
+  },
+  {
+   "term": "Priorin",
+   "sg_count": 2
+  },
+  {
+   "term": "Reichsvogt",
+   "sg_count": 2
+  },
+  {
+   "term": "Reiter",
+   "sg_count": 2
+  },
+  {
+   "term": "Rekurs",
+   "sg_count": 2
+  },
+  {
+   "term": "Reliquie",
+   "sg_count": 2
+  },
+  {
+   "term": "Schauzeichen",
+   "sg_count": 2
+  },
+  {
+   "term": "Schmalz",
+   "sg_count": 2
+  },
+  {
+   "term": "Schuldenerlass",
+   "sg_count": 2
+  },
+  {
+   "term": "Schwangerschaft",
+   "sg_count": 2
+  },
+  {
+   "term": "Schwiegersohn",
+   "sg_count": 2
+  },
+  {
+   "term": "Schwiegervater",
+   "sg_count": 2
+  },
+  {
+   "term": "Seeschlacht",
+   "sg_count": 2
+  },
+  {
+   "term": "Seuche",
+   "sg_count": 2
+  },
+  {
+   "term": "Spott",
+   "sg_count": 2
+  },
+  {
+   "term": "Stadtknecht",
+   "sg_count": 2
+  },
+  {
+   "term": "Stockamt",
+   "sg_count": 2
+  },
+  {
+   "term": "Todesstrafe",
+   "sg_count": 2
+  },
+  {
+   "term": "Türkensteuer",
+   "sg_count": 2
+  },
+  {
+   "term": "Ungeld",
+   "sg_count": 2
+  },
+  {
+   "term": "Verbannung",
+   "sg_count": 2
+  },
+  {
+   "term": "Verkündigung",
+   "sg_count": 2
+  },
+  {
+   "term": "Vertraulich",
+   "sg_count": 2
+  },
+  {
+   "term": "Vertreibung",
+   "sg_count": 2
+  },
+  {
+   "term": "Verzicht",
+   "sg_count": 2
+  },
+  {
+   "term": "Viehseuche",
+   "sg_count": 2
+  },
+  {
+   "term": "Vikar",
+   "sg_count": 2
+  },
+  {
+   "term": "Wachs",
+   "sg_count": 2
+  },
+  {
+   "term": "Wahl",
+   "sg_count": 2
+  },
+  {
+   "term": "Wald",
+   "sg_count": 2
+  },
+  {
+   "term": "Walke",
+   "sg_count": 2
+  },
+  {
+   "term": "Weg",
+   "sg_count": 2
+  },
+  {
+   "term": "Weibel",
+   "sg_count": 2
+  },
+  {
+   "term": "Weingarten",
+   "sg_count": 2
+  },
+  {
+   "term": "Westfälischer Friede",
+   "sg_count": 2
+  },
+  {
+   "term": "Widerstand",
+   "sg_count": 2
+  },
+  {
+   "term": "Wiese",
+   "sg_count": 2
+  },
+  {
+   "term": "Wissen",
+   "sg_count": 2
+  },
+  {
+   "term": "Wochenmarkt",
+   "sg_count": 2
+  },
+  {
+   "term": "Äbtissin",
+   "sg_count": 2
+  },
+  {
+   "term": "Alter Zürichkrieg",
+   "sg_count": 1
+  },
+  {
+   "term": "Anwerbung",
+   "sg_count": 1
+  },
+  {
+   "term": "Anwort",
+   "sg_count": 1
+  },
+  {
+   "term": "Ausstand",
+   "sg_count": 1
+  },
+  {
+   "term": "Bader",
+   "sg_count": 1
+  },
+  {
+   "term": "Bannerherr",
+   "sg_count": 1
+  },
+  {
+   "term": "Berater",
+   "sg_count": 1
+  },
+  {
+   "term": "Beschlagnahmnung",
+   "sg_count": 1
+  },
+  {
+   "term": "Bigamie",
+   "sg_count": 1
+  },
+  {
+   "term": "Botentasche",
+   "sg_count": 1
+  },
+  {
+   "term": "Butter",
+   "sg_count": 1
+  },
+  {
+   "term": "Büchsenmeister",
+   "sg_count": 1
+  },
+  {
+   "term": "Eiche",
+   "sg_count": 1
+  },
+  {
+   "term": "Eigentum",
+   "sg_count": 1
+  },
+  {
+   "term": "Einsiedelei",
+   "sg_count": 1
+  },
+  {
+   "term": "Einwohnerin",
+   "sg_count": 1
+  },
+  {
+   "term": "Enkel",
+   "sg_count": 1
+  },
+  {
+   "term": "Entschuldigung",
+   "sg_count": 1
+  },
+  {
+   "term": "Erzbischof",
+   "sg_count": 1
+  },
+  {
+   "term": "Fahndung",
+   "sg_count": 1
+  },
+  {
+   "term": "Fest",
+   "sg_count": 1
+  },
+  {
+   "term": "Frauenwirt",
+   "sg_count": 1
+  },
+  {
+   "term": "Fremdes Gericht",
+   "sg_count": 1
+  },
+  {
+   "term": "Frevel",
+   "sg_count": 1
+  },
+  {
+   "term": "Friedensverhandlungen",
+   "sg_count": 1
+  },
+  {
+   "term": "Fuhrmann",
+   "sg_count": 1
+  },
+  {
+   "term": "Fälschung",
+   "sg_count": 1
+  },
+  {
+   "term": "Galgen",
+   "sg_count": 1
+  },
+  {
+   "term": "Garten",
+   "sg_count": 1
+  },
+  {
+   "term": "Geburtsbrief",
+   "sg_count": 1
+  },
+  {
+   "term": "Gemeindeversammlung",
+   "sg_count": 1
+  },
+  {
+   "term": "Gnadenbrief",
+   "sg_count": 1
+  },
+  {
+   "term": "Hagel",
+   "sg_count": 1
+  },
+  {
+   "term": "Halsgerichtsordnung",
+   "sg_count": 1
+  },
+  {
+   "term": "Haushalt",
+   "sg_count": 1
+  },
+  {
+   "term": "Hebamme",
+   "sg_count": 1
+  },
+  {
+   "term": "Herzogin",
+   "sg_count": 1
+  },
+  {
+   "term": "Hufschmied",
+   "sg_count": 1
+  },
+  {
+   "term": "Hugenottenaufstand",
+   "sg_count": 1
+  },
+  {
+   "term": "Hunger",
+   "sg_count": 1
+  },
+  {
+   "term": "Jagd",
+   "sg_count": 1
+  },
+  {
+   "term": "Kirchenfleger",
+   "sg_count": 1
+  },
+  {
+   "term": "Kirchenstifter",
+   "sg_count": 1
+  },
+  {
+   "term": "Kommissär",
+   "sg_count": 1
+  },
+  {
+   "term": "Kompetenz",
+   "sg_count": 1
+  },
+  {
+   "term": "Konzil",
+   "sg_count": 1
+  },
+  {
+   "term": "Kürschner",
+   "sg_count": 1
+  },
+  {
+   "term": "Landfriedensbruch",
+   "sg_count": 1
+  },
+  {
+   "term": "Landmännin",
+   "sg_count": 1
+  },
+  {
+   "term": "Landwirtschaft",
+   "sg_count": 1
+  },
+  {
+   "term": "Letzi",
+   "sg_count": 1
+  },
+  {
+   "term": "Lohnordnung",
+   "sg_count": 1
+  },
+  {
+   "term": "Lösegeld",
+   "sg_count": 1
+  },
+  {
+   "term": "Magd",
+   "sg_count": 1
+  },
+  {
+   "term": "Meineid",
+   "sg_count": 1
+  },
+  {
+   "term": "Messbuch",
+   "sg_count": 1
+  },
+  {
+   "term": "Missbrauch",
+   "sg_count": 1
+  },
+  {
+   "term": "Mässigung",
+   "sg_count": 1
+  },
+  {
+   "term": "Mühle",
+   "sg_count": 1
+  },
+  {
+   "term": "Münzmeister",
+   "sg_count": 1
+  },
+  {
+   "term": "Nichte",
+   "sg_count": 1
+  },
+  {
+   "term": "Nuntius",
+   "sg_count": 1
+  },
+  {
+   "term": "Ochse",
+   "sg_count": 1
+  },
+  {
+   "term": "Parteilichkeit",
+   "sg_count": 1
+  },
+  {
+   "term": "Rache",
+   "sg_count": 1
+  },
+  {
+   "term": "Randalierer",
+   "sg_count": 1
+  },
+  {
+   "term": "Ratsknecht",
+   "sg_count": 1
+  },
+  {
+   "term": "Regiment",
+   "sg_count": 1
+  },
+  {
+   "term": "Reichslehen",
+   "sg_count": 1
+  },
+  {
+   "term": "Reichsstand\"",
+   "sg_count": 1
+  },
+  {
+   "term": "Rente",
+   "sg_count": 1
+  },
+  {
+   "term": "Reparationszahlung",
+   "sg_count": 1
+  },
+  {
+   "term": "Roggen",
+   "sg_count": 1
+  },
+  {
+   "term": "Rückkauf",
+   "sg_count": 1
+  },
+  {
+   "term": "Sakrament",
+   "sg_count": 1
+  },
+  {
+   "term": "Schatzmeister",
+   "sg_count": 1
+  },
+  {
+   "term": "Scheiber",
+   "sg_count": 1
+  },
+  {
+   "term": "Schenkung",
+   "sg_count": 1
+  },
+  {
+   "term": "Schirmbrief",
+   "sg_count": 1
+  },
+  {
+   "term": "Schuhmacher",
+   "sg_count": 1
+  },
+  {
+   "term": "Schwiegertochter",
+   "sg_count": 1
+  },
+  {
+   "term": "Schädling",
+   "sg_count": 1
+  },
+  {
+   "term": "Schädlingsbekämpfung",
+   "sg_count": 1
+  },
+  {
+   "term": "Selbstjustiz",
+   "sg_count": 1
+  },
+  {
+   "term": "Sold",
+   "sg_count": 1
+  },
+  {
+   "term": "Spruchbrief",
+   "sg_count": 1
+  },
+  {
+   "term": "Stadtbuch",
+   "sg_count": 1
+  },
+  {
+   "term": "Steinmetz",
+   "sg_count": 1
+  },
+  {
+   "term": "Stipendium",
+   "sg_count": 1
+  },
+  {
+   "term": "Stockmeister",
+   "sg_count": 1
+  },
+  {
+   "term": "Tante",
+   "sg_count": 1
+  },
+  {
+   "term": "Taufe",
+   "sg_count": 1
+  },
+  {
+   "term": "Testament",
+   "sg_count": 1
+  },
+  {
+   "term": "Ungehorsam",
+   "sg_count": 1
+  },
+  {
+   "term": "Unterstütung",
+   "sg_count": 1
+  },
+  {
+   "term": "Verwaltung",
+   "sg_count": 1
+  },
+  {
+   "term": "Verweigerung",
+   "sg_count": 1
+  },
+  {
+   "term": "Visitation",
+   "sg_count": 1
+  },
+  {
+   "term": "Vorschlag",
+   "sg_count": 1
+  },
+  {
+   "term": "Waisenhaus",
+   "sg_count": 1
+  },
+  {
+   "term": "Weber",
+   "sg_count": 1
+  },
+  {
+   "term": "Wundarzt",
+   "sg_count": 1
+  },
+  {
+   "term": "Zimmermann",
+   "sg_count": 1
+  },
+  {
+   "term": "Zuchthaus",
+   "sg_count": 1
+  },
+  {
+   "term": "Zweiter Kappelerkrieg",
+   "sg_count": 1
+  },
+  {
+   "term": "Zöllner",
+   "sg_count": 1
+  }
+ ]
 }
