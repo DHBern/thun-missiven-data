@@ -24,7 +24,7 @@ from dates import year_from_text  # noqa: E402
 import torch  # noqa: E402
 from transformers import AutoModelForTokenClassification, AutoTokenizer  # noqa: E402
 
-dev = "cuda" if torch.cuda.is_available() else "cpu"
+dev = "cuda" if torch.cuda.is_available() else ("mps" if torch.backends.mps.is_available() else "cpu")
 model_dir = SG / "models" / f"ner-{READER}"
 report = json.loads((SG / "entities" / f"{READER}.report.json").read_text(encoding="utf-8"))
 allowed = set(report["policy"]["allowed"])

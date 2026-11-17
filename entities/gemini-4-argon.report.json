@@ -1,0 +1,25 @@
+{
+ "reader": "gemini-4-argon",
+ "model": "hmBERT trained on the St. Gallen edition (sg-missiven-data scripts/ner.py)",
+ "sg_report": {
+  "late_letters": {
+   "precision": 0.6562,
+   "recall": 0.7003,
+   "f1": 0.6775,
+   "fn": 223,
+   "fp": 273,
+   "tp": 521
+  },
+  "allowed_links": [
+   "org/fuzzy",
+   "org/seen",
+   "place/fuzzy",
+   "place/seen"
+  ]
+ },
+ "pages": 4980,
+ "entities": 21984,
+ "linked": 2316,
+ "unlinked_groups": 8413,
+ "caveat": "not measured on Thun; links to the St. Gallen registers, cert=medium"
+}
