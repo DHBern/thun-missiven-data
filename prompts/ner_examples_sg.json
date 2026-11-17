@@ -1,0 +1,185 @@
+{
+ "about": "Edited St. Gallen Missiven pages (letter and address side) of three letters from Schultheiss und Rat zu Bern, the same letters as the regest and keyword examples: the Gemini 4 Argon reading, with the edition's tags projected onto it (sg-missiven-data scripts/ner.py build_pages). Few-shot examples for scripts/ner_llm.py.",
+ "examples": [
+  {
+   "letter": "stasg_missiv_00123",
+   "facs": "StadtASG_Missive_123_245.JPG",
+   "year": 1439,
+   "text": "Unser willig fruntlich dienste und was wir eren und gutes vermugend sy uwer wißheit allzit vor geschriben und guetlich erbotten\nlieben sundern frund wir sind als billich ist unvergessen das uwer fruntschafft von unser und ander unser eidgnon\nbegerens und ouch solichs getruwen ze sachens wegen so ir ze gemeiner eidgnoschafft hant in aller liebi und\ntruw vil muy costen und arbeit von der zweitrecht wegen so denn zwuschent unßern sundern guoten frunden\nund lieben getruwen eidgnossen denen von Zurich und von Switz leider ufferwachsen sint die ze stillen\nund hin ze tuond gehept hant des wir uwer wißheit mit gantzem ernste so wir iemer geflissenlichest konnen\noder vermogend guotlichen dankent, begerent solich uwer truw und liebi in glichen und meren sachen und\nsunder ze uwern nutz eren und fromen fruntlich umb all die uwren mit guotem willigen hertzen ze ver-\ndienen dar zu wir ouch all die unßren unverdrossen funden soltent werden des ir uns ouch unzwifellich\ngetruwen solt. Denn wie kein sach sorgsamlicher und verdrucziger nach dem und si sich noch biß har\ngemachet hat und gewesen ist wie doch wir alweg darinn nach unßrem verstan das beste geworben\nund getan hant ob die sach hin getan worden sin moecht, das noch wenig erstossen hatt furer das ubrig\nzem besten ze bringen alles args in den spennen hin ze tund einn fruntlichen tag uwren und unßren\ndes heilligen Riches Stetten in Swaben und ußern uw guoten und lieben frunden gen Zug ze koment\nda selbs uff sant Gallen tag an der herberg ze sinde geschriben und gebetten hatten, von uns unßer\ngemeinen eidgnoschafft willen furer ze muyen und ze arbeiten, ob uns gott der almechtig das heil\ngeben wolt das die sachen noch an meren kumber hin geleit wurden und umb das uwer wißheit\nbotten so ir dar zuo schiben werdent des wir uch ouch wol getruwent nit ab zestend noch ze versagent\nso haben wir den selben gesatzten tag von des wegen das die pestelentz yetzent bi uns und unßren\neidgnon und ouch den abgang genomen hat und furbasser von tag ze tag ob gott wil besser werden sol\nersttzekett und widerbietent uch den biß uff der heilligen dryer kungen tag so man nempt ephia\ndni nechst koment ze nacht an der herberg da selbs Zug ze sinde. Und begerend an uwer liebi mit allem\nernste so wir iemer gutlicheste konnent ir wellent mit uwren wisen Rates botten den tag uns und\ngemeiner eidgnoschafft ze liebi suochen und fruntlichen empfelhen in den sachen das beste gedenken,\nfur ze nemen als si ouch biß har getruwlichen getan und fruntlichen sich geubt hant konnent\nwir das in glichen und meren sachen umb uch und uwer statt frunde iemer gedienen wellen wir\nwillig funden werden des ir uns wol getruwen solent. Datum viii die mensis octobris anno dni\ncccco xl.",
+   "entities": [
+    {
+     "text": "eidgnoschafft",
+     "label": "orgName"
+    },
+    {
+     "text": "Zurich",
+     "label": "placeName"
+    },
+    {
+     "text": "Switz",
+     "label": "placeName"
+    },
+    {
+     "text": "des heilligen Riches Stetten in Swaben und ußern uw",
+     "label": "orgName"
+    },
+    {
+     "text": "Zug",
+     "label": "placeName"
+    },
+    {
+     "text": "sant Gallen tag",
+     "label": "date"
+    },
+    {
+     "text": "eidgnoschafft",
+     "label": "orgName"
+    },
+    {
+     "text": "heilligen dryer kungen tag so man nempt ephia\ndni",
+     "label": "date"
+    },
+    {
+     "text": "Zug",
+     "label": "placeName"
+    },
+    {
+     "text": "eidgnoschafft",
+     "label": "orgName"
+    },
+    {
+     "text": "viii die mensis octobris anno dni\ncccco",
+     "label": "origDate"
+    }
+   ]
+  },
+  {
+   "letter": "stasg_missiv_00123",
+   "facs": "StadtASG_Missive_123_246.JPG",
+   "year": 1439,
+   "text": "Den fuersichtigen wisen unsern sunder lieben und guoten\nfruenden dem burgermeister und reten zuo Santgallen.",
+   "entities": [
+    {
+     "text": "burgermeister und reten zuo Santgallen",
+     "label": "orgName@recipient"
+    }
+   ]
+  },
+  {
+   "letter": "stasg_missiv_00332",
+   "facs": "StadtASG_Missive_332_669.JPG",
+   "year": 1456,
+   "text": "Unßer früntlich willig dienst allzit voran, sundern guoten fründe und lieben getruwen eidgenossen. Die erbere\nGrede, Uolrich gloggengiessers iwers burgers eliche husfrowe, die bißhar ettwas zites als si von\niwrer stat von deß wegen dz der genant ir elich man sich mit einer frowen ettwez bekümbert, als si\nuns gesagt hatt in massen si lenger by ime nit beliben mocht, gescheiden, allhie in unßer stat gewest\nist, hatt uns fürbracht wie der selb Uolrich an ir begert habe, dz si sich widerumb zuo ime\nkeren, dz si nu, als billichen ist, gern tuon welle. Si besorget aber dz semlichs unversehenlich,\nes sie denn dz die frow voran von iwrer stat geschlaffen werde. Darumb so hat si uns gar\nernstlich gebetten und angekerrt dz wir iwrer lieben und guoten früntschafft schriben wellend\ndz semlichs also bescheche umb dz si sich früntlich als elüten gezimpt betragen moegend. Also\nbitten wir üwr liebe von der genanten Greden wegen früntlich dz ir iren kumber, si bißhar\nlang zit gehept hat guotlichen betrachten, und die gemelten irs manes diernen wysen\nwellen umb dz si mit einandrn desterbaß in guoter früntschafft und einikeit leben moegent,\nwann si sich mit unß gar erberlich weiste zuo halten als si vormals getan hat dz stat\nuns umb üwr ersamkeit zuo gedienen. Datum xiiij die novenbris anno lvi°.\nvon iwrer statt\nSchulths und rat\nzuo Berne.",
+   "entities": [
+    {
+     "text": "Grede",
+     "label": "persName"
+    },
+    {
+     "text": "Uolrich",
+     "label": "persName"
+    },
+    {
+     "text": "Uolrich",
+     "label": "persName"
+    },
+    {
+     "text": "Greden",
+     "label": "persName"
+    },
+    {
+     "text": "xiiij die novenbris anno lvi",
+     "label": "origDate"
+    },
+    {
+     "text": "Schulths und rat\nzuo Berne",
+     "label": "orgName@issuer"
+    }
+   ]
+  },
+  {
+   "letter": "stasg_missiv_00332",
+   "facs": "StadtASG_Missive_332_670.JPG",
+   "year": 1456,
+   "text": "Den ersamen wisen burgermeister und rat\nzuo Santgallen unsern sundern guoten frunden\nund lieben getruwen eidgenossen.",
+   "entities": [
+    {
+     "text": "burgermeister und rat\nzuo Santgallen",
+     "label": "orgName@recipient"
+    }
+   ]
+  },
+  {
+   "letter": "stasg_missiv_00540",
+   "facs": "StadtASG_Missive_540_1101.JPG",
+   "year": 1508,
+   "text": "Unnser früntlich willig dienst, unnd was wir erenn unnd guots vermoegenn,\nzuvor, from, fürsichtig, wyß sunders guotten fründ unnd getrüwen lieben\neidgnon, wir habenn gesecchen üwer schriben, unnd dar inn vermerckt üwer\nguote neijgung, unns, der gefelschten röllibatzen under üwer unnd unnser liebenn\neidgnon von Soloturn, och unnserm schlag ußgangen, zuwarnen, deß wir üch,\nsunders grossen danck sagen, unnd wüssenn, mit erbietten, sölichs gegen üch, in\nguotem niemer zuvergessenn, wir habenn ouch diser tagen, schriften empfangen\nso anzöugen, einen genannt petter Johann darraij unnd Johanna sin hußfrowen\nzuo gex bij Jenff gelegen, umb gliche beschuldigung väncklichen angenomenn sin,\nwelicher under anderm verjechenn hät, wie dann sölich falsch röllibatzen durch\neinen genannt Grand Sandrein, uß Braband unnd ro Hannoij jetz nit verr\nvon Straßburg gesässenn, anfencklichen gemacht, unnd im uberantwurt sin, unnd\ndiewil nu söliche felschung der müntz unns schmächlich unnd dem gantzen land\nmer dan schädlich. Harumb ist an üch, unnser früntlich bitt ir wellenn üch, an den\nregiern zuo Mastrick, von des anfängers wägn in Eberlis brieff angezöugt, ouch an andern\norten nach üwerm gut beduncken. Deßglichen an den gefangnen bij üch, vlüssigklich\nerkunden, dämit, sölicher mercklicher schad verkomen, unnd die ubeltätter, bij üch,\nunnd an andern ortten werden irem verdienen nach, also gesträfft, dämit ander\nhinfür ursach gewinnen, sich derglichenn händlen zuo mussign, welichs ouch zuver-\nkomen an unnserm guotenn vliß unnd ernst nützet sol erwinden. Dann wir ouch gliche\nmeijnung hern marschalck in Burgun unnd denen von Mastrick haben zuogeschri-\nbenn sich darnäch wüssenn zuhalten, dämit sijen Gott allzijt wol bevolchenn.\nDatum mentag vor Michaelis. Anno viijc\nSchulthes unnd rätt\nder statt Bernn.",
+   "entities": [
+    {
+     "text": "Soloturn",
+     "label": "placeName"
+    },
+    {
+     "text": "petter Johann darraij",
+     "label": "persName"
+    },
+    {
+     "text": "Johanna",
+     "label": "persName"
+    },
+    {
+     "text": "gex",
+     "label": "placeName"
+    },
+    {
+     "text": "Jenff",
+     "label": "placeName"
+    },
+    {
+     "text": "Grand Sandrein",
+     "label": "persName"
+    },
+    {
+     "text": "Braband",
+     "label": "placeName"
+    },
+    {
+     "text": "Straßburg",
+     "label": "placeName"
+    },
+    {
+     "text": "Mastrick",
+     "label": "placeName"
+    },
+    {
+     "text": "Burgun",
+     "label": "placeName"
+    },
+    {
+     "text": "Mastrick",
+     "label": "placeName"
+    },
+    {
+     "text": "mentag vor Michaelis. Anno viijc",
+     "label": "origDate"
+    },
+    {
+     "text": "Schulthes unnd rätt\nder statt Bernn",
+     "label": "orgName@issuer"
+    }
+   ]
+  },
+  {
+   "letter": "stasg_missiv_00540",
+   "facs": "StadtASG_Missive_540_1102.JPG",
+   "year": 1508,
+   "text": "Den fromen, fürsichtigen, wysen Burgermei=\nstern unnd Rått der Statt zuo Santgallen,\nunsern sunders guoten fründen unnd ge\ntrüwen lieben Eidtgnossen.",
+   "entities": [
+    {
+     "text": "Burgermei=\nstern unnd Rått der Statt zuo Santgallen",
+     "label": "orgName@recipient"
+    }
+   ]
+  }
+ ]
+}

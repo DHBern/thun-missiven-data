@@ -8,3 +8,6 @@ __pycache__/
 
 # register lookups (scripts/register.py): answers of the authority servers
 registers/.cache/
+
+# LLM tagging calls (scripts/ner_llm.py)
+ner_llm/.cache/
