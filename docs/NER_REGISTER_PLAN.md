@@ -78,16 +78,27 @@ St. Gallen measured them on its edition's own entries.
   proposal, never merged across a doubt.
 - Each entry keeps every spelling with its letters and pages, the roles, and the years.
 
-**R-2. Authority links, graded.** As in St. Gallen (sicher / wahrscheinlich / möglich,
-by rules, with the precision measured on R-0 shown beside every grade):
-- **Places:** SSRQ place database (historical spellings), HLS, Wikidata (with
-  coordinates, for a map), ortsnamen.ch / Berner Ortsnamenbuch.
-- **Persons:** HLS (Bernese and Thun families, office holders), SSRQ persons (attested
-  years ± 40), Human Lineage (by QID or HLS id), Wikidata.
-- **Organisations:** the St. Gallen register (shared corporate actors), SSRQ
-  organisations.
+**R-2. Matching against four registers (decided 17.11.2026: HLS, SSRQ, KF, St. Gallen),
+graded.** As in St. Gallen (sicher / wahrscheinlich / möglich, by rules, with the
+precision measured on R-0 shown beside every grade). Every entry is looked up in all
+four; agreeing candidates (same HLS id) are folded into one:
+- **HLS** (our `hls` MCP: persons `per…`, places `loc…`, articles): the Bernese and
+  Thun families and office holders, every settlement with an article. The HLS id is
+  the hub the others join on.
+- **SSRQ** (our `ssrq` MCP for persons and organisations, with the years they are
+  attested; the SSRQ place database `loci.ssrq-sds-fds.ch` for places, with historical
+  spellings and links to HLS and GND). Candidates at most "wahrscheinlich", as in
+  St. Gallen.
+- **KF**, Königsfelden (our `kf` MCP: persons and places with HLS ids, 1300–1658):
+  Habsburg and Aargau persons and places, overlapping with Bern in the 14th–15th c.
+- **St. Gallen** (DHBern/sg-missiven-data `person/`, `place/`, and its generated
+  entries): shared corporate actors (Schultheiss und Rat zu Bern, eidgenössische
+  Orte), Bernese persons who wrote to both towns, places with coordinates. A match
+  gets a link to the St. Gallen register entry and back (`links/`).
+- Coordinates for the map come from the matched entry (SG register, SSRQ, Wikidata via
+  the HLS id), never from a name alone.
 - A name alone never makes a "sicher" link; St. Gallen's lessons hold (places never
-  "sicher"; SSRQ candidates at most "wahrscheinlich").
+  "sicher"; SSRQ candidates at most "wahrscheinlich"; persons only within the years).
 
 **R-3. Office holders.** The Schultheissen of Thun (and Bern's Schultheissen and
 Stadtschreiber) appear in nearly every address and signature. A list of them by year,
@@ -95,9 +106,14 @@ from the letters and checked against HLS, both helps person linking (R-1) and da
 letters whose year is uncertain.
 
 **R-4. Viewer.** Register pages for persons, places and organisations (all spellings,
-letters, years, graded links, "automatisch" marking), a map of the places with
-coordinates, names in the text linked to their entries, register facets in the search
-— as on the St. Gallen site.
+letters, years, graded links, "automatisch" marking), names in the text linked to their
+entries, register facets in the search — as on the St. Gallen site. On the overview
+(decided 17.11.2026):
+- a **geographic access**: a map of the places with coordinates (Leaflet, as St. Gallen),
+  each place opening its letters;
+- a **Sankey** as St. Gallen's: a keyword → its most frequent companions → their periods.
+  It needs the keywords (St. Gallen's vocabulary, `scripts/keywords.py`) and the dates
+  (`dates/dates.jsonl`, done).
 
 **R-5. Both collections.** Entries that are also in the St. Gallen register (Bern's
 council, Bernese persons, shared places) get a link to it; the St. Gallen site gets the
