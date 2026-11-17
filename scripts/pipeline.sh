@@ -53,13 +53,22 @@ python3 scripts/collect_series.py > "$STATE/collect.log" 2>&1 || fail "collect: 
 
 # 3. regest drafts, written on tei outside any checkout by the scheduler
 #    (ops/tei/thun_runs.sh -> scripts/regest.py); taken over only if no letter loses its draft
+ids() { python3 -c 'import json,sys; print(len({json.loads(l)["id"] for l in open(sys.argv[1]) if l.strip()}))' "$1"; }
 DRAFTS=${THM_REGEST_OUT:-$HOME/thun-regest-state/drafts.jsonl}
 if [ -s "$DRAFTS" ]; then
-  ids() { python3 -c 'import json,sys; print(len({json.loads(l)["id"] for l in open(sys.argv[1]) if l.strip()}))' "$1"; }
   have=0; [ -s regests/drafts.jsonl ] && have=$(ids regests/drafts.jsonl)
   new=$(ids "$DRAFTS")
   [ "$new" -ge "$have" ] || fail "regests: $DRAFTS has drafts for $new letters, the repository $have"
   mkdir -p regests && cp "$DRAFTS" regests/drafts.jsonl
+fi
+
+# 3b. keywords, written on tei by the scheduler (scripts/keywords.py); never fewer letters
+KWS=${THM_KEYWORDS_OUT:-$HOME/thun-keywords-state/assigned.jsonl}
+if [ -s "$KWS" ]; then
+  have=0; [ -s keywords/assigned.jsonl ] && have=$(ids keywords/assigned.jsonl)
+  new=$(ids "$KWS")
+  [ "$new" -ge "$have" ] || fail "keywords: $KWS has $new letters, the repository $have"
+  mkdir -p keywords && cp "$KWS" keywords/assigned.jsonl
 fi
 
 # 4. dates by rule from the drafts' date lines (deterministic, standard library);

@@ -49,6 +49,16 @@ if ! active regest; then
     /bin/bash -c "set -a; . $HOME/.gpustack.env; set +a; THM_REGEST_OUT=$RS/drafts.jsonl PYTHONUNBUFFERED=1 $PY scripts/regest.py --workers 3 >> $ST/regest.log 2>&1"
 fi
 
+# K. keywords from the St. Gallen vocabulary (scripts/keywords.py), after the regests (it reads them):
+#    letters not yet done, or whose reading or regest changed. Output outside any checkout.
+KS=$HOME/thun-keywords-state
+if ! active regest && ! active keywords; then
+  mkdir -p "$KS"
+  [ -s "$RS/drafts.jsonl" ] && cp "$RS/drafts.jsonl" "$RG/regests/drafts.jsonl"
+  systemd-run --user --unit=thun-keywords --collect --quiet -p Nice=10 --working-directory="$RG" \
+    /bin/bash -c "set -a; . $HOME/.gpustack.env; set +a; THM_KEYWORDS_OUT=$KS/assigned.jsonl PYTHONUNBUFFERED=1 $PY scripts/keywords.py --workers 3 >> $ST/keywords.log 2>&1; git -C $RG checkout -q -- regests/drafts.jsonl"
+fi
+
 # 2. Gemini test (200 pages)
 if [ ! -e "$ST/gemini-test.done" ]; then
   active gemini-test && exit 0
