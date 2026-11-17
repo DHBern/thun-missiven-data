@@ -1,0 +1,66 @@
+{
+  "about": "Keyword vocabulary for the Thun Missiven, made for this collection from a reading of its regest drafts (15./17.11.2026), not taken from another edition. Six groups; each keyword has a short definition, which is what the model is shown. A letter gets one to four keywords. Proposals the model makes for missing keywords are collected in keywords/proposals.tsv, to extend the vocabulary by hand.",
+  "version": 1,
+  "groups": [
+    {"id": "recht", "de": "Recht und Gericht", "en": "Law and courts", "keywords": [
+      {"id": "schuld", "de": "Schuld und Pfand", "en": "Debt and pledge", "def": "Geldschulden, Zahlungsforderungen, Pfänder, Pfändung, Bürgschaft"},
+      {"id": "erbe", "de": "Erbe und Testament", "en": "Inheritance and wills", "def": "Erbschaft, Erbteilung, letzter Wille, Nachlass Verstorbener"},
+      {"id": "ehe", "de": "Ehe und Familie", "en": "Marriage and family", "def": "Eheschliessung, Ehestreit, Trennung, Unterhalt von Kindern, uneheliche Kinder"},
+      {"id": "vormundschaft", "de": "Vormundschaft", "en": "Guardianship", "def": "Vögte und Pfleger für Witwen, Waisen, Unmündige"},
+      {"id": "rechtstag", "de": "Rechtstag und Verfahren", "en": "Court days and procedure", "def": "Ansetzen oder Verschieben eines Rechtstags, Ladung vor Gericht, Kundschaft, Zeugen, Appellation nach Bern"},
+      {"id": "schiedsgericht", "de": "Gütliche Einigung", "en": "Settlement and arbitration", "def": "Schlichtung, Vermittlung durch Freunde oder Räte, Schiedsspruch, Vergleich"},
+      {"id": "haft", "de": "Gefangenschaft", "en": "Imprisonment", "def": "Verhaftung, Gefangene, Freilassung, Urfehde"},
+      {"id": "frevel", "de": "Frevel und Busse", "en": "Offences and fines", "def": "Frevel, Einung, Bussen, Schmähung, Beleidigung, Schlägerei"},
+      {"id": "gewalt", "de": "Totschlag und schwere Verbrechen", "en": "Homicide and grave crime", "def": "Totschlag, Mord, Raub, Brandstiftung, Diebstahl, Hinrichtung"},
+      {"id": "gnade", "de": "Gnade und Wiederaufnahme", "en": "Pardon and readmission", "def": "Huld, Gnade, Aufhebung eines Stadtverweises, Erlaubnis zur Rückkehr in die Stadt, Geleit"},
+      {"id": "burgrecht", "de": "Bürgerrecht und Aufenthalt", "en": "Citizenship and residence", "def": "Burgrecht, Ausburger, Aufnahme als Bürger, Wohnsitz, Hintersassen"}
+    ]},
+    {"id": "wirtschaft", "de": "Wirtschaft", "en": "Economy", "keywords": [
+      {"id": "handel", "de": "Handel und Kaufleute", "en": "Trade and merchants", "def": "Kauf und Verkauf, Kaufleute, Märkte, Waren, Tuch"},
+      {"id": "zoll", "de": "Zoll und Geleit", "en": "Tolls", "def": "Zölle, Zollfreiheit, Geleitgeld, Ohmgeld"},
+      {"id": "steuer", "de": "Steuern und Abgaben", "en": "Taxes and dues", "def": "Tellen, Steuern, Abgaben an die Stadt, Befreiung davon"},
+      {"id": "zins", "de": "Zinsen und Renten", "en": "Rents and interest", "def": "Bodenzinse, Gülten, Zehnten, Renten, Zinsbriefe"},
+      {"id": "gueter", "de": "Grundbesitz und Lehen", "en": "Land and fiefs", "def": "Güter, Matten, Häuser, Lehen, Erblehen, Grenzen, Nutzungsrechte"},
+      {"id": "getreide", "de": "Getreide und Mühlen", "en": "Grain and mills", "def": "Korn, Dinkel, Mühlen, Brot, Bäcker, Versorgung"},
+      {"id": "wein", "de": "Wein und Wirtshäuser", "en": "Wine and inns", "def": "Wein, Weinhandel, Wirte, Tavernen"},
+      {"id": "vieh", "de": "Vieh und Alpwirtschaft", "en": "Livestock and alpine farming", "def": "Rinder, Pferde, Schafe, Alpen, Weiden, Viehhandel"},
+      {"id": "fischerei", "de": "Fischerei", "en": "Fishing", "def": "Fischer, Fischrechte, Netze, Fache in Aare und See"},
+      {"id": "wald", "de": "Wald und Holz", "en": "Forest and timber", "def": "Holz, Holzschlag, Wälder, Flösse"},
+      {"id": "schifffahrt", "de": "Schifffahrt und Wasserwege", "en": "Navigation and waterways", "def": "Schiffleute, Schiffe, Flösserei, Aare, Thunersee, Wasserbau"},
+      {"id": "handwerk", "de": "Handwerk und Gewerbe", "en": "Crafts and trades", "def": "Handwerker, Meister, Knechte, Zünfte, Bergbau, Eisenwerk"},
+      {"id": "bau", "de": "Bauwesen", "en": "Building", "def": "Stadtmauern, Brücken, Tore, Gräben, Häuser, Glocken, Bauaufträge"}
+    ]},
+    {"id": "kirche", "de": "Kirche und Fürsorge", "en": "Church and care", "keywords": [
+      {"id": "pfarrei", "de": "Pfarreien und Geistliche", "en": "Parishes and clergy", "def": "Pfarrer, Kapläne, Pfründen, Kirchensatz, Besetzung von Pfarreien"},
+      {"id": "kloster", "de": "Klöster und Stifte", "en": "Monasteries and chapters", "def": "Interlaken, Engelberg, Einsiedeln, Amsoldingen und andere geistliche Häuser"},
+      {"id": "fromm", "de": "Ablass, Stiftungen, Frömmigkeit", "en": "Indulgences, foundations, piety", "def": "Ablass, Jahrzeiten, Messstiftungen, Wallfahrt, Almosen"},
+      {"id": "geistlgericht", "de": "Geistliches Gericht", "en": "Church courts", "def": "Bischof, Offizial, Bann, Ehegericht, geistliche Klage"},
+      {"id": "spital", "de": "Spital und Armenfürsorge", "en": "Hospital and poor relief", "def": "Spital, Siechenhaus, Pfründer, Arme, Bettler, Kranke"},
+      {"id": "reformation", "de": "Reformation", "en": "Reformation", "def": "Glaubensfragen, Disputation, Messe, Mandate in Glaubenssachen ab etwa 1520"}
+    ]},
+    {"id": "politik", "de": "Herrschaft und Politik", "en": "Government and politics", "keywords": [
+      {"id": "befehl", "de": "Weisungen Berns", "en": "Orders from Bern", "def": "Bern befiehlt, verbietet oder verlangt Bericht; Mandate an Thun"},
+      {"id": "aemter", "de": "Ämter und Verwaltung", "en": "Offices and administration", "def": "Schultheiss, Statthalter, Rat, Venner, Vögte, Wahlen, Eide, Stadtschreiber"},
+      {"id": "stadtrecht", "de": "Stadtrecht und Freiheiten", "en": "Town law and liberties", "def": "Rechte und Freiheiten der Stadt Thun, alte Gewohnheit, Satzungen, Gerichtsbarkeit"},
+      {"id": "landschaft", "de": "Oberland und Landschaft", "en": "Oberland and countryside", "def": "Simmental, Frutigen, Hasli, Sigriswil, Steffisburg und andere Gemeinden und Herrschaften um Thun"},
+      {"id": "adel", "de": "Adel und Herrschaften", "en": "Nobility and lordships", "def": "Herren von Bubenberg, Scharnachtal, Strättligen und andere Adlige, Herrschaftsrechte"},
+      {"id": "eidgenossen", "de": "Eidgenossenschaft", "en": "Confederation", "def": "Tagsatzung, eidgenössische Orte, Bünde, Mahnungen der Eidgenossen"},
+      {"id": "gesandtschaft", "de": "Boten und Tagleistungen", "en": "Envoys and meetings", "def": "Boten, Gesandtschaften, Ratsboten, Versammlungen, Tage"},
+      {"id": "unruhen", "de": "Unruhen und Aufruhr", "en": "Unrest and revolt", "def": "Aufläufe, Gerüchte von Unruhen, Widerstand von Untertanen"}
+    ]},
+    {"id": "krieg", "de": "Krieg und fremde Mächte", "en": "War and foreign powers", "keywords": [
+      {"id": "aufgebot", "de": "Aufgebot und Kriegszug", "en": "Levy and campaigns", "def": "Mannschaft stellen, ausziehen, Banner, Harnisch, Kriegskosten, Feldlager"},
+      {"id": "zuerichkrieg", "de": "Alter Zürichkrieg", "en": "Old Zurich War", "def": "Konflikt zwischen Zürich und Schwyz bzw. den Eidgenossen, 1436–1450"},
+      {"id": "burgund", "de": "Burgunderkriege", "en": "Burgundian Wars", "def": "Karl der Kühne, Burgund, 1474–1477"},
+      {"id": "savoyen", "de": "Savoyen und Westen", "en": "Savoy and the west", "def": "Savoyen, Freiburg, Waadt, Wallis als Gegner oder Partner"},
+      {"id": "reislauf", "de": "Reislauf und fremde Dienste", "en": "Mercenary service", "def": "Söldner, Werbung, Pensionen, Frankreich, Mailand, Verbot des Reislaufens"},
+      {"id": "oesterreich", "de": "Österreich und Reich", "en": "Austria and the Empire", "def": "Herzöge von Österreich, König und Kaiser, Reich"}
+    ]},
+    {"id": "andere", "de": "Anderes", "en": "Other", "keywords": [
+      {"id": "privat", "de": "Private Briefe", "en": "Private letters", "def": "Briefe zwischen Eheleuten, Verwandten, Freunden; Familiennachrichten"},
+      {"id": "seuche", "de": "Seuchen und Not", "en": "Plague and hardship", "def": "Pest, Sterben, Teuerung, Hunger, Unwetter, Feuer"},
+      {"id": "liste", "de": "Verzeichnisse und Rechnungen", "en": "Lists and accounts", "def": "Kein Brief: Rödel, Abrechnungen, Zinsverzeichnisse, Notizen"},
+      {"id": "unlesbar", "de": "Inhalt unklar", "en": "Content unclear", "def": "Die Lesung ist so beschädigt oder unvollständig, dass der Inhalt nicht zu erkennen ist"}
+    ]}
+  ]
+}
