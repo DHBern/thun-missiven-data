@@ -57,7 +57,8 @@ Rules:
 - Keep the line division of A: one output line for each line of A, in the same order. Add a line only if A missed a line that is clearly on the page.
 - Nothing that is not on the page: no headings, notes or comments.
 Answer with the text of the page only.""",
-    # v2: no reader preferred; the image decides every word.
+    # v2: no reader preferred; the image decides every word. On the same pages: CER 10.70 % against
+    # Argon's 10.52 % (better on 14 pages, worse on 23). v1 is the default: it does no harm.
     "v2": """You see the image of one page of a letter (15th–16th century, Early New High German, sometimes Latin) and up to three independent machine transcriptions of it, A, B and C. Every one of them has misread words, and none is reliable.
 Your task is to transcribe the page from the image. Go through the page line by line. For every word, read it in the image; the transcriptions only show you what other readers saw. Where they disagree, the image decides. Where all of them agree but the image shows something else, write what the image shows.
 Rules:
@@ -66,7 +67,7 @@ Rules:
 - Nothing that is not on the page: no headings, notes or comments.
 Answer with the text of the page only.""",
 }
-PROMPT_VERSION = os.environ.get("THM_JOINT_PROMPT", "v2")
+PROMPT_VERSION = os.environ.get("THM_JOINT_PROMPT", "v1")
 PROMPT = PROMPTS[PROMPT_VERSION]
 PROMPT_DIGEST = hashlib.sha256(PROMPT.encode()).hexdigest()[:8]
 

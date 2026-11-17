@@ -1,7 +1,11 @@
 # Plan: tagging (NER) and a register of persons and places
 
-Status: **plan**, 17.11.2026. Nothing below runs yet except the baseline in step N-2a,
-which is scheduled on asteraix from 19.11.2026 (`ops/asteraix/thun_ner.sh`).
+Status, 17.11.2026 evening:
+- **Done:** N-2a, the hmBERT baseline, run locally instead of on asteraix (`entities/hmbert/`);
+  R-1, R-2 and R-4 (register, map, Sankey; `docs/REGISTER.md`).
+- **Running since 17.11.:** N-2c on all 4,980 pages with an Argon text, on tei
+  (`scripts/ner_llm.py`, see "Tagging, as started" below).
+- **Waiting for a person:** N-1, the gold sample, and R-0, the check sample.
 
 The St. Gallen Missiven have both already: tagging after the edition's model
 (DHBern/sg-missiven-data `docs/NER.md`) and a register with generated entries and
@@ -47,6 +51,46 @@ every number below is a Thun number, not a St. Gallen one.
   gave the best result. For Thun it gets the letter's regest and date as context.
 - d) Once the gold sample exists: fine-tune hmBERT on St. Gallen + Thun gold
   (asteraix, about an hour) and compare with a).
+
+**Tagging, as started (17.11.2026).** St. Gallen's best combination, without waiting for
+the Thun gold sample:
+- *Proposals:* hmBERT's tags (from the St. Gallen edition) and qwen3.8-27b's tags. The qwen3.8
+  examples are six pages of three St. Gallen letters from Bern
+  (`prompts/ner_examples_sg.json`, the same letters as the regest examples), with the
+  edition's tags projected onto the Argon reading.
+- *Decision:* gpt-oss-120b keeps or drops each proposal and sets its label and role. In
+  St. Gallen it also chose the register entry; here it does not, because Thun has no
+  register. Links come from the generated register (`scripts/register.py`), rebuilt from
+  these tags.
+- *Text:* the Argon reading, not the joint reading. On 60 edited St. Gallen pages the qwen3.8
+  joint reading was no better than Argon (see "The joint reading" below). St. Gallen's rule
+  holds: re-tag only on a reading that is at least one point of CER better.
+- *Expected quality:* St. Gallen's numbers for this method, F1 0.71 overall (persons 0.71,
+  organisations 0.78, places 0.75), are measured there, not here. Thun's letters are
+  similar but not the same. Only N-1 gives a Thun figure.
+- *Run:* tei, unit `thun-ner-llm`, output `~/thun-ner-state/combined.jsonl`, log
+  `run.log`. Two calls per page, four at a time. When it is complete it replaces
+  `entities/gemini-4-argon.jsonl` (`"method": "combined"`, `by` per tag), and the register
+  and the site are rebuilt from it.
+
+**The joint reading (17.11.2026).** `scripts/joint_reading.py`: qwen3.8-27b sees the page
+image and the readings of Argon, Flash and PyLaia, and writes the page once. Thun has no
+edition to measure it on, so the method was run on 60 random edited St. Gallen pages, with
+a kraken line reader in place of PyLaia. CER against the edition:
+
+| | CER |
+|---|---:|
+| Argon | 10.52 % |
+| Flash | 19.00 % |
+| kraken (Bern) | 35.48 % |
+| Joint, prompt v1 ("A is usually the best") | 10.50 % |
+| Joint, prompt v2 (no reader preferred, the image decides) | 10.70 % |
+
+- With v1 the model copies Argon: 17 of 60 pages changed, by 0.1 % of the text on average.
+- With v2 it changes more (44 pages, 0.6 %), but more often for the worse: better than
+  Argon on 14 pages, worse on 23.
+- So qwen3.8 does not improve on Argon, as St. Gallen found for the vote and for the
+  revision of uncertain words. Not run over the Thun pages so far; tagging stays on Argon.
 
 **N-3. Measure and decide.** On the gold sample, by letter (5-fold): F1 per label,
 with and without roles. Gate as in St. Gallen: persons, organisations and places at
