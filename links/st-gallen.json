@@ -1,30 +1,30 @@
 {
- "about": "Hints to the St. Gallen Missives (Briefverkehr der Stadt St. Gallen 1400–1650; readings viewer https://dhbern.github.io/sg-missiven-data/). Found by comparing both collections: senders and recipients, dates, text similarity; first on 15.11.2026 with the PyLaia reading, again on 18.11.2026 with the Argon reading of the Thun letters. No letter was found in both collections, and no letter that answers one in the other. The Thun letters hold one letter from St. Gallen (BAT 663, Nr. 176, 5 April 1412, checked on the image); the St. Gallen collection holds one letter from Thun, of 1632 (unedited Nr. 2887), later than the Thun letters here (about 1400–1540).",
- "viewer": "https://dhbern.github.io/sg-missiven-data/",
- "links": [
-  {
-   "letter": "bat_664_17",
-   "other": "stasg_missiv_00123",
-   "label": "StadtASG Missive, Nr. 123",
-   "kind": "same_event",
-   "de": "Dasselbe Ereignis: Am 8. Oktober 1439 danken Schultheiss und Rat zu Bern Bürgermeister und Rat zu St. Gallen für die Vermittlung im Streit zwischen Zürich und Schwyz, um den es hier geht (ediert). Kein Gegenbrief, kein gleichlautender Brief.",
-   "en": "The same event: on 8 October 1439 the Schultheiss and council of Bern thank the mayor and council of St. Gallen for mediating in the conflict between Zürich and Schwyz that this letter is about (edited). Not a reply, not the same letter."
-  },
-  {
-   "letter": "bat_664_48",
-   "other": "stasg_missiv_00123",
-   "label": "StadtASG Missive, Nr. 123",
-   "kind": "same_event",
-   "de": "Dasselbe Ereignis, fünf Tage später: Hier (3. Oktober 1439, Datum nach der Archivnotiz) bittet Bern Peter Schopfer um die Namen der Städte aus Schwaben und vom Rhein, die in Baden waren oder nach Zug geladen sind, weil Bern den Tag zu Zug wegen der Pest verschieben will. Am 8. Oktober 1439 schreibt Bern St. Gallen, der Tag sei auf den 6. Januar verschoben (ediert). Kein Gegenbrief, kein gleichlautender Brief.",
-   "en": "The same event, five days later: here (3 October 1439, date from the archival note) Bern asks Peter Schopfer for the names of the Swabian and Rhine towns that were at Baden or are invited to Zug, because Bern wants to postpone the meeting at Zug for the plague. On 8 October 1439 Bern writes to St. Gallen that the meeting is postponed to 6 January (edited). Not a reply, not the same letter."
-  },
-  {
-   "letter": "bat_663_176",
-   "other": null,
-   "label": "",
-   "kind": "from_st_gallen",
-   "de": "Ein Brief von Bürgermeister und Rat zu St. Gallen an Schultheiss und Rat zu Thun (Dienstag in der Osterwoche 1412, 5. April): sie empfehlen die St. Galler Bürger Ulrich und Heinz Schmid von Balga, Erben ihres in Thun verstorbenen Bruders Wernher. Unterschrift und Adresse am Bild geprüft. In den St. Galler Missiven liegt keine Antwort aus Thun.",
-   "en": "A letter from the mayor and council of St. Gallen to the Schultheiss and council of Thun (Tuesday in Easter week 1412, 5 April): they commend the St. Gallen burghers Ulrich and Heinz Schmid of Balga, heirs of their brother Wernher who died in Thun. Signature and address checked on the image. The St. Gallen Missives hold no reply from Thun."
-  }
- ]
+  "about": "Hints to the St. Gallen Missives (Briefverkehr der Stadt St. Gallen 1400–1650; readings viewer https://dhbern.github.io/sg-missiven-data/). Found by comparing both collections: senders and recipients, dates, text similarity; first on 15.11.2026 with the PyLaia reading, again on 18.11.2026 with the Argon reading of the Thun letters. No letter was found in both collections, and no letter that answers one in the other. The Thun letters hold one letter from St. Gallen (BAT 663, Nr. 176, 5 April 1412, checked on the image); the St. Gallen collection holds one letter from Thun, of 1632 (unedited Nr. 2887), later than the Thun letters here (about 1400–1540).",
+  "viewer": "https://dhbern.github.io/sg-missiven-data/",
+  "links": [
+    {
+      "letter": "bat_664_17",
+      "other": "stasg_missiv_00123",
+      "label": "StadtASG Missive, Nr. 123",
+      "kind": "same_event",
+      "de": "Dasselbe Ereignis: Am 8. Oktober 1439 danken Schultheiss und Rat zu Bern Bürgermeister und Rat zu St. Gallen für die Vermittlung im Streit zwischen Zürich und Schwyz, um den es hier geht (ediert). Kein Gegenbrief, kein gleichlautender Brief.",
+      "en": "The same event: on 8 October 1439 the Schultheiss and council of Bern thank the mayor and council of St. Gallen for mediating in the conflict between Zürich and Schwyz that this letter is about (edited). Not a reply, not the same letter."
+    },
+    {
+      "letter": "bat_664_48",
+      "other": "stasg_missiv_00123",
+      "label": "StadtASG Missive, Nr. 123",
+      "kind": "same_event",
+      "de": "Dasselbe Ereignis, fünf Tage später: Hier (3. Oktober 1439, Datum nach der Archivnotiz) bittet Bern Peter Schopfer um die Namen der Städte aus Schwaben und vom Rhein, die in Baden waren oder nach Zug geladen sind, weil Bern den Tag zu Zug wegen der Pest verschieben will. Am 8. Oktober 1439 schreibt Bern St. Gallen, der Tag sei auf den 6. Januar verschoben (ediert). Kein Gegenbrief, kein gleichlautender Brief.",
+      "en": "The same event, five days later: here (3 October 1439, date from the archival note) Bern asks Peter Schopfer for the names of the Swabian and Rhine towns that were at Baden or are invited to Zug, because Bern wants to postpone the meeting at Zug for the plague. On 8 October 1439 Bern writes to St. Gallen that the meeting is postponed to 6 January (edited). Not a reply, not the same letter."
+    },
+    {
+      "letter": "bat_663_176",
+      "other": null,
+      "label": "",
+      "kind": "from_st_gallen",
+      "de": "Ein Brief von Bürgermeister und Rat zu St. Gallen an Schultheiss und Rat zu Thun (Dienstag in der Osterwoche 1412, 5. April): sie empfehlen die St. Galler Bürger Ulrich und Heinz Schmid von Balga, Erben ihres in Thun verstorbenen Bruders Wernher. Unterschrift und Adresse am Bild geprüft. In den St. Galler Missiven liegt keine Antwort aus Thun.",
+      "en": "A letter from the mayor and council of St. Gallen to the Schultheiss and council of Thun (Tuesday in Easter week 1412, 5 April): they commend the St. Gallen burghers Ulrich and Heinz Schmid of Balga, heirs of their brother Wernher who died in Thun. Signature and address checked on the image. The St. Gallen Missives hold no reply from Thun."
+    }
+  ]
 }
