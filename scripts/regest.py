@@ -111,14 +111,23 @@ def german(answer: dict) -> bool:
 # St. Gallen in a Thun letter: almost always the date "sant Gallen tag" (16 October).
 _GALL = re.compile(r"gall\w*", re.I)
 _GALL_DATE = re.compile(r"\W*(tag|tage|ta-|tus|abend|abent|dag|mess)", re.I)
+# St. Gallen as a place in the German regest; "St. Gallentag", "St. Gallen-Tag" and
+# "des heiligen Gallus" are dates and do not count.
+_GALL_CITY = re.compile(r"(?<!heiligen )\b(?:St\.?|Sankt)\s*Galle[nr]\b(?!\s*-?\s*[Tt]ag)")
+
+
+def gallen_named(answer: dict) -> bool:
+    """The draft names St. Gallen as a place: as sender or recipient, or in the regest
+    ("St. Galler Bürger", "nach St. Gallen"), not as the date "St. Gallentag"."""
+    who = f"{answer.get('sender') or ''} {answer.get('recipient') or ''}"
+    return bool(_GALL.search(who) or _GALL_CITY.search(answer.get("regest") or ""))
 
 
 def gallen_unsupported(answer: dict, text: str) -> bool:
-    """The draft names St. Gallen as sender or recipient, but the letter mentions
-    St. Gallen only as a date or not at all: copied from the St. Gallen examples
-    (5 of the first 985 drafts, 15.11.2026)."""
-    who = f"{answer.get('sender') or ''} {answer.get('recipient') or ''}"
-    if not _GALL.search(who):
+    """The draft names St. Gallen, but the letter mentions St. Gallen only as a date
+    or not at all: copied from the St. Gallen examples (5 of the first 985 drafts as
+    sender/recipient, 15.11.2026; 14 of 2,430 Argon drafts in the regest, 18.11.2026)."""
+    if not gallen_named(answer):
         return False
     flat = re.sub(r"\s+", " ", text)
     return not any(not _GALL_DATE.match(flat[m.end():m.end() + 8]) for m in _GALL.finditer(flat))
@@ -128,7 +137,8 @@ def drop_gallen(answer: dict) -> dict:
     for k in ("sender", "recipient"):
         if _GALL.search(answer.get(k) or ""):
             answer[k] = None
-    answer["note"] = "St. Gallen als Absender/Empfänger verworfen: im Brief nicht belegt"
+    answer["note"] = ("St. Gallen im Regest nicht belegt" if _GALL_CITY.search(answer.get("regest") or "")
+                      else "St. Gallen als Absender/Empfänger verworfen: im Brief nicht belegt")
     return answer
 
 
@@ -153,9 +163,10 @@ def ask(client: httpx.Client, shots: list[dict], text: str) -> dict:
                 if attempt < 3:
                     body["messages"] = body["messages"][:len(shots) + 2] + [
                         {"role": "assistant", "content": content},
-                        {"role": "user", "content": "St. Gallen kommt in diesem Brief nicht als Absender oder Empfänger "
-                                                    "vor (höchstens als Datum «sant Gallen tag»). Nimm Absender und "
-                                                    "Empfänger nur aus diesem Brief und antworte noch einmal."}]
+                        {"role": "user", "content": "St. Gallen kommt in diesem Brief nicht vor (höchstens als Datum "
+                                                    "«sant Gallen tag»). Nenne St. Gallen weder als Absender oder "
+                                                    "Empfänger noch als Herkunft oder Bürgerrecht einer Person. Nimm "
+                                                    "alles nur aus diesem Brief und antworte noch einmal."}]
                     last = ValueError("St. Gallen not in the letter")
                     continue
                 return drop_gallen(answer)
