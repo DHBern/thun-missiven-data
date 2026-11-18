@@ -169,6 +169,9 @@ def ask(client: httpx.Client, shots: list[dict], text: str) -> dict:
                                                     "alles nur aus diesem Brief und antworte noch einmal."}]
                     last = ValueError("St. Gallen not in the letter")
                     continue
+                if _GALL_CITY.search(answer.get("regest") or ""):
+                    # the regest itself is built on St. Gallen: better no regest than this one
+                    return {"error": "St. Gallen im Regest nicht belegt (nach vier Versuchen)"}
                 return drop_gallen(answer)
             return answer
         except Exception as e:  # noqa: BLE001
