@@ -2,7 +2,7 @@
 
 Status 18.11.2026 (rebuilt from the combined tagging). Plan steps R-1, R-2, R-4 and R-5 of
 [NER_REGISTER_PLAN.md](NER_REGISTER_PLAN.md); R-0 (a check sample made by a
-person) and R-3 (office holders by year) are **not done**.
+person) is **not done**; R-3 (office holders by year) is built but not used yet ([OFFICES.md](OFFICES.md)).
 
 The Thun Missives have no edition and no register. Everything here is
 **generated automatically** from the tagging in `entities/gemini-4-argon.jsonl`.
@@ -295,7 +295,7 @@ needed.
 ## Not done
 
 - R-0: a check sample by a person, so that the grades are measured on Thun.
-- R-3: office holders by year (Schultheissen of Thun and Bern, Stadtschreiber);
+- R-3: the office-holder list is built ([OFFICES.md](OFFICES.md)) but not yet used:
   offices are therefore not used to join persons.
 - The SSRQ place database was asked only for spellings tagged at least twice.
 - The gold sample for the tagger (N-1), and with it any Thun figure for the

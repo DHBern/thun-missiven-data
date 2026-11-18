@@ -289,6 +289,11 @@ def read_year(t: str) -> tuple[int | None, bool]:
     m = re.search(r"\b(1[2-7]\d\d)\b", t)
     if m:
         return int(m.group(1)), True
+    # Arabic figures written apart with points: "1. 5. 72", "1.5.72" (BAT 666.1, Nr. 439);
+    # norm() has turned the points into spaces by now
+    m = re.search(r"\b(1)\s+([2-7])\s+(\d\d)\b\s*$", t)
+    if m:
+        return int(m.group(1) + m.group(2) + m.group(3)), True
     g = german_year(t)
     if g:
         return g, True

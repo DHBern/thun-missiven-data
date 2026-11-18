@@ -2398,8 +2398,8 @@
 {"id": "bat_666-1_437", "date_text": "crastin purifi x o", "year": 1510, "century": "neighbours", "how": "no day"}
 {"id": "bat_666-1_438a", "date_text": "uff sant Katrinen aben als man nach der geburt Cristi unnsers liebenn herrenn zalt tusend funff hundert unnd einliff jar", "year": 1500, "century": "written", "feast": "St. Katharina", "date": "1500-11-25", "how": "feast day", "weekday": "Mi", "calendar": "julian"}
 {"id": "bat_666-1_438b", "date_text": null}
-{"id": "bat_666-1_439a", "date_text": "datum denn. vj.ten Maij. 1. 5. 72.", "year": 1506, "century": "neighbours", "how": "no day"}
-{"id": "bat_666-1_439b", "date_text": "Datum denn vij ten Maij. 1.5.72.", "year": 1507, "century": "neighbours", "how": "no day"}
+{"id": "bat_666-1_439a", "date_text": "datum denn. vj.ten Maij. 1. 5. 72.", "year": 1572, "century": "written", "how": "no day"}
+{"id": "bat_666-1_439b", "date_text": "Datum denn vij ten Maij. 1.5.72.", "year": 1572, "century": "written", "how": "no day"}
 {"id": "bat_666-1_440", "date_text": "Actum uff zinstag nach dem nuwen jar anno domini M vc xij Thoman Marti", "year": 1512, "century": "written", "feast": "Neujahr", "date": "1512-01-06", "how": "weekday after a feast", "weekday": "Di", "calendar": "julian"}
 {"id": "bat_666-1_441", "date_text": "samsag anno etc. xii xiii", "year": 1525, "century": "neighbours", "how": "no day"}
 {"id": "bat_666-1_442", "date_text": "mentag nach Judica anno etc. xvc octavo", "year": 1500, "century": "written", "feast": "Judica", "date": "1500-04-06", "how": "weekday after a feast", "weekday": "Mo", "calendar": "julian"}
