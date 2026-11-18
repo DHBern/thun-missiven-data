@@ -43,6 +43,9 @@ import httpx
 ROOT = Path(__file__).resolve().parents[1]
 MODEL = "qwen3.8-27b"
 READERS = ["gemini-4-argon", "transkribus-pylaia-m2.4"]  # best first
+# Editorial hints, one per letter: given to the model with that letter and kept in the draft
+# ("hint"), for a misreading the model repeats (e.g. bat_666-1_452, Tübingen read as Thun).
+HINTS = ROOT / "regests" / "hints.json"
 OUT = Path(os.environ.get("THM_REGEST_OUT") or ROOT / "regests" / "drafts.jsonl")  # tei: outside the checkout
 
 SYSTEM = """Du bist Editorin der Thuner Missiven: Briefe an Schultheiss und Rat der Stadt Thun
@@ -142,11 +145,11 @@ def drop_gallen(answer: dict) -> dict:
     return answer
 
 
-def ask(client: httpx.Client, shots: list[dict], text: str) -> dict:
+def ask(client: httpx.Client, shots: list[dict], text: str, hint: str = "") -> dict:
     body = {"model": MODEL, "temperature": 0.2, "max_tokens": 1200,
             "chat_template_kwargs": {"enable_thinking": False},
             "messages": [{"role": "system", "content": SYSTEM}, *shots,
-                         {"role": "user", "content": f"Brief:\n{text}"}]}
+                         {"role": "user", "content": f"Brief:\n{text}" + (f"\n\nHinweis der Redaktion zu diesem Brief: {hint}" if hint else "")}]}
     last: Exception | None = None
     for attempt in range(4):
         try:
@@ -197,6 +200,7 @@ def main() -> None:
     args = ap.parse_args()
 
     readings = {r: load_reader(r) for r in READERS}
+    hints = json.loads(HINTS.read_text(encoding="utf-8")) if HINTS.exists() else {}
     done: dict[str, dict] = {}
     if OUT.exists():
         for line in OUT.read_text(encoding="utf-8").splitlines():
@@ -216,9 +220,10 @@ def main() -> None:
         text = letter_text([readings[reader].get(k, "") for k in keys])
         old = done.get(lt["id"])
         if old and "error" not in old["draft"] and READERS.index(old["reader"]) <= READERS.index(reader) \
-                and old.get("prompt") == PROMPT_DIGEST and not gallen_unsupported(old["draft"], text):
+                and old.get("prompt") == PROMPT_DIGEST and not gallen_unsupported(old["draft"], text) \
+                and (old.get("hint") or "") == hints.get(lt["id"], ""):
             continue
-        jobs.append({"lt": lt, "reader": reader, "text": text})
+        jobs.append({"lt": lt, "reader": reader, "text": text, "hint": hints.get(lt["id"], "")})
     if args.n:
         jobs = jobs[: args.n]
     print(f"{len(jobs)} letters to draft via {MODEL} (prompt {PROMPT_DIGEST})", flush=True)
@@ -231,10 +236,12 @@ def main() -> None:
     OUT.parent.mkdir(exist_ok=True)
     with httpx.Client(base_url=base, headers={"Authorization": f"Bearer {key}"}, timeout=300) as client, \
             ThreadPoolExecutor(args.workers) as pool, OUT.open("a", encoding="utf-8") as fh:
-        for i, (j, a) in enumerate(zip(jobs, pool.map(lambda j: ask(client, shots, j["text"]), jobs)), 1):
+        for i, (j, a) in enumerate(zip(jobs, pool.map(lambda j: ask(client, shots, j["text"], j["hint"]), jobs)), 1):
             row = {"id": j["lt"]["id"], "title": j["lt"]["title"], "heading": heading(a),
                    "reader": j["reader"], "model": MODEL, "prompt": PROMPT_DIGEST,
                    "pages": j["lt"]["pages"].split(";"), "draft": a, "machine": True}
+            if j["hint"]:
+                row["hint"] = j["hint"]
             fh.write(json.dumps(row, ensure_ascii=False) + "\n")
             fh.flush()
             if i % 25 == 0 or i == len(jobs):
