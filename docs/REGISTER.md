@@ -9,8 +9,8 @@ The Thun Missives have no edition and no register. Everything here is
 That tagging is St. Gallen's combined method on the Gemini 4 Argon reading
 (`scripts/ner_llm.py`: hmBERT and qwen3.8-27b propose, gpt-oss-120b decides; until
 17.11.2026 hmBERT alone, kept in `entities/hmbert/`), and it has **not been measured
-on Thun**. The spot-check figures further down were made on the hmBERT register of
-17.11. Every link is a proposal,
+on Thun**. All counts and the spot check below are from the register of 18.11.
+Every link is a proposal,
 graded by the rules St. Gallen wrote and measured for its own generated entries
 (DHBern/sg-missiven-data `docs/REGISTER.md`, `scripts/auto_register.py`,
 `scripts/ssrq_match.py`). No person has checked any of it.
@@ -49,15 +49,15 @@ in `registers/.cache/`, which is not committed.
   Bern, Thuno → Thun). Spellings whose best candidate names the same settlement
   at grade «wahrscheinlich» (same HLS or SSRQ id) become one entry. A spelling
   graded only «möglich» stays its own entry: «Ober- hofen» is not joined to
-  Oberhofen. Dropped: 55 forenames tagged as places (Clewi, Uelli).
+  Oberhofen. Dropped: 14 mentions of forenames tagged as places.
 - **Organisations.** The address formula is normalised to the form the St. Gallen
   register uses. "Schulths und rat ze Berne", "Schultheis und der Rat der Statt
   Bern" and "Schulths und rat ze Brn" all become «Schultheiss und Rat zu Bern».
   The place inside the formula is read through the place entries, with the
   scribes' abbreviations of Bern. "Rat zu X", "die von X" and "zuo Thun" fold
   into «Schultheiss und Rat zu X» where that body is named. Other names are
-  grouped by spelling (≥ 90). Dropped: 445 titles or offices alone ("Schulthes",
-  "Schultheissen"), 37 formulas without a place, 14 fragments.
+  grouped by spelling (≥ 90). Dropped: 9 mentions of a title or office alone
+  ("Schulthes"), 28 formulas without a place.
 - **Persons.** Forenames are stemmed (Petern → Peter, Hansen → Hans). Two
   spellings are one name if the whole name agrees (≥ 90) **and** the surname
   alone agrees (≥ 85). Each spelling is compared with the name's most frequent
@@ -69,11 +69,14 @@ in `registers/.cache/`, which is not committed.
 
   | Reason | Mentions |
   |---|---:|
-  | bare forenames, also spelled otherwise (Peter, Hensli, Burckart) | 1,280 |
-  | names that are a place's (Thun, Inderlapen, Kander) | 302 |
-  | titles or offices alone (Schulthes, alt, bapst) | 326 |
-  | particles (von, und) | 55 |
-  | fragments | 30 |
+  | bare forenames, also spelled otherwise (Peter, Hensli, Burckart) | 980 |
+  | names that are a place's (Thun, Inderlapen, Kander) | 89 |
+  | titles or offices alone (Schulthes, alt, bapst) | 22 |
+  | fragments | 3 |
+
+  Far fewer than with hmBERT alone (1,280 / 302 / 326, and 55 particles, 30
+  fragments): gpt-oss already drops most titles, place names and particles
+  tagged as persons.
 
 ## R-2: matching against four authorities
 
@@ -148,56 +151,61 @@ Each of these is marked in the code:
 | Persons (4,123) | 15 | 52 | 140 | 3,916 |
 | Organisations (205) | – | 10 | 21 | 174 |
 
-The run of 17.11.2026 on hmBERT's tags alone: places 1,376 (220 / 364), persons 4,631
-(14 / 47 / 156), organisations 276 (10 / 42). The counts in the rest of this file
-(dropped names, frequent entries, map coverage, spot check) are from that run.
+For comparison, the run of 17.11.2026 on hmBERT's tags alone: places 1,376 (220 /
+364), persons 4,631 (14 / 47 / 156), organisations 276 (10 / 42).
 
 Best candidate by source:
 
 - **Places:**
-  - HLS: 179 wahrscheinlich, 284 möglich;
-  - SSRQ: 82 / 105;
-  - St. Gallen: 35 / 6;
-  - Königsfelden: 15 / 9.
+  - HLS: 181 wahrscheinlich, 279 möglich;
+  - SSRQ: 78 / 72;
+  - St. Gallen: 35 / 5;
+  - Königsfelden: 16 / 6.
 - **Persons:**
-  - HLS: 14 sicher, 2 wahrscheinlich, 9 möglich;
-  - SSRQ: 35 wahrscheinlich, 85 möglich;
-  - Königsfelden: 19 / 16;
-  - St. Gallen: 8 / 63.
+  - HLS: 15 sicher, 4 wahrscheinlich, 7 möglich;
+  - SSRQ: 36 wahrscheinlich, 76 möglich;
+  - Königsfelden: 18 / 16;
+  - St. Gallen: 1 sicher, 11 wahrscheinlich, 58 möglich.
 - **Organisations:**
   - St. Gallen: 10 wahrscheinlich, 9 möglich;
-  - SSRQ: 5 / 34;
+  - SSRQ: 5 / 13;
   - Königsfelden: 3 / 6.
 
 A candidate found in several sources counts for each of them.
 
-Most entries have no candidate. Most are spellings tagged once (1,001 of the
-places), and most persons in these letters are burghers of Thun and the
+Most entries have no candidate. Most are spellings tagged once (597 of the
+657 places without one), and most persons in these letters are burghers of Thun and the
 Oberland, who are in no authority file.
 
 **The largest entries:**
 
 | Entry | Letters | Best candidate |
 |---|---:|---|
-| «Schultheiss und Rat zu Thun» | 1,723 | none: the SSRQ and St. Gallen have no such body; St. Gallen has «Bürgermeister und Rat zu Thun», proposed as «möglich» |
-| «Schultheiss und Rat zu Bern» | 1,701 | wahrscheinlich: St. Gallen, SSRQ and Königsfelden agree on org004002 |
-| Thun | 678 | HLS 000541, wahrscheinlich |
-| Bern | 232 | wahrscheinlich |
-| Basel | 55 | wahrscheinlich |
-| Oberhofen | 54 | Oberhofen am Thunersee, wahrscheinlich |
+| «Schultheiss und Rat zu Thun» | 1,817 | none: the SSRQ and St. Gallen have no such body; St. Gallen has «Bürgermeister und Rat zu Thun», proposed as «möglich» |
+| «Schultheiss und Rat zu Bern» | 1,724 | wahrscheinlich: St. Gallen, SSRQ and Königsfelden agree on org004002 |
+| Thun | 760 | HLS 000541, wahrscheinlich |
+| Bern | 219 | wahrscheinlich |
+| Peter Schopfer, Schultheiss of Thun | 182 (1441–1471) and 59 (1410–1440) | möglich: SSRQ and Königsfelden, attested 1439 |
+| Basel | 54 | wahrscheinlich |
+| Oberhofen | 52 | Oberhofen am Thunersee, wahrscheinlich |
+
+Peter Schopfer, to whom Bern writes as Schultheiss of Thun in many letters, is the
+most frequent person (248 tagged mentions; 276 with hmBERT alone). He is split
+in two entries because a name is one person only within 30 years of its first
+letter, and offices are not used to join persons (R-3, issue #12).
 
 ## Coordinates and the map
 
 Coordinates come **only** from a matched candidate, never from a name alone:
 
 - the St. Gallen register (34 places);
-- an HLS article on our server (96);
-- Wikidata, by the candidate's HLS id (83).
+- an HLS article on our server (91);
+- Wikidata, by the candidate's HLS id (90).
 
-So 213 places have coordinates from a candidate graded «wahrscheinlich». The
-overview map shows these. 316 more have coordinates only from a «möglich»
-candidate; the map shows them on request, dashed. Places named in the letters
-on the map: 1,333 letters.
+So 215 places have coordinates from a candidate graded «wahrscheinlich». The
+overview map shows these. 304 more have coordinates only from a «möglich»
+candidate; the map shows them on request, dashed. Letters that name a place on
+the map: 1,371.
 
 995 places are not on the map (18.11.; 1,163 on 17.11.). They are listed in
 [places_without_coordinates.md](places_without_coordinates.md) with the reason
@@ -205,16 +213,17 @@ for each.
 
 ## R-5: St. Gallen
 
-`links/registers/st-gallen.json` lists 213 links:
+`links/registers/st-gallen.json` lists 211 links:
 
 - **Places, 95:**
   - 56 to entries of the St. Gallen register, 35 of them «wahrscheinlich»;
   - 39 to St. Gallen generated entries whose best candidate is the same HLS
     article.
+  74 of the 95 are «wahrscheinlich».
 - **Organisations, 20:** «Schultheiss und Rat zu Bern», Solothurn, Luzern …;
   10 of them «wahrscheinlich».
-- **Persons, 98:** 89 of them only «möglich». The spot check below finds these
-  mostly wrong.
+- **Persons, 96:** 1 «sicher», 11 «wahrscheinlich», 84 only «möglich». The spot
+  check below finds the «möglich» ones from the St. Gallen register wrong.
 
 The viewer shows the link on the Thun entry page (to `#/entry/<id>` on the
 St. Gallen site). No change was made to sg-missiven-data.
@@ -223,55 +232,65 @@ Candidates for a reverse link from St. Gallen, if wanted, are the entries
 graded «wahrscheinlich» or better:
 
 - «Schultheiss und Rat zu Bern» = `stadtasg-actors-514`;
-- the places Zürich, Freiburg, Luzern, Konstanz, Lenzburg, Savoyen, Frankreich,
-  Österreich, Aargau, Unterwalden, Murten, Erlach, Zug, Appenzell, St. Gallen;
-- the persons Ludwig von Diesbach and Sigmund von Habsburg-Österreich.
+- the bodies of Solothurn, Luzern, Zürich, St. Gallen, Basel and Schaffhausen;
+- 74 places, among them Zürich, Freiburg, Luzern, Schwyz, Konstanz, Lenzburg,
+  Murten, Savoyen, Frankreich, Österreich, Mailand, Strassburg, Rottweil, Rom,
+  Lyon and St. Gallen;
+- 12 persons, among them Ludwig von Diesbach, Sigmund and Albrecht of Austria,
+  the king of France and Peterman von Raron; the others (Hans Seiler, Hans
+  Keser, Hans Pfister, Hans Rot …) are common names and need checking first.
 
-## Spot check (17.11.2026, by the agent that built the register, not by a historian)
+## Spot check (18.11.2026, by the agent that built the register, not by a historian)
 
-30 place and 30 person entries with a candidate, drawn at random (seed
-17112026, `register.py sample`). For each, the letter text around the first
-mention and the authority record were compared. "Cannot tell" means that the
-letter does not say enough to decide (a common name with only an SSRQ
-attestation).
+30 place and 30 person entries with a candidate, drawn at random
+(`register.py sample --seed 18112026`). For each, the letter text around the
+first mention (Argon reading) and the candidate were compared. "Cannot tell"
+means the letter does not say enough to decide (a common name with only an SSRQ
+attestation, a field name that could be in several places). The draw of 17.11.
+(seed 17112026, hmBERT register) is no longer reproducible from the current files.
 
-| Places | right | wrong |
-|---|---:|---:|
-| wahrscheinlich (10) | 9 | 1: "Henslin underm Berg" → Berg am Irchel, a surname |
-| möglich (20) | 9 | 11 |
+| Places | right | wrong | cannot tell |
+|---|---:|---:|---:|
+| wahrscheinlich (13) | 9 | 2 | 2 |
+| möglich (17) | 9 | 6 | 2 |
 
-The 11 wrong places include:
+Wrong at «wahrscheinlich»:
 
-- "zwischen Bern und Mure" → Mürren (it is Muri);
-- "ex castro Meyerie" → Meyrin (the Majorie at Sion);
-- "Boenikon" → Böbikon (Bönigen?);
-- "Honberg" → Hornberg (Homberg near Thun);
-- "Langeneg" → Langenegg AR (a Langenegg near Thun);
-- "Sant Niclaus" → a church in St. Gallen (it is a feast day).
+- "die statt Brugg ynngenomen" (1444) → Brügg near Biel (it is Brugg AG, taken
+  in the Old Zurich War);
+- "einen brunnen ze Flueli am Buocholter berg" → Flüeli OW (a spot on the
+  Buchholterberg).
+
+Wrong at «möglich»: a person's name ("dem von Baennen" → Benken), field names
+near Thun given to distant places ("ze Husen" → Hausen am Albis, "an der
+lowinen" → Löuwene VS, "Martyssperg in Kellen" → Kellen AG), "grf ze Walles"
+→ Valens (it is Wallis), and the Latin greeting "Salm." (salutem) → Salem.
 
 | Persons | right | wrong | cannot tell |
 |---|---:|---:|---:|
-| sicher (3) | 3 | 0 | 0 |
-| wahrscheinlich (7) | 4 | 1: "Claws Schmid von Sigriswil" → a Königsfelden Klaus Schmid | 2 |
-| möglich (20) | 2 | 12 | 6 |
+| sicher (0) | – | – | – |
+| wahrscheinlich (6) | 3 | 0 | 3 |
+| möglich (24) | 3 | 15 | 6 |
 
-The persons right at «sicher» and «wahrscheinlich» were Rudolf and Thüring von
-Ringoltingen, Rudolf von Erlach, Rudolf Hofmeister, Niklaus von Scharnachtal,
-Hartmann vom Stein and Sigmund of Austria: Bern's Schultheissen and
-councillors, and princes.
+Right: Hans Matter, Schultheiss of Burgdorf; Heinrich and Adrian von Bubenberg;
+Franz von Scharnachtal; Wolf von Brandis the elder; Peter Schopfer, Schultheiss
+of Thun (only «möglich»).
 
 Wrong at «möglich»:
 
-- an occupation tagged as a name ("dem mueller" → Hans Müller);
-- common names joined to namesakes in St. Gallen or Zürich (Heini Schmid, Hans
-  Schnider, Hans Scher → Hans Schwyzer).
+- all 7 candidates from the St. Gallen register (Anna Müller → "Müller, Hans",
+  Hans Kunn, chaplain at Scherzligen → "Kunz, Hans", a Thun witness Hanns Thurin
+  → Hans Im Thurn of Schaffhausen …);
+- another forename of the same family (Heintzman → Franz von Scharnachtal);
+- «NN Kern», «NN Seiler», «NN Koler»: an SSRQ entry without a forename is no
+  identification.
 
-**Reading.** On Thun, «wahrscheinlich» places (9/10) and «sicher» persons (3/3)
-look as good as in St. Gallen. «Möglich» is a hint, not an identification: for
-places about one in two is right, for persons about one in ten. Person
-candidates from the St. Gallen register are weak; 9 of the 20 «möglich» persons
-came from it. Thirty entries a type are too few for a percentage; R-0 (100
-entries checked by a person) is still needed.
+**Reading.** As on 17.11.: «wahrscheinlich» places (9 of 11 decided) and
+persons (3 of 3 decided) look usable; «möglich» is a hint. For places about one
+«möglich» in two is right, for persons one in six. Person candidates from the
+St. Gallen register are wrong in every case drawn. Thirty entries a type are too
+few for a percentage; R-0 (100 entries checked by a person, issue #11) is still
+needed.
 
 ## Not done
 
