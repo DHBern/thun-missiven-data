@@ -28,7 +28,7 @@
   function applyLang() {
     document.documentElement.lang = LANG;
     document.title = T("Thun Missives Readings", "Thuner Missiven: Lesungen");
-    const nav = { letters: T("Letters", "Briefe"), search: T("Search", "Suche"), places: T("Places", "Orte"), names: T("Names", "Namen"), readers: T("Readers", "Leser"), about: T("About", "Über") };
+    const nav = { letters: T("Letters", "Briefe"), search: T("Search", "Suche"), places: T("Places", "Orte"), names: T("Names", "Namen"), keywords: T("Keywords", "Schlagwörter"), readers: T("Readers", "Leser"), about: T("About", "Über") };
     document.querySelectorAll("[data-nav]").forEach((a) => { a.textContent = nav[a.dataset.nav]; });
     const brand = document.querySelector(".brand");
     if (brand) brand.innerHTML = `${T("Thun Missives", "Thuner Missiven")} <span>· ${T("readings", "Lesungen")}</span>`;
@@ -219,6 +219,7 @@
       <h2 id="kw-h">${T("Keywords", "Schlagwörter")}</h2>
       <p class="small muted">${T(`${num(withKw)} of ${num(ls.length)} letters have keywords, ${num(terms.length)} different terms. A language model assigned them from the machine-drafted regests, choosing from the ${num(voc.terms)} keywords of the St. Gallen Missives edition; unchecked. Click a keyword for its page: its letters, its companions and their decades.`,
         `${num(withKw)} von ${num(ls.length)} Briefen haben Schlagwörter, ${num(terms.length)} verschiedene. Ein Sprachmodell hat sie aus den maschinell entworfenen Regesten vergeben, gewählt aus den ${num(voc.terms)} Schlagwörtern der Edition der St. Galler Missiven; ungeprüft. Ein Klick auf ein Schlagwort öffnet seine Seite: seine Briefe, seine Begleiter und deren Jahrzehnte.`)}</p>
+      <p class="small"><a href="#/keywords">${T("Keywords over time (heatmap) →", "Schlagwörter über die Zeit (Heatmap) →")}</a> · <a href="#/keywords/network">${T("Keyword network →", "Netzwerk der Schlagwörter →")}</a></p>
       <div class="kwlist">${terms.slice(0, TOP).map(row).join("")}</div>
       ${terms.length > TOP ? `<details class="kwmore"><summary>${T(`Show all ${num(terms.length)}`, `Alle ${num(terms.length)} anzeigen`)}</summary><div class="kwlist">${terms.slice(TOP).map(row).join("")}</div></details>` : ""}
     </section>`;
@@ -271,6 +272,8 @@
     if (parts[0] === "search") return showSearch(new URLSearchParams(qs || ""));
     if (parts[0] === "places" || parts[0] === "names") return showRegister(parts[0], new URLSearchParams(qs || ""));
     if (parts[0] === "entry" && parts[1]) return showEntry(parts[1]);
+    if (parts[0] === "keywords" && parts[1] === "network") return showKeywordNetwork(new URLSearchParams(qs || ""));
+    if (parts[0] === "keywords") return showKeywords();
     if (parts[0] === "keyword" && parts[1]) return showKeyword(parts[1]);
     if (parts[0] === "letter" && parts[1]) return showLetter(parts[1], +(parts[2] || 1), parts[3]);
     /* old links: #/doc/<Transkribus document>/<page>/<reader>, and #/page/<page key> */
@@ -625,7 +628,7 @@
   }
 
   function showKeyword(k) {
-    setNav("letters");
+    setNav("keywords");
     const mine = kwLetters(k);
     if (!mine.length) { app.innerHTML = `<p>${T("No letter has the keyword", "Kein Brief hat das Schlagwort")} «${esc(k)}». <a href="#/">${T("Overview", "Übersicht")}</a></p>`; return; }
     const co = companions(k, mine).slice(0, 24);
@@ -635,7 +638,7 @@
     const rows = mine.slice().sort((a, b) => (a.y || 9999) - (b.y || 9999));
     app.innerHTML = `
       <section class="intro">
-        <div class="muted small"><a href="#/">${T("Overview", "Übersicht")}</a></div>
+        <div class="muted small"><a href="#/keywords">${T("Keywords", "Schlagwörter")}</a> · <a href="#/keywords/network?focus=${encodeURIComponent(k)}">${T("in the network", "im Netzwerk")}</a></div>
         <h1 lang="de">${esc(k)}</h1>
         <p>${T(`${num(mine.length)} ${P(mine.length, "letter", "letters", "", "")} with this keyword (machine-assigned, unchecked).`, `${num(mine.length)} ${P(mine.length, "", "", "Brief", "Briefe")} mit diesem Schlagwort (maschinell vergeben, ungeprüft).`)}
           <a href="${kwSearch(k)}">${T("Open in the search", "In der Suche öffnen")}</a></p>
@@ -652,6 +655,340 @@
       <h2>${T("Letters", "Briefe")}</h2>
       <div class="list">${rows.map((l) => letterRow(l)).join("")}</div>`;
     drawSankey(document.getElementById("sankey"), k, 10);
+  }
+
+  /* ---------- keywords: heatmap and index ----------
+     Adapted from the St. Gallen viewer (showKeywords): keyword × twenty years, a
+     count or the share of the period's letters; all keywords here are machine-assigned. */
+  const KW_BIN = 20, KW_THIN = 10;
+  function kwData() {
+    // a year outside the series (1300–1700) is a misreading: such a letter counts as undated
+    const letters = state.index.letters.filter((l) => l.k && l.k.length)
+      .map((l) => ({ ...l, y: l.y >= 1300 && l.y <= 1700 ? l.y : null, kw: l.k }));
+    const count = new Map();
+    for (const m of letters) for (const k of m.kw) count.set(k, (count.get(k) || 0) + 1);
+    const ys = letters.map((m) => m.y).filter(Boolean);
+    const b0 = Math.floor(Math.min(...ys) / KW_BIN) * KW_BIN, b1 = Math.floor(Math.max(...ys) / KW_BIN) * KW_BIN;
+    const bins = [];
+    for (let lo = b0; lo <= b1; lo += KW_BIN) bins.push(lo);
+    const binOf = (y) => (y ? bins.indexOf(Math.floor(y / KW_BIN) * KW_BIN) : -1);
+    const totals = bins.map(() => 0);
+    for (const m of letters) { const b = binOf(m.y); if (b >= 0) totals[b]++; }
+    return { letters, count, bins, binOf, totals };
+  }
+  /* the letters of a keyword in a twenty-year period: the search takes decades */
+  const kwPeriod = (k, lo) => `${kwSearch(k)}&dec=${lo}&dec=${lo + 10}`;
+  const heat = (v) => (v > 0 ? `color-mix(in oklab, var(--brand) ${Math.round(12 + 88 * Math.sqrt(Math.min(1, v)))}%, var(--panel))` : "transparent");
+
+  function showKeywords() {
+    setNav("keywords");
+    if (!state.kw.size) { app.innerHTML = `<p>${T("Keywords will follow.", "Schlagwörter folgen.")}</p>`; return; }
+    const f = state.kwView = state.kwView || { top: 40, sort: "count", mode: "n", q: "" };
+    const d = kwData();
+    const all = [...d.count.entries()];
+    const per = Math.round(d.letters.reduce((a, m) => a + m.kw.length, 0) / d.letters.length);
+    const voc = state.index.vocabulary;
+    app.innerHTML = `
+      <section class="intro">
+        <h1>${T("Keywords", "Schlagwörter")}</h1>
+        <p>${T(`${num(d.letters.length)} letters have keywords, ${num(all.length)} different terms, about ${per} per letter. A language model assigned them from the machine-drafted regests, choosing from the ${voc ? num(voc.terms) : ""} keywords of the St. Gallen Missives edition; unchecked.
+          The heatmap shows in how many letters of each twenty years a keyword stands; a click on a cell opens those letters in the search, a click on a keyword its page with the Sankey of its companions.`,
+          `${num(d.letters.length)} Briefe haben Schlagwörter, ${num(all.length)} verschiedene, etwa ${per} pro Brief. Ein Sprachmodell hat sie aus den maschinell entworfenen Regesten vergeben, gewählt aus den ${voc ? num(voc.terms) : ""} Schlagwörtern der Edition der St. Galler Missiven; ungeprüft.
+          Die Heatmap zeigt, in wie vielen Briefen von je zwanzig Jahren ein Schlagwort steht; ein Klick auf eine Zelle öffnet diese Briefe in der Suche, ein Klick auf ein Schlagwort seine Seite mit dem Sankey seiner Begleiter.`)}</p>
+        <p><a href="#/keywords/network">${T("Keyword network →", "Netzwerk der Schlagwörter →")}</a></p>
+      </section>
+      <div class="filters">
+        <input id="kq" type="search" placeholder="${T("Find a keyword…", "Schlagwort finden…")}" value="${esc(f.q)}" aria-label="${T("Find a keyword", "Schlagwort finden")}">
+        <select id="ktop" aria-label="${T("How many", "Wie viele")}">
+          ${[20, 40, 80, 0].map((n) => `<option value="${n}" ${f.top === n ? "selected" : ""}>${n ? T(`${n} most frequent`, `${n} häufigste`) : T("all", "alle")}</option>`).join("")}
+        </select>
+        <select id="ksort" aria-label="${T("Order", "Reihenfolge")}">
+          <option value="count" ${f.sort === "count" ? "selected" : ""}>${T("by frequency", "nach Häufigkeit")}</option>
+          <option value="time" ${f.sort === "time" ? "selected" : ""}>${T("by period of most use", "nach Zeit des Schwerpunkts")}</option>
+          <option value="alpha" ${f.sort === "alpha" ? "selected" : ""}>${T("alphabetically", "alphabetisch")}</option>
+        </select>
+        <div class="seg" id="kmode" role="group" aria-label="${T("Value", "Wert")}">
+          ${[["n", T("Letters", "Briefe")], ["share", T("Share of the period", "Anteil am Zeitraum")]].map(([v, l]) =>
+            `<button type="button" data-v="${v}" aria-pressed="${f.mode === v}" class="${f.mode === v ? "on" : ""}">${l}</button>`).join("")}
+        </div>
+      </div>
+      <div class="heatwrap" id="heat"></div>
+      <p class="muted small" id="hnote"></p>
+      <h2>${T("All keywords", "Alle Schlagwörter")}</h2>
+      <div class="kwindex" id="kwindex" lang="de"></div>`;
+    const centre = (k) => {  // mean year of a keyword's letters, for "by period"
+      let s = 0, n = 0;
+      for (const m of d.letters) if (m.y && m.kw.includes(k)) { s += m.y; n++; }
+      return n ? s / n : 0;
+    };
+    const cells = new Map();
+    for (const m of d.letters) {
+      const b = d.binOf(m.y);
+      if (b < 0) continue;
+      for (const k of m.kw) { if (!cells.has(k)) cells.set(k, d.bins.map(() => 0)); cells.get(k)[b]++; }
+    }
+    const draw = () => {
+      const words = f.q.toLowerCase().split(/\s+/).filter(Boolean);
+      let rows = all.filter(([k]) => words.every((w) => k.toLowerCase().includes(w))).sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0], "de"));
+      if (f.top && !words.length) rows = rows.slice(0, f.top);
+      if (f.sort === "alpha") rows.sort((a, b) => a[0].localeCompare(b[0], "de"));
+      if (f.sort === "time") rows.sort((a, b) => centre(a[0]) - centre(b[0]));
+      const val = (k, b) => { const n = (cells.get(k) || [])[b] || 0; return f.mode === "n" ? n : (d.totals[b] ? n / d.totals[b] : 0); };
+      // a share over a handful of letters says nothing: those periods stay out of the colour scale
+      const thin = (b) => f.mode === "share" && d.totals[b] < KW_THIN;
+      let top = 0;
+      // a keyword on more than half the letters (Schultheiss) would pale every other row: it gets the top colour
+      for (const [k] of rows) if (!commonKw().has(k)) d.bins.forEach((_, b) => { if (!thin(b)) top = Math.max(top, val(k, b)); });
+      if (!top) for (const [k] of rows) d.bins.forEach((_, b) => { if (!thin(b)) top = Math.max(top, val(k, b)); });
+      const fmt = (v) => (f.mode === "n" ? num(v) : `${Math.round(v * 100)} %`);
+      const cols = `grid-template-columns: minmax(120px, 13rem) repeat(${d.bins.length}, minmax(30px, 1fr)) 3.2rem;`;
+      document.getElementById("heat").innerHTML = rows.length ? `
+        <div class="heat" style="${cols}" role="table" aria-label="${T("Keywords by twenty years", "Schlagwörter nach zwanzig Jahren")}">
+          <div class="hh" role="columnheader"></div>
+          ${d.bins.map((lo) => `<div class="hh" role="columnheader">${lo}<span>–${String(lo + KW_BIN - 1).slice(2)}</span></div>`).join("")}
+          <div class="hh hn" role="columnheader">${T("all", "alle")}</div>
+          <div class="hk muted" role="rowheader">${T("letters with keywords", "Briefe mit Schlagwörtern")}</div>
+          ${d.totals.map((n, b) => `<div class="htot${thin(b) ? " thin" : ""}">${num(n)}</div>`).join("")}
+          <div class="hn muted">${num(d.letters.length)}</div>
+          ${rows.map(([k, n]) => `
+            <a class="hk" role="rowheader" href="${kwHref(k)}" lang="de">${esc(k)}</a>
+            ${d.bins.map((lo, b) => {
+              const v = val(k, b), c = (cells.get(k) || [])[b] || 0;
+              return `<a class="hc${thin(b) ? " thin" : ""}" role="cell" href="${c ? kwPeriod(k, lo) : kwHref(k)}" style="background:${thin(b) ? "" : heat(top ? v / top : 0)}"
+                data-tip="${esc(k)} · ${lo}–${lo + KW_BIN - 1}: ${c} ${P(c, "letter", "letters", "Brief", "Briefe")} ${T("of", "von")} ${d.totals[b]}${d.totals[b] ? ` (${Math.round(100 * c / d.totals[b])} %)` : ""}"
+                aria-label="${esc(k)} ${lo}–${lo + KW_BIN - 1}: ${c}">${c && rows.length <= 40 ? `<span>${c}</span>` : ""}</a>`;
+            }).join("")}
+            <div class="hn">${num(n)}</div>`).join("")}
+        </div>` : `<p class="muted">${T("No keyword matches.", "Kein Schlagwort passt.")}</p>`;
+      const common = [...commonKw()].map((x) => "«" + esc(x) + "»").join(", ");
+      document.getElementById("hnote").innerHTML = `<span class="hlegend"><span>${f.mode === "n" ? "0" : "0 %"}</span><i></i><span>${fmt(top)}</span></span>
+        ${f.mode === "n" ? T("Number of letters in twenty years.", "Anzahl Briefe in zwanzig Jahren.") : T(`Share of the period's letters with keywords: evens out that the collection holds far more letters from some periods than from others. Periods with fewer than ${KW_THIN} letters are hatched and left out of the colours: one letter there would count as a large share.`, `Anteil an den verschlagworteten Briefen des Zeitraums: gleicht aus, dass die Sammlung aus manchen Zeiten viel mehr Briefe hat als aus anderen. Zeiträume mit weniger als ${KW_THIN} Briefen sind schraffiert und nicht eingefärbt: ein einziger Brief wäre dort schon ein grosser Anteil.`)}
+        ${T(`Years are read by rule from the date line of the regest draft; ${num(d.letters.filter((m) => !m.y).length)} undated letters are counted only in "all".`, `Die Jahre sind nach Regeln aus der Datumszeile des Regestentwurfs gelesen; ${num(d.letters.filter((m) => !m.y).length)} undatierte Briefe zählen nur unter «alle».`)}
+        ${common ? T(`${common} stands on more than half of all letters (in nearly every address); it is left out of the colour scale and shown at full strength.`, `${common} steht auf mehr als der Hälfte aller Briefe (in fast jeder Anrede); es ist aus der Farbskala genommen und voll eingefärbt.`) : ""}`;
+    };
+    // the index below: every keyword, A–Z, with its count
+    const byLetter = new Map();
+    for (const [k, n] of [...all].sort((a, b) => a[0].localeCompare(b[0], "de"))) {
+      const l = k[0].toUpperCase();
+      if (!byLetter.has(l)) byLetter.set(l, []);
+      byLetter.get(l).push([k, n]);
+    }
+    document.getElementById("kwindex").innerHTML = [...byLetter].map(([l, ks]) => `
+      <section><h3>${esc(l)}</h3><div class="kw">${ks.map(([k, n]) => `<a href="${kwHref(k)}">${esc(k)} <span class="n">${num(n)}</span></a>`).join("")}</div></section>`).join("");
+    const heatEl = document.getElementById("heat");
+    heatEl.addEventListener("mouseover", (ev) => {
+      const c = ev.target.closest(".hc");
+      if (!c) return;
+      tipAt(c.getBoundingClientRect(), esc(c.dataset.tip));
+    });
+    heatEl.addEventListener("mouseleave", hideTip);
+    document.getElementById("kq").addEventListener("input", (ev) => { f.q = ev.target.value; draw(); });
+    document.getElementById("ktop").addEventListener("change", (ev) => { f.top = +ev.target.value; draw(); });
+    document.getElementById("ksort").addEventListener("change", (ev) => { f.sort = ev.target.value; draw(); });
+    document.getElementById("kmode").addEventListener("click", (ev) => {
+      const b = ev.target.closest("button[data-v]");
+      if (!b) return;
+      f.mode = b.dataset.v;
+      document.querySelectorAll("#kmode button").forEach((x) => { const on = x === b; x.classList.toggle("on", on); x.setAttribute("aria-pressed", on); });
+      draw();
+    });
+    draw();
+  }
+
+  /* ---------- keyword network ----------
+     From the St. Gallen viewer: keywords as nodes, letters they share as edges,
+     weighted by the cosine of the two letter sets (shared / √(a·b)) so that the
+     most frequent keywords do not tie to everything; each keeps its five strongest
+     ties (shared in at least three letters). Groups by modularity (Louvain);
+     layout by d3-force, computed once from d3's fixed start, the same on every visit. */
+  let d3Loading = null;
+  function loadD3() {
+    if (window.d3) return Promise.resolve();
+    d3Loading = d3Loading || new Promise((res, rej) => {
+      const sc = document.createElement("script");
+      sc.src = "https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js";
+      sc.onload = res; sc.onerror = () => rej(new Error("d3"));
+      document.head.appendChild(sc);
+    });
+    return d3Loading;
+  }
+
+  function kwGraph(d, min) {
+    const count = new Map([...d.count].filter(([, n]) => n >= min));
+    const names = [...count.keys()].sort((a, b) => count.get(b) - count.get(a) || a.localeCompare(b, "de"));
+    const idx = new Map(names.map((n, i) => [n, i]));
+    const pair = new Map();
+    for (const m of d.letters) {
+      const ks = m.kw.filter((x) => idx.has(x)).map((x) => idx.get(x)).sort((a, b) => a - b);
+      for (let i = 0; i < ks.length; i++) for (let j = i + 1; j < ks.length; j++) {
+        const key = ks[i] * 10000 + ks[j];
+        pair.set(key, (pair.get(key) || 0) + 1);
+      }
+    }
+    const cand = [];
+    for (const [key, c] of pair) {
+      if (c < 3) continue;
+      const a = Math.floor(key / 10000), b = key % 10000;
+      cand.push({ a, b, c, w: c / Math.sqrt(count.get(names[a]) * count.get(names[b])) });
+    }
+    const best = names.map(() => []);
+    for (const e of cand) { best[e.a].push(e); best[e.b].push(e); }
+    const keep = new Set();
+    best.forEach((es) => es.sort((x, y) => y.w - x.w).slice(0, 5).forEach((e) => keep.add(e)));
+    const edges = [...keep];
+    const adj = names.map(() => []);
+    for (const e of edges) { adj[e.a].push([e.b, e.w]); adj[e.b].push([e.a, e.w]); }
+    const lab = louvain(names.length, edges.map((e) => [e.a, e.b, e.w]), 1.0);
+    const nodes = names.map((n, i) => ({ id: i, name: n, n: count.get(n), g: lab[i], deg: adj[i].length }));
+    const groups = new Map();
+    for (const nd of nodes) if (nd.deg) { if (!groups.has(nd.g)) groups.set(nd.g, []); groups.get(nd.g).push(nd); }
+    const glist = [...groups.values()].filter((g) => g.length >= 3).sort((a, b) => b.reduce((s, x) => s + x.n, 0) - a.reduce((s, x) => s + x.n, 0));
+    return { nodes: nodes.filter((nd) => nd.deg), isolated: nodes.filter((nd) => !nd.deg), edges, groups: glist, adj, names };
+  }
+
+  /* Groups by modularity (Louvain): move each node to the neighbouring group that
+     gains most, until nothing moves; then treat each group as one node and repeat.
+     Fixed visiting order, so the groups are the same on every visit. */
+  function louvain(n, wedges, gamma) {
+    let member = Array.from({ length: n }, (_, i) => i);
+    let size = n, E = wedges;
+    for (let level = 0; level < 6; level++) {
+      const adj = Array.from({ length: size }, () => new Map());
+      const k = new Array(size).fill(0);
+      let m2 = 0;
+      for (const [a, b, w] of E) {
+        if (a === b) { k[a] += 2 * w; m2 += 2 * w; adj[a].set(a, (adj[a].get(a) || 0) + 2 * w); continue; }
+        adj[a].set(b, (adj[a].get(b) || 0) + w); adj[b].set(a, (adj[b].get(a) || 0) + w);
+        k[a] += w; k[b] += w; m2 += 2 * w;
+      }
+      if (!m2) break;
+      const com = Array.from({ length: size }, (_, i) => i), tot = k.slice();
+      let moved = true, any = false;
+      for (let pass = 0; moved && pass < 50; pass++) {
+        moved = false;
+        for (let i = 0; i < size; i++) {
+          const ci = com[i];
+          const kin = new Map();
+          for (const [j, w] of adj[i]) if (j !== i) kin.set(com[j], (kin.get(com[j]) || 0) + w);
+          tot[ci] -= k[i];
+          let bestC = ci, gain = (kin.get(ci) || 0) - gamma * tot[ci] * k[i] / m2;
+          for (const [c, w] of kin) {
+            const g = w - gamma * tot[c] * k[i] / m2;
+            if (g > gain + 1e-12 || (Math.abs(g - gain) <= 1e-12 && c < bestC)) { bestC = c; gain = g; }
+          }
+          tot[bestC] += k[i];
+          if (bestC !== ci) { com[i] = bestC; moved = true; any = true; }
+        }
+      }
+      if (!any) break;
+      const ids = new Map();
+      com.forEach((c) => { if (!ids.has(c)) ids.set(c, ids.size); });
+      member = member.map((s0) => ids.get(com[s0]));
+      const agg = new Map();
+      for (const [a, b, w] of E) {
+        const x = ids.get(com[a]), y = ids.get(com[b]);
+        const key = Math.min(x, y) * 100000 + Math.max(x, y);
+        agg.set(key, (agg.get(key) || 0) + w);
+      }
+      E = [...agg].map(([key, w]) => [Math.floor(key / 100000), key % 100000, w]);
+      size = ids.size;
+    }
+    return member;
+  }
+
+  async function showKeywordNetwork(params) {
+    setNav("keywords");
+    if (!state.kw.size) { app.innerHTML = `<p>${T("Keywords will follow.", "Schlagwörter folgen.")}</p>`; return; }
+    app.innerHTML = `<p class="muted">${T("Loading…", "Wird geladen…")}</p>`;
+    const d = kwData();
+    try { await loadD3(); } catch { app.innerHTML = `<p>${T("The network needs the d3 library, which could not be loaded.", "Das Netzwerk braucht die Bibliothek d3, die nicht geladen werden konnte.")}</p>`; return; }
+    const f = state.netView = state.netView || { min: 25 };  // Thun has more letters than St. Gallen: 15+ is a hairball
+    const focus = params.get("focus") || "";
+    if (focus && (d.count.get(focus) || 0) < f.min) f.min = Math.max(3, d.count.get(focus) || 3);
+    const g = kwGraph(d, f.min);
+    app.innerHTML = `
+      <section class="intro">
+        <div class="muted small"><a href="#/keywords">${T("Keywords", "Schlagwörter")}</a></div>
+        <h1>${T("Keyword network", "Netzwerk der Schlagwörter")}</h1>
+        <p>${T(`Keywords given to the same letters stand close together. A line joins two keywords that share at least three letters; each keeps its five strongest ties, measured against how frequent both are (so that «Schultheiss» does not tie to everything). Circle size: number of letters. The groups on the right are found from the ties alone; point at one to see it. The keywords are machine-assigned and unchecked.`,
+          `Schlagwörter, die denselben Briefen gegeben sind, stehen nah beieinander. Eine Linie verbindet zwei Schlagwörter, die mindestens drei Briefe teilen; jedes behält seine fünf stärksten Verbindungen, gemessen an der Häufigkeit beider (damit «Schultheiss» nicht mit allem verbunden ist). Kreisgrösse: Anzahl Briefe. Die Gruppen rechts sind allein aus den Verbindungen gefunden; Zeiger darauf zeigt sie. Die Schlagwörter sind maschinell vergeben und ungeprüft.`)}</p>
+      </section>
+      <div class="filters">
+        <select id="nmin" aria-label="${T("Keywords shown", "Gezeigte Schlagwörter")}">
+          ${[5, 8, 15, 25, 50].map((n) => `<option value="${n}" ${f.min === n ? "selected" : ""}>${T(`keywords in ${n}+ letters`, `Schlagwörter in ${n}+ Briefen`)}</option>`).join("")}
+          ${[5, 8, 15, 25, 50].includes(f.min) ? "" : `<option value="${f.min}" selected>${T(`keywords in ${f.min}+ letters`, `Schlagwörter in ${f.min}+ Briefen`)}</option>`}
+        </select>
+        <input id="nq" type="search" placeholder="${T("Find a keyword…", "Schlagwort finden…")}" value="${esc(focus)}" aria-label="${T("Find a keyword", "Schlagwort finden")}" list="nlist">
+        <datalist id="nlist">${g.nodes.map((n) => `<option value="${esc(n.name)}">`).join("")}</datalist>
+        <span class="muted small">${num(g.nodes.length)} ${T("keywords", "Schlagwörter")}, ${num(g.edges.length)} ${T("ties", "Verbindungen")}${g.isolated.length ? T(`; ${g.isolated.length} without a tie left out`, `; ${g.isolated.length} ohne Verbindung weggelassen`) : ""}</span>
+      </div>
+      <div class="netcols">
+        <section class="pane netpane"><div id="net"></div><p class="muted small">${T("Drag to move, scroll or pinch to zoom; a click on a keyword opens it.", "Ziehen verschiebt, Scrollen oder Zwei-Finger-Geste zoomt; ein Klick auf ein Schlagwort öffnet es.")}</p></section>
+        <aside class="pane netgroups"><h2>${T("Groups", "Gruppen")}</h2><ol id="ngroups" lang="de">${g.groups.map((gr) => `
+          <li data-g="${gr[0].g}"><b>${gr.slice(0, 3).map((x) => esc(x.name)).join(" · ")}</b> <span class="muted small">${gr.length} ${T("keywords", "Schlagwörter")}</span>
+          <div class="small muted">${gr.slice(3, 12).map((x) => `<a href="${kwHref(x.name)}">${esc(x.name)}</a>`).join(", ")}${gr.length > 12 ? " …" : ""}</div></li>`).join("")}</ol></aside>
+      </div>`;
+    document.getElementById("nmin").addEventListener("change", (ev) => { f.min = +ev.target.value; showKeywordNetwork(new URLSearchParams()); });
+    const nodes = g.nodes.map((n) => ({ ...n, r: 3 + 1.15 * Math.sqrt(n.n) }));
+    const byIdx = new Map(nodes.map((n) => [n.id, n]));
+    const links = g.edges.map((e) => ({ source: e.a, target: e.b, w: e.w, c: e.c }));
+    const sim = d3.forceSimulation(nodes)
+      .force("link", d3.forceLink(links).id((n) => n.id).distance((l) => 30 + 80 * (1 - l.w)).strength((l) => 0.15 + 0.6 * l.w))
+      .force("charge", d3.forceManyBody().strength(-120))
+      .force("collide", d3.forceCollide((n) => n.r + 2))
+      .force("x", d3.forceX(0).strength(0.04)).force("y", d3.forceY(0).strength(0.06))
+      .stop();
+    for (let i = 0; i < 400; i++) sim.tick();
+    const xs = d3.extent(nodes, (n) => n.x), ys = d3.extent(nodes, (n) => n.y);
+    const pad = 60;
+    const vb = [xs[0] - pad, ys[0] - pad, xs[1] - xs[0] + 2 * pad, ys[1] - ys[0] + 2 * pad];
+    const labelled = new Set(nodes.slice().sort((a, b) => b.n - a.n).slice(0, 30).map((n) => n.id));
+    const svg = d3.select("#net").append("svg").attr("class", "net").attr("viewBox", vb.join(" ")).attr("role", "img")
+      .attr("aria-label", T("Network of keywords", "Netzwerk der Schlagwörter"));
+    const root = svg.append("g");
+    // labels stay 12 px on screen whatever the viewBox scale and the zoom
+    let zk = 1;
+    const fit = () => {
+      const px = svg.node().getBoundingClientRect().width / vb[2] || 1;
+      root.selectAll("text").attr("font-size", 12 / (px * zk)).attr("stroke-width", 3 / (px * zk));
+      root.selectAll("text").attr("y", (n) => n.y - n.r - 3 / (px * zk));
+    };
+    svg.call(d3.zoom().scaleExtent([0.5, 8]).on("zoom", (ev) => { root.attr("transform", ev.transform); zk = ev.transform.k; fit(); }));
+    const lk = root.append("g").attr("class", "n-links").selectAll("line").data(links).join("line")
+      .attr("x1", (l) => l.source.x).attr("y1", (l) => l.source.y).attr("x2", (l) => l.target.x).attr("y2", (l) => l.target.y)
+      .attr("stroke-width", (l) => 0.6 + 2.4 * l.w);
+    const nd = root.append("g").attr("class", "n-nodes").selectAll("a").data(nodes).join("a").attr("href", (n) => kwHref(n.name));
+    nd.append("circle").attr("cx", (n) => n.x).attr("cy", (n) => n.y).attr("r", (n) => n.r);
+    nd.append("text").attr("x", (n) => n.x).attr("y", (n) => n.y - n.r - 3).attr("text-anchor", "middle")
+      .attr("class", (n) => (labelled.has(n.id) ? "n-lab" : "n-lab n-hidden")).text((n) => n.name);
+    fit();
+    if (state.netFit) window.removeEventListener("resize", state.netFit);
+    state.netFit = () => { if (document.body.contains(svg.node())) fit(); };
+    window.addEventListener("resize", state.netFit);
+    const nbr = new Map(nodes.map((n) => [n.id, new Set([n.id, ...g.adj[n.id].map(([j]) => j)])]));
+    const show = (ids, hot) => {
+      nd.classed("dim", (n) => ids && !ids.has(n.id)).classed("hot", (n) => hot && hot.has(n.id))
+        .select("text").classed("n-hidden", (n) => !(labelled.has(n.id) || (ids && ids.has(n.id))));
+      lk.classed("dim", (l) => ids && !(ids.has(l.source.id) && ids.has(l.target.id))).classed("hot", (l) => ids && ids.has(l.source.id) && ids.has(l.target.id));
+    };
+    nd.on("mouseenter", (ev, n) => {
+      show(nbr.get(n.id), new Set([n.id]));
+      const ties = g.adj[n.id].slice().sort((a, b) => b[1] - a[1]).slice(0, 5).map(([j]) => esc(byIdx.get(j)?.name || g.names[j]));
+      tipAt(ev.currentTarget.getBoundingClientRect(), `<b>${esc(n.name)}</b> ${num(n.n)} ${P(n.n, "letter", "letters", "Brief", "Briefe")}<div class="muted">${T("closest", "am nächsten")}: ${ties.join(", ")}</div>`);
+    }).on("mouseleave", () => { show(null, null); hideTip(); });
+    const groupIds = (gid) => new Set(nodes.filter((n) => n.g === gid).map((n) => n.id));
+    document.getElementById("ngroups").addEventListener("mouseover", (ev) => {
+      const li = ev.target.closest("li[data-g]");
+      if (li) { const ids = groupIds(+li.dataset.g); show(ids, ids); }
+    });
+    document.getElementById("ngroups").addEventListener("mouseleave", () => show(null, null));
+    const q = document.getElementById("nq");
+    const find = () => {
+      const n = nodes.find((x) => x.name.toLowerCase() === q.value.trim().toLowerCase());
+      if (n) show(nbr.get(n.id), new Set([n.id])); else show(null, null);
+    };
+    q.addEventListener("input", find);
+    if (focus) find();
   }
 
   /* the register entries this letter names (automatic tagging of one machine reading) */
@@ -815,7 +1152,7 @@
         <li><b>Lesungen vergleichen</b>: Wo eine Seite mehrere Lesungen hat, zeigt «Vergleichen mit …» Wort für Wort, was die eine Lesung hat und die andere nicht. Die Prozentzahl ist <i>Abweichung, nie Qualität</i>.</li>
         <li><b>Suche</b> im Text einer Lesung, Brief für Brief, mit «Schreibvarianten zulassen» (u/v/w, i/y/j, ſ/s, Doppelbuchstaben, ů/uo/u, ä/ae/a, Worttrennung am Zeilenende) und Facetten nach Signatur, Jahrzehnt und Jahr, Schlagwort, genanntem Ort, genannter Person und Organisation (Register), Absender, Empfänger und Regest.</li>
         <li><b>Daten.</b> Jahr und Tag jedes Briefs sind nach Regeln aus der Datumszeile gelesen, die der Regestentwurf aus einer maschinellen Lesung zitiert (<code>scripts/dates.py</code>). Ein aus einem Fest berechneter Tag ist julianisch; wo vom Jahr nur die letzten Ziffern geschrieben sind, stammt das Jahrhundert von den benachbarten datierten Briefen und ist unsicher. Schlagwörter vergibt ein Sprachmodell aus den Regestentwürfen, gewählt aus dem Vokabular der St. Galler Edition; ungeprüft.</li>
-        <li><b>Register, Karte und Sankey.</b> Personen, Orte und Organisationen sind in der Lesung von Gemini 4 Argon nach dem Verfahren der St. Galler Missiven ausgezeichnet: das Modell der St. Galler Edition (hmBERT) und qwen3.8-27b schlagen vor, gpt-oss-120b entscheidet. An Thun ist das nicht gemessen. Daraus ist ein Register automatisch generiert (<code>scripts/register.py</code>): Schreibungen zusammengeführt, Personen nur innerhalb von 30 Jahren, jeder Eintrag mit dem HLS, der SSRQ, der Königsfelder Edition und den St. Galler Missiven abgeglichen und die Kandidaten nach den Regeln aus St. Gallen als sicher, wahrscheinlich oder möglich eingestuft. Koordinaten stammen nur von einem solchen Kandidaten, nie aus dem Namen allein. Die Übersicht zeigt die Orte auf einer Karte und ein Sankey-Diagramm vom Schlagwort zu seinen Begleitern und deren Jahrzehnten. Nichts davon ist geprüft; eine Stichprobe steht in <a href="https://github.com/DHBern/thun-missiven-data/blob/main/docs/REGISTER.md" target="_blank" rel="noopener">docs/REGISTER.md</a>.</li>
+        <li><b>Register, Karte und Sankey.</b> Personen, Orte und Organisationen sind in der Lesung von Gemini 4 Argon nach dem Verfahren der St. Galler Missiven ausgezeichnet: das Modell der St. Galler Edition (hmBERT) und qwen3.8-27b schlagen vor, gpt-oss-120b entscheidet. An Thun ist das nicht gemessen. Daraus ist ein Register automatisch generiert (<code>scripts/register.py</code>): Schreibungen zusammengeführt, Personen nur innerhalb von 30 Jahren, jeder Eintrag mit dem HLS, der SSRQ, der Königsfelder Edition und den St. Galler Missiven abgeglichen und die Kandidaten nach den Regeln aus St. Gallen als sicher, wahrscheinlich oder möglich eingestuft. Koordinaten stammen nur von einem solchen Kandidaten, nie aus dem Namen allein. Die Übersicht zeigt die Orte auf einer Karte und ein Sankey-Diagramm vom Schlagwort zu seinen Begleitern und deren Jahrzehnten. Die Seite <a href="#/keywords">Schlagwörter</a> zeigt jedes Schlagwort nach zwanzig Jahren (Heatmap, als Anzahl oder Anteil) und ein <a href="#/keywords/network">Netzwerk</a> der Schlagwörter, die oft zusammen vergeben sind, beides nach dem Vorbild der St. Galler Missiven. Nichts davon ist geprüft; eine Stichprobe steht in <a href="https://github.com/DHBern/thun-missiven-data/blob/main/docs/REGISTER.md" target="_blank" rel="noopener">docs/REGISTER.md</a>.</li>
       </ul>
       <h2>Geplant</h2>
       <p>Weitere Leser: ein feinjustiertes Qwen3.5-4B (Kurrent, ganze Seiten), kraken und TrOCR; Regestentwürfe für alle Briefe. Eine von Hand ausgezeichnete Stichprobe, an der sich die Auszeichnung und das Register an Thun messen lassen (docs/NER_REGISTER_PLAN.md).</p>
@@ -836,7 +1173,7 @@
         <li><b>Compare readings</b>: where a page has more than one reading, "Compare with …" marks word by word what one reading has and the other lacks. The percentage is <i>disagreement, never quality</i>.</li>
         <li><b>Search</b> in the text of one reading, letter by letter, with "tolerant spelling" (u/v/w, i/y/j, ſ/s, doubled letters, ů/uo/u, ä/ae/a, words broken at the line end) and facets for shelfmark, decade and year, keyword, place, person and organisation named (register), sender, recipient and regest.</li>
         <li><b>Dates.</b> Each letter's year and day are read by rule from the date line that the regest draft quotes from a machine reading (<code>scripts/dates.py</code>). A day computed from a feast is Julian; where only the last digits of the year are written, the century comes from the neighbouring dated letters and is uncertain. Keywords are assigned by a language model from the regest drafts, chosen from the St. Gallen edition's vocabulary; unchecked.</li>
-        <li><b>Register, map and Sankey.</b> Persons, places and organisations are tagged on the Gemini 4 Argon reading by the St. Gallen Missives' method: the St. Gallen edition's model (hmBERT) and qwen3.8-27b propose, gpt-oss-120b decides. It is not measured on Thun. A register is generated from the tags (<code>scripts/register.py</code>): spellings joined, persons only within 30 years, every entry matched against HLS, the SSRQ, the Königsfelden edition and the St. Gallen Missives, the candidates graded certain, likely or possible by St. Gallen's rules. Coordinates come only from such a candidate, never from a name alone. The overview shows the places on a map and a Sankey from a keyword to its companions and their decades. None of it is checked; a spot check is in <a href="https://github.com/DHBern/thun-missiven-data/blob/main/docs/REGISTER.md" target="_blank" rel="noopener">docs/REGISTER.md</a>.</li>
+        <li><b>Register, map and Sankey.</b> Persons, places and organisations are tagged on the Gemini 4 Argon reading by the St. Gallen Missives' method: the St. Gallen edition's model (hmBERT) and qwen3.8-27b propose, gpt-oss-120b decides. It is not measured on Thun. A register is generated from the tags (<code>scripts/register.py</code>): spellings joined, persons only within 30 years, every entry matched against HLS, the SSRQ, the Königsfelden edition and the St. Gallen Missives, the candidates graded certain, likely or possible by St. Gallen's rules. Coordinates come only from such a candidate, never from a name alone. The overview shows the places on a map and a Sankey from a keyword to its companions and their decades. The <a href="#/keywords">Keywords</a> page shows each keyword by twenty years (heatmap, as a count or a share) and a <a href="#/keywords/network">network</a> of the keywords often given together, both after the St. Gallen Missives. None of it is checked; a spot check is in <a href="https://github.com/DHBern/thun-missiven-data/blob/main/docs/REGISTER.md" target="_blank" rel="noopener">docs/REGISTER.md</a>.</li>
       </ul>
       <h2>Planned</h2>
       <p>More readers: a fine-tuned Qwen3.5-4B (Kurrent, whole pages), kraken and TrOCR; regest drafts for every letter. A hand-tagged sample on which the tagging and the register can be measured on Thun (docs/NER_REGISTER_PLAN.md).</p>
