@@ -2,7 +2,7 @@
 
 Status 18.11.2026 (rebuilt from the combined tagging). Plan steps R-1, R-2, R-4 and R-5 of
 [NER_REGISTER_PLAN.md](NER_REGISTER_PLAN.md); R-0 (a check sample made by a
-person) is **not done**; R-3 (office holders by year) is built but not used yet ([OFFICES.md](OFFICES.md)).
+person) is **not done**; R-3 (office holders by year, [OFFICES.md](OFFICES.md)) joins persons by office since 19.11.
 
 The Thun Missives have no edition and no register. Everything here is
 **generated automatically** from the tagging in `entities/gemini-4-argon.jsonl`.
@@ -20,7 +20,7 @@ graded by the rules St. Gallen wrote and measured for its own generated entries
 | File | Content |
 |---|---|
 | `registers/places.json` | 1,210 places (215 on the map) |
-| `registers/persons.json` | 4,123 persons |
+| `registers/persons.json` | 4,117 persons |
 | `registers/orgs.json` | 205 organisations |
 | `links/registers/st-gallen.json` | 211 links from Thun entries to entries of the St. Gallen register (Thun side only) |
 | `docs/places_without_coordinates.md` | the places not on the map, and why |
@@ -64,8 +64,12 @@ in `registers/.cache/`, which is not committed.
   spelling, not chained, so that a shared forename does not carry two surnames
   together (Schopfer and Scherer). A name is one person only within 30 years of
   its first letter; later letters make a new entry. A mention without a year
-  joins a name only if that name has a single entry. Offices are **not** used to
-  merge (R-3 not done). Dropped:
+  joins a name only if that name has a single entry. **Offices join** (R-3, since
+  19.11.2026): parts of a name, and spellings of it, that each hold a letter naming the
+  man in an office in an address or signature (`registers/offices.json`) become one
+  person, if the median years of their office letters lie within 25 years of each other;
+  never for a name the list gives twice with a generation mark (Ludwig Brüggler,
+  Ludwig Brüggler II.). 25 persons carry an office (`offices` in the entry). Dropped:
 
   | Reason | Mentions |
   |---|---:|
@@ -148,7 +152,7 @@ Each of these is marked in the code:
 | | sicher | wahrscheinlich | möglich | no candidate |
 |---|---:|---:|---:|---:|
 | Places (1,210) | – | 219 | 334 | 657 |
-| Persons (4,123) | 15 | 52 | 140 | 3,916 |
+| Persons (4,117) | 15 | 52 | 138 | 3,912 |
 | Organisations (205) | – | 10 | 21 | 174 |
 
 For comparison, the run of 17.11.2026 on hmBERT's tags alone: places 1,376 (220 /
@@ -185,14 +189,15 @@ Oberland, who are in no authority file.
 | «Schultheiss und Rat zu Bern» | 1,724 | wahrscheinlich: St. Gallen, SSRQ and Königsfelden agree on org004002 |
 | Thun | 760 | HLS 000541, wahrscheinlich |
 | Bern | 219 | wahrscheinlich |
-| Peter Schopfer, Schultheiss of Thun | 182 (1441–1471) and 59 (1410–1440) | möglich: SSRQ and Königsfelden, attested 1439 |
+| Peter Schopfer, Schultheiss of Thun | 269 (1410–1471) | möglich: SSRQ and Königsfelden, attested 1439 |
 | Basel | 54 | wahrscheinlich |
 | Oberhofen | 52 | Oberhofen am Thunersee, wahrscheinlich |
 
 Peter Schopfer, to whom Bern writes as Schultheiss of Thun in many letters, is the
-most frequent person (248 tagged mentions; 276 with hmBERT alone). He is split
-in two entries because a name is one person only within 30 years of its first
-letter, and offices are not used to join persons (R-3, issue #12).
+most frequent person (248 tagged mentions; 276 with hmBERT alone). Until 18.11. he was
+split in three entries (1410–1440, 1441–1471, undated) by the 30-year rule and his
+spellings; the office joins them (R-3). Small parts with a misread century (letters read
+as 1340, 1543) keep the office but stay apart.
 
 ## Coordinates and the map
 
@@ -295,8 +300,8 @@ needed.
 ## Not done
 
 - R-0: a check sample by a person, so that the grades are measured on Thun.
-- R-3: the office-holder list is built ([OFFICES.md](OFFICES.md)) but not yet used:
-  offices are therefore not used to join persons.
+- R-3 dates: a letter whose year is uncertain is not yet dated by the office holder it
+  names ([OFFICES.md](OFFICES.md)).
 - The SSRQ place database was asked only for spellings tagged at least twice.
 - The gold sample for the tagger (N-1), and with it any Thun figure for the
   tagging.

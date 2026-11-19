@@ -191,6 +191,9 @@ def load_registers(letter_ids: set[str]) -> tuple[dict | None, dict[tuple[str, i
                 x["g"], x["gg"], x["gf"] = e["geo"], e.get("geo_grade"), e.get("geo_from")
             if e.get("normalised"):
                 x["nz"] = 1
+            if e.get("offices"):  # registers/offices.json: the office the letters name this man in
+                x["o"] = [{"t": o["office"], "y": o.get("years"), "n": len(o.get("letters", [])), "l": o.get("letters", [])[:40]}
+                          for o in e["offices"]]
             entries[eid] = x
             for page, start, _end in e.get("occ", []):
                 occ[(page, start)] = eid

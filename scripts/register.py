@@ -1023,7 +1023,77 @@ def group_places(ms: list[dict]) -> dict[str, list[dict]]:
     return by
 
 
-def group_persons(ms: list[dict], fn: set[str]) -> tuple[list[tuple[str, list[dict]]], collections.Counter]:
+def office_holders() -> list[dict]:
+    """The office holders of registers/offices.json (scripts/offices.py, docs/OFFICES.md) with
+    the letters that name them in office: forename key, surname stem, office, letters, years.
+    A name the list gives twice with a generation mark (Ludwig Brüggler, Ludwig Brüggler II.)
+    is two men and is never joined across."""
+    path = OUT / "offices.json"
+    if not path.exists():
+        return []
+    import offices as off  # scripts/offices.py: the same name folding as the evidence
+    data = json.loads(path.read_text(encoding="utf-8"))["offices"]
+    by = {}
+    for o, v in data.items():
+        for h in v["holders"]:
+            if not h.get("letters"):
+                continue
+            k = (o, off.fore_key(h["name"]), off.surname_stem(h["name"]))
+            x = by.setdefault(k, {"office": v["label"], "office_id": o, "names": set(), "fore": k[1], "stem": k[2],
+                                  "letters": {}, "generations": False})
+            x["names"].add(h["name"])
+            x["generations"] |= bool(re.search(r"\((?:I|II|III)\.\)", h["name"]))
+            for e in h["letters"]:
+                x["letters"][e["letter"]] = e["year"]
+    return list(by.values())
+
+
+def join_by_office(items: list[tuple[str, list[dict]]], holders: list[dict]) -> list[tuple]:
+    """Join persons by office (R-3). Every name cluster (after the spelling and the 30-year
+    rules) whose letters include one that names this man in office, in an address or a
+    signature (registers/offices.json), is matched to that office holder by forename and
+    surname. The matched clusters of one holder become one person if the median year of
+    their office letters lies within 25 years of the median of all his office letters, or if
+    they are undated:
+    Peter Schopfer, Schultheiss of Thun, is no longer split by the 30-year rule or by his
+    spellings. A cluster whose office letters are dated far off (a misread century) keeps
+    the office but stays apart. A name the list gives twice with a generation mark is never
+    joined. Returns (key, mentions, offices) for every person."""
+    import offices as off
+    held: dict[int, list[dict]] = collections.defaultdict(list)
+    for h in holders:
+        hits = []
+        for i, (k, c) in enumerate(items):
+            if not any(l in h["letters"] for m in c for l in m["letters"]):
+                continue
+            rep = collections.Counter(m["text"] for m in c).most_common(1)[0][0]
+            if off.fore_key(rep) == h["fore"] and off.same_surname(off.surname_stem(rep), h["stem"]):
+                hits.append(i)
+        if not hits:
+            continue
+        for i in hits:
+            held[i].append(h)
+        if h["generations"] or len(hits) < 2:
+            continue
+        ys = sorted(y for y in h["letters"].values() if y)
+        med = ys[len(ys) // 2] if ys else None
+        core = []
+        for i in hits:
+            cy = sorted(h["letters"][l] for m in items[i][1] for l in m["letters"] if h["letters"].get(l))
+            if not cy or (med and abs(cy[len(cy) // 2] - med) <= 25):
+                core.append(i)
+        if len(core) < 2:
+            continue
+        first = max(core, key=lambda i: len(items[i][1]))
+        for i in core:
+            if i != first and items[i][1]:
+                items[first] = (items[first][0], items[first][1] + items[i][1])
+                items[i] = (items[i][0], [])
+                held[first] += [x for x in held.pop(i, []) if x not in held[first]]
+    return [(k, c, held.get(i, [])) for i, (k, c) in enumerate(items) if c]
+
+
+def group_persons(ms: list[dict], fn: set[str]) -> tuple[list[tuple], collections.Counter]:
     why = collections.Counter()
     by = collections.defaultdict(list)
     for m in ms:
@@ -1065,10 +1135,16 @@ def group_persons(ms: list[dict], fn: set[str]) -> tuple[list[tuple[str, list[di
                 clusters.append(undated)
         for c in clusters:
             out.append((k, c))
-    return out, why
+    return join_by_office(out, HOLDERS), why
+
+
+HOLDERS: list[dict] = []
 
 
 def build(workers: int, sg: str | None, kinds: set[str]) -> None:
+    global HOLDERS
+    HOLDERS = office_holders()
+    print(f"office holders with letters: {len(HOLDERS)}", flush=True)
     ms = mentions()
     print(f"{len(ms)} tagged names", flush=True)
     sg_reg = sg_registers(sg)
@@ -1254,8 +1330,16 @@ def build(workers: int, sg: str | None, kinds: set[str]) -> None:
     print(f"persons: {len(persons)} entries", flush=True)
 
     def one_person(item):
-        k, ms_ = item
+        k, ms_, held = item
         x = entry_shell("person", ms_, k)
+        if held:  # the offices the letters name this man in (registers/offices.json)
+            mine = {l for m in ms_ for l in m["letters"]}
+            x["offices"] = []
+            for h in held:
+                ls = sorted(l for l in mine if l in h["letters"])
+                ys = sorted(h["letters"][l] for l in ls if h["letters"][l])
+                x["offices"].append({"office": h["office"], "list_names": sorted(h["names"]), "letters": ls,
+                                     "years": [ys[0], ys[-1]] if ys else None})
         forms = [f for f, _ in collections.Counter(m["text"] for m in ms_).most_common(2)]
         try:
             cands = person_candidates(forms, hidx, sg_people) if x["years"] else []
@@ -1357,13 +1441,20 @@ def cmd_groups(sg: str | None) -> None:
     sg_reg = sg_registers(sg)
     fn = forenames(sg_reg, hls_persons())
     pg = group_places([m for m in ms if m["type"] == "place"])
+    global HOLDERS
+    HOLDERS = office_holders()
     persons, why = group_persons([m for m in ms if m["type"] == "per"], fn)
     print(f"places: {len(pg)} spellings; persons: {len(persons)} entries; dropped {dict(why)}")
     for k, g in sorted(pg.items(), key=lambda x: -len(x[1]))[:25]:
         print("  place", len(g), k, sorted({m["text"] for m in g})[:6])
-    for k, g in sorted(persons, key=lambda x: -len(x[1]))[:25]:
+    for k, g, held in sorted(persons, key=lambda x: -len(x[1]))[:25]:
         ys = sorted({m["year"] for m in g if m["year"]})
-        print("  person", len(g), k, ys[:1] + ys[-1:], sorted({m["text"] for m in g})[:5])
+        print("  person", len(g), k, ys[:1] + ys[-1:], sorted({m["text"] for m in g})[:5], [h["office"] for h in held])
+    joined = [(k, g, held) for k, g, held in persons if held]
+    print(f"persons holding an office: {len(joined)}")
+    for k, g, held in sorted(joined, key=lambda x: -len(x[1])):
+        ys = sorted({m["year"] for m in g if m["year"]})
+        print("  office", len(g), k, ys[:1] + ys[-1:], [h["office"] for h in held])
 
 
 def cmd_docs() -> None:

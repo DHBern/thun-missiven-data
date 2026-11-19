@@ -108,8 +108,8 @@ def letters_text() -> tuple[dict[str, str], dict[str, tuple]]:
 
 
 def evidence(stem: str, fore: str, office: str, town: str, texts: dict[str, str], years: dict) -> list[dict]:
-    """Letters where the folded surname, after the holder's forename, stands within reach
-    of the office and the town."""
+    """Letters that name the holder in office in an address or signature: the forename,
+    the folded surname, then the office and the town (or the town and the office)."""
     out = []
     for lid, t in texts.items():
         ft = fold(t)
@@ -117,8 +117,13 @@ def evidence(stem: str, fore: str, office: str, town: str, texts: dict[str, str]
             before = ft[max(0, m.start() - 22): m.start()].split()
             if fore and not any(FORE.get(w[:3], w[:3]) == fore for w in before[-3:]):
                 continue
-            win = ft[max(0, m.start() - 40): m.end() + 70]
-            if re.search(fold_re(OFF_RE[office]), win) and re.search(fold_re(TOWN_RE[town]), win):
+            # an address or signature: the office follows the name ("Peter Schopfer schultheis ze
+            # Thun", "Heinrich von Speichingen zuo Bern statschriber"), at most two words between
+            after = ft[m.end(): m.end() + 60]
+            o, t_ = fold_re(OFF_RE[office]), fold_re(TOWN_RE[town])
+            if re.match(rf"\w*\W+(?:\w+\W+){{0,2}}?(?:{o})\W+(?:ze|zu|in|von|der stat)\W+(?:{t_})", after) or \
+                    re.match(rf"\w*\W+(?:ze|zu)\W+(?:{t_})\W+(?:{o})", after):
+                win = ft[max(0, m.start() - 40): m.end() + 70]
                 y, c = years.get(lid, (None, None))
                 out.append({"letter": lid, "year": y, "century": c, "context": win})
                 break
@@ -195,7 +200,7 @@ def build() -> dict:
 # Read by hand on 18.11.2026 (the agent, not a historian): what each automatic flag turned
 # out to be. Namesakes: the Wikidata item the name search found is another man of that name.
 REVIEW = {
-    ("thun_schultheiss", "Peter Schopfer"): "contradiction: addressed as Schultheiss of Thun from 3.10.1439 (BAT 664, Nr. 48) to 1448 in letters with the year written out (1439: 3, 1440: 16, 1441: 10, 1442: 11, 1443: 6, 1444: 2, 1445: 9, 1447: 1, 1448: 1); the list has him from 1440, Niklaus von Wattenwyl from 1444",
+    ("thun_schultheiss", "Peter Schopfer"): "contradiction: addressed as Schultheiss of Thun from 3.10.1439 (BAT 664, Nr. 48) to 1448 in letters with the year written out (1439: 3, 1440: 16, 1441: 9, 1442: 11, 1443: 6, 1444: 2, 1445: 8, 1447: 1, 1448: 1); the list has him from 1440, Niklaus von Wattenwyl from 1444",
     ("thun_schultheiss", "Kaspar von Scharnachthal"): "contradiction: addressed as Schultheiss of Thun 1450-1461 (1461 written out, BAT 665, Nr. 52); the list has Ulrich von Laupen 1455, Ulrich von Erlach 1456, Niklaus von Scharnachthal 1458, Ludwig Brüggler 1459. Two letters dated 1400 and 1403 (year written out, BAT 665, Nr. 90 and 99) name a 'junkher Caspar von Scharnachtal schultheis ze Thun': an earlier Kaspar, or a misread year; to check on the image",
     ("thun_schultheiss", "Ulrich von Laupen"): "contradiction: addressed as Schultheiss of Thun in ten letters dated 1463-1477 (centuries from neighbouring letters); the list has him in 1455 only",
     ("thun_schultheiss", "Ludwig Brüggler", 1459): "addressed as Schultheiss of Thun 1454-1462 (centuries from neighbours; the list: from 1459) and in letters read as 1370/1371/1378, which are 1470s with the century taken wrongly (Ludwig Brüggler II., list 1471)",

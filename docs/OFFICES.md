@@ -1,8 +1,10 @@
 # Office holders: Schultheissen of Thun and Bern, Stadtschreiber of Bern
 
 Plan step R-3 of [NER_REGISTER_PLAN.md](NER_REGISTER_PLAN.md), issue #12. Status 18.11.2026:
-the list is built and checked against Wikidata and the letters. It is **not yet used** by the
-register (joining persons by office) or by the dates.
+the list is built and checked against Wikidata and the letters. Since 19.11. the register
+joins persons by it (`scripts/register.py`, `join_by_office`; docs/REGISTER.md R-1); the
+dates do not use it yet. The register uses only letters that name a man in office in an
+address or a signature (the office right after the name).
 
 `scripts/offices.py` writes `registers/offices.json` from:
 
@@ -39,7 +41,7 @@ letters in the volume, and it can be wrong by a decade or a century.
 
 | Holder | List | Letters | Reading |
 |---|---|---|---|
-| Peter Schopfer | 1440; Niklaus von Wattenwyl 1444, Kaspar von Scharnachthal 1449 | Schultheiss of Thun from 3.10.1439 (BAT 664, Nr. 48) to 1448, in 59 letters with the year written out (1439: 3, 1440: 16, 1441: 10, 1442: 11, 1443: 6, 1444: 2, 1445: 9, 1447: 1, 1448: 1) | in office 1439–1448 at least; no letter names Wattenwyl as Schultheiss |
+| Peter Schopfer | 1440; Niklaus von Wattenwyl 1444, Kaspar von Scharnachthal 1449 | Schultheiss of Thun from 3.10.1439 (BAT 664, Nr. 48) to 1448, in 57 letters with the year written out (1439: 3, 1440: 16, 1441: 9, 1442: 11, 1443: 6, 1444: 2, 1445: 8, 1447: 1, 1448: 1) | in office 1439–1448 at least; no letter names Wattenwyl as Schultheiss |
 | Kaspar von Scharnachthal | 1449; then Ulrich von Laupen 1455, Ulrich von Erlach 1456, Niklaus von Scharnachthal 1458, Ludwig Brüggler 1459 | 1450–1461, 1461 written out (BAT 665, Nr. 52) | in office into the 1460s. Two letters dated 1400 and 1403, years written out (BAT 665, Nr. 90, 99), name «junkher Caspar von Scharnachtal schultheis ze Thun»: an earlier Kaspar, or a misread year; to check on the image |
 | Ulrich von Laupen | 1455 only | ten letters dated 1463–1477 (centuries from neighbours) | in office in the 1460s and 1470s |
 | Ludwig Brüggler | 1412, 1459, 1471 (II.) | 1454–1462; letters dated 1370/1371/1378 are 1470s with the century taken wrongly | in office from 1454, earlier than the list's 1459 |
@@ -104,7 +106,5 @@ fits the list (Berchtold Vogt 1571).
 
 ## Not done
 
-- The register does not use the list yet: Peter Schopfer is still two entries (1410–1440
-  and 1441–1471) because offices are not used to join persons.
 - Letters whose year is uncertain are not dated by the office holder they name.
 - The suspicious single names above are not checked on the images.

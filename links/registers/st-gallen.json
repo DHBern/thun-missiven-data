@@ -1,7 +1,7 @@
 {
  "about": "Register entries of the Thun Missives that name an entry of the St. Gallen Missives register (the edition's, or one generated there whose best candidate is the same HLS article). Automatic, unchecked; grade = the Thun candidate's grade. Thun side only (scripts/register.py).",
  "viewer": "https://dhbern.github.io/sg-missiven-data/",
- "date": "2026-11-18",
+ "date": "2026-11-19",
  "links": [
   {
    "entry": "pl-72fec05e",
