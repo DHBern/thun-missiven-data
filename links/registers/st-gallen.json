@@ -1050,7 +1050,7 @@
   {
    "entry": "per-f1651a53",
    "kind": "person",
-   "name": "Hanns Schnijder",
+   "name": "Hanns schnyder",
    "other": "stadtasg-actors-1286",
    "label": "Schwyzer, Hans",
    "how": "register",
@@ -1059,7 +1059,7 @@
   {
    "entry": "per-f1651a53",
    "kind": "person",
-   "name": "Hanns Schnijder",
+   "name": "Hanns schnyder",
    "other": "stadtasg-actors-1359",
    "label": "Schirmer, Hans",
    "how": "register",
@@ -1291,6 +1291,15 @@
    "grade": "möglich"
   },
   {
+   "entry": "per-f4c47e72",
+   "kind": "person",
+   "name": "Anthini",
+   "other": "stadtasg-actors-485",
+   "label": "Müller, Antonius",
+   "how": "register",
+   "grade": "möglich"
+  },
+  {
    "entry": "per-081962bf",
    "kind": "person",
    "name": "Hachen",
@@ -1336,6 +1345,15 @@
    "grade": "wahrscheinlich"
   },
   {
+   "entry": "per-55ccbdbe",
+   "kind": "person",
+   "name": "Hans Krefus",
+   "other": "stadtasg-actors-478",
+   "label": "Kraewel, Hans",
+   "how": "register",
+   "grade": "möglich"
+  },
+  {
    "entry": "per-bb2a33f9",
    "kind": "person",
    "name": "Hans Mair",
@@ -1354,6 +1372,15 @@
    "grade": "möglich"
   },
   {
+   "entry": "per-888a7ed4",
+   "kind": "person",
+   "name": "Hans Muller",
+   "other": "stadtasg-actors-291",
+   "label": "Müller, Hans",
+   "how": "register",
+   "grade": "wahrscheinlich"
+  },
+  {
    "entry": "per-63428a1f",
    "kind": "person",
    "name": "Hans Pfisters",
@@ -1361,6 +1388,15 @@
    "label": "Pfister, Hans",
    "how": "register",
    "grade": "wahrscheinlich"
+  },
+  {
+   "entry": "per-c4b60d4f",
+   "kind": "person",
+   "name": "Hans Rieder",
+   "other": "stadtasg-actors-209",
+   "label": "Riederer, Hans",
+   "how": "register",
+   "grade": "möglich"
   },
   {
    "entry": "per-5c21cb51",
@@ -1485,6 +1521,15 @@
    "name": "Hans Stentzli",
    "other": "stadtasg-actors-306",
    "label": "Steinlin, Hans",
+   "how": "register",
+   "grade": "möglich"
+  },
+  {
+   "entry": "per-d4c13142",
+   "kind": "person",
+   "name": "Hansen Bilin",
+   "other": "stadtasg-actors-976",
+   "label": "Billing, Hans",
    "how": "register",
    "grade": "möglich"
   },
@@ -1748,6 +1793,15 @@
    "label": "Herren, Peter",
    "how": "register",
    "grade": "möglich"
+  },
+  {
+   "entry": "per-e153a95d",
+   "kind": "person",
+   "name": "peter wenger",
+   "other": "stadtasg-actors-1176",
+   "label": "Unger, Peter",
+   "how": "register",
+   "grade": "wahrscheinlich"
   },
   {
    "entry": "per-dfc8e39b",

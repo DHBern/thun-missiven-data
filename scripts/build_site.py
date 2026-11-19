@@ -251,7 +251,7 @@ def load_dates(letter_ids: set[str]) -> dict[str, dict]:
         if lid not in letter_ids:
             print(f"  dates.jsonl: unknown letter {lid}", file=sys.stderr)
             continue
-        if rec.get("date_text") or rec.get("year"):
+        if rec.get("date_text") or rec.get("year") or rec.get("office"):
             out[lid] = rec
     return out
 
@@ -437,10 +437,14 @@ def main() -> None:
             row.update({"h": d["heading"], "s": d["sender"], "r": d["recipient"]})
         if dt and dt.get("year"):
             row["y"] = dt["year"]
-            if dt.get("century") != "written":
+            # a century from the neighbours is uncertain unless an office holder confirms it
+            sure = dt.get("century") in ("written", "office") or (dt.get("office") or {}).get("check") == "fits"
+            if not sure:
                 row["yu"] = 1
             if dt.get("date"):
                 row["d"] = dt["date"]
+        elif dt and (dt.get("office") or {}).get("check") == "range":
+            row["yr"] = dt["office"]["range"]  # no year read: the years of the office holder named
         if lt["id"] in keywords:
             row["k"] = keywords[lt["id"]]
         index.append(row)

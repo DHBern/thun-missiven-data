@@ -9,7 +9,7 @@ The Thun Missives have no edition and no register. Everything here is
 That tagging is St. Gallen's combined method on the Gemini 4 Argon reading
 (`scripts/ner_llm.py`: hmBERT and qwen3.8-27b propose, gpt-oss-120b decides; until
 17.11.2026 hmBERT alone, kept in `entities/hmbert/`), and it has **not been measured
-on Thun**. All counts and the spot check below are from the register of 18.11.
+on Thun**. The counts below are from the register of 19.11. (persons joined by office, letters dated by office holders); the spot check is from the register of 18.11.
 Every link is a proposal,
 graded by the rules St. Gallen wrote and measured for its own generated entries
 (DHBern/sg-missiven-data `docs/REGISTER.md`, `scripts/auto_register.py`,
@@ -20,9 +20,9 @@ graded by the rules St. Gallen wrote and measured for its own generated entries
 | File | Content |
 |---|---|
 | `registers/places.json` | 1,210 places (215 on the map) |
-| `registers/persons.json` | 4,117 persons |
+| `registers/persons.json` | 4,096 persons |
 | `registers/orgs.json` | 205 organisations |
-| `links/registers/st-gallen.json` | 211 links from Thun entries to entries of the St. Gallen register (Thun side only) |
+| `links/registers/st-gallen.json` | 217 links from Thun entries to entries of the St. Gallen register (Thun side only) |
 | `docs/places_without_coordinates.md` | the places not on the map, and why |
 
 Each entry carries:
@@ -69,7 +69,7 @@ in `registers/.cache/`, which is not committed.
   man in an office in an address or signature (`registers/offices.json`) become one
   person, if the median years of their office letters lie within 25 years of each other;
   never for a name the list gives twice with a generation mark (Ludwig Brüggler,
-  Ludwig Brüggler II.). 25 persons carry an office (`offices` in the entry). Dropped:
+  Ludwig Brüggler II.). 21 persons carry an office (`offices` in the entry). Dropped:
 
   | Reason | Mentions |
   |---|---:|
@@ -152,7 +152,7 @@ Each of these is marked in the code:
 | | sicher | wahrscheinlich | möglich | no candidate |
 |---|---:|---:|---:|---:|
 | Places (1,210) | – | 219 | 334 | 657 |
-| Persons (4,117) | 15 | 52 | 138 | 3,912 |
+| Persons (4,096) | 16 | 57 | 143 | 3,880 |
 | Organisations (205) | – | 10 | 21 | 174 |
 
 For comparison, the run of 17.11.2026 on hmBERT's tags alone: places 1,376 (220 /
@@ -166,10 +166,10 @@ Best candidate by source:
   - St. Gallen: 35 / 5;
   - Königsfelden: 16 / 6.
 - **Persons:**
-  - HLS: 15 sicher, 4 wahrscheinlich, 7 möglich;
-  - SSRQ: 36 wahrscheinlich, 76 möglich;
-  - Königsfelden: 18 / 16;
-  - St. Gallen: 1 sicher, 11 wahrscheinlich, 58 möglich.
+  - HLS: 16 sicher, 3 wahrscheinlich, 8 möglich;
+  - SSRQ: 39 wahrscheinlich, 75 möglich;
+  - Königsfelden: 21 / 15;
+  - St. Gallen: 1 sicher, 13 wahrscheinlich, 62 möglich.
 - **Organisations:**
   - St. Gallen: 10 wahrscheinlich, 9 möglich;
   - SSRQ: 5 / 13;
@@ -189,15 +189,16 @@ Oberland, who are in no authority file.
 | «Schultheiss und Rat zu Bern» | 1,724 | wahrscheinlich: St. Gallen, SSRQ and Königsfelden agree on org004002 |
 | Thun | 760 | HLS 000541, wahrscheinlich |
 | Bern | 219 | wahrscheinlich |
-| Peter Schopfer, Schultheiss of Thun | 269 (1410–1471) | möglich: SSRQ and Königsfelden, attested 1439 |
+| Peter Schopfer, Schultheiss of Thun | 270 (1439–1467) | möglich: SSRQ and Königsfelden, attested 1439 |
 | Basel | 54 | wahrscheinlich |
 | Oberhofen | 52 | Oberhofen am Thunersee, wahrscheinlich |
 
 Peter Schopfer, to whom Bern writes as Schultheiss of Thun in many letters, is the
 most frequent person (248 tagged mentions; 276 with hmBERT alone). Until 18.11. he was
 split in three entries (1410–1440, 1441–1471, undated) by the 30-year rule and his
-spellings; the office joins them (R-3). Small parts with a misread century (letters read
-as 1340, 1543) keep the office but stay apart.
+spellings; the office joins them (R-3), now 270 letters, 1439–1467. Small parts stay apart:
+letters with a doubtful year (read 1394–1415 and 1471–1495) and rare spellings without a
+letter that names him in office.
 
 ## Coordinates and the map
 
@@ -218,7 +219,7 @@ for each.
 
 ## R-5: St. Gallen
 
-`links/registers/st-gallen.json` lists 211 links:
+`links/registers/st-gallen.json` lists 217 links:
 
 - **Places, 95:**
   - 56 to entries of the St. Gallen register, 35 of them «wahrscheinlich»;
@@ -227,7 +228,7 @@ for each.
   74 of the 95 are «wahrscheinlich».
 - **Organisations, 20:** «Schultheiss und Rat zu Bern», Solothurn, Luzern …;
   10 of them «wahrscheinlich».
-- **Persons, 96:** 1 «sicher», 11 «wahrscheinlich», 84 only «möglich». The spot
+- **Persons, 102:** 1 «sicher», 13 «wahrscheinlich», 88 only «möglich». The spot
   check below finds the «möglich» ones from the St. Gallen register wrong.
 
 The viewer shows the link on the Thun entry page (to `#/entry/<id>` on the
@@ -300,8 +301,6 @@ needed.
 ## Not done
 
 - R-0: a check sample by a person, so that the grades are measured on Thun.
-- R-3 dates: a letter whose year is uncertain is not yet dated by the office holder it
-  names ([OFFICES.md](OFFICES.md)).
 - The SSRQ place database was asked only for spellings tagged at least twice.
 - The gold sample for the tagger (N-1), and with it any Thun figure for the
   tagging.

@@ -269,6 +269,9 @@ def german_year(t: str) -> int | None:
         if w not in GERMAN and not w.endswith(("zehen", "zechen")):  # ordinals: "einliften", "drissigosten"
             stem = re.sub(r"(?<=.{3})(osten|esten|isten|sten|ten|ste|en)$", "", w)
             w = stem if stem in GERMAN else w
+        w = re.sub(r"^fu?e?n+f+t?z?i[gk]\w*$", "funfzig", w)  # funffig, fuenffzigisten
+        w = {"zwez": "zwei", "zwen": "zwei", "viertzehen": "vierzehen", "virzehen": "vierzehen",
+             "vierzeche": "vierzehen", "viertzeche": "vierzehen"}.get(w, w)
         w2 = re.sub(r"(zehen|zechen)$", "", w) if w.endswith(("zehen", "zechen")) and w not in ("zehen", "zechen") else None
         if w in GERMAN:
             cur += GERMAN[w]
@@ -284,8 +287,57 @@ def german_year(t: str) -> int | None:
     return total if 1200 <= total <= 1799 else None
 
 
+def tail_year(t: str) -> int | None:
+    """An abbreviated year from the last numeral after "anno" (or "im"), for lines whose
+    year read_year cannot place: "anno dm ic xxxix" 39, "anno xc lxxviij" 78, "anno
+    xcimo" 91, "anno xc iii" 93 (an "xc" before units is ninety; before tens a stray
+    mark), "anno etc. ciiij xijo" 12, "anno c xlprimo" 41, "im lvjsten jar" 56. A line
+    without "anno"/"im", or without a numeral after it, gives None: the day is never taken."""
+    m = re.search(r"\b(?:anno|ano|im)\b(.*)$", t)
+    if not m:
+        return None
+    tail = re.sub(r"\bino\b", " ", m.group(1))  # "Ino dominico" (in the Lord), not a numeral
+    tail = re.sub(r"\b([mdclxvij]+?)(primo|secundo|tercio|tertio|quarto|quinto|sexto|septimo|octavo|nono)\b", r"\1 \2", tail)
+    tail = re.sub(r"\b([mdclxvij]+?)(isten|esten|sten|ten|mo|to|no|do|o)\b", r"\1", tail)
+
+    def val(tok: str) -> int | None:
+        if tok.isdigit() and len(tok) <= 2:
+            return int(tok)
+        return LATIN_UNITS.get(tok) or roman(tok)
+    toks = tail.split()
+    # the last run of numerals, tens before units ("xl primo", "xxx viij"); trailing words
+    # and stray marks ("c", "ic") end it
+    i = len(toks) - 1
+    while i >= 0 and (val(toks[i]) is None or val(toks[i]) >= 100):
+        i -= 1
+    if i > 0 and toks[i] == "xc" and val(toks[i - 1]) is not None:  # "quinquagesimo xc": a trailing mark
+        i -= 1
+    total, j = 0, i
+    while j >= 0:
+        v = val(toks[j])
+        if v is None or v >= 90 and total or v >= 100 or (total and v <= total):
+            break
+        total += v
+        j -= 1
+    if total < 10 and j >= 0 and toks[j] == "xc":
+        total += 90
+    return total if 1 <= total <= 99 else None
+
+
 def read_year(t: str) -> tuple[int | None, bool]:
     """(year or abbreviated year, written in full?)."""
+    # roman groups run together: "moccccoxxxvijo" (BAT 663.1, Nr. 467) -> "m cccc xxxvij"
+    t = re.sub(r"\b(m)o?(c{3,4})o([xlvij]+)o?\b", r"\1 \2 \3", t)
+    # an "xc" before the hundreds is a stray mark: "anno xcmo ccccmo xiiijto" (BAT 663, Nr. 193)
+    t = re.sub(r"\bxc(?:mo|o)?\s+(?=c{3,5}(?:mo|o)?\b)", " ", t)
+    t = re.sub(r"qnto\b", "quinto", t)
+    t = re.sub(r"\b([mdclxvij]+)o(?=(?:primo|secundo|tercio|tertio|quarto|quinto|sexto|septimo|octavo|nono)\b)", r"\1 ", t)
+    # roman hundreds with the rest in German words: "anno m cccc funfzig und zwez" (BAT 665, Nr. 90)
+    mixed = re.sub(r"\b(?:m\s*)?cccc(?:\s*mo)?\b", " tusent vier hundert ", t)
+    if mixed != t:
+        g = german_year(mixed)
+        if g and g % 100:
+            return g, True
     m = re.search(r"\b(1[2-7]\d\d)\b", t)
     if m:
         return int(m.group(1)), True
@@ -308,7 +360,7 @@ def read_year(t: str) -> tuple[int | None, bool]:
     tail = re.sub(r"\b([mdclxvij]+?|(?:vi|tri|quadra|quinqua|sexa|septua|octo|nona)[cg]esimo)"
                   r"(primo|secundo|tercio|tertio|quarto|quinto|sexto|septimo|octavo|nono)\b", r"\1 \2", tail)
     tail = re.sub(r"\b([mdclxvij]+?)(no|mo|to|do|o)\b", r"\1", tail)
-    h = re.search(r"\b([xvij]+)\s*c\s*([mdclxvij]*)\b", tail)
+    h = re.search(r"\b([xvij]{2,}|v)\s*c\s*([mdclxvij]*)\b", tail)
     if h and roman(h.group(1)):
         v = roman(h.group(1)) * 100 + (roman(h.group(2)) or 0 if h.group(2) else 0)
         return (v + 1000 if v < 1000 else v), True
@@ -441,7 +493,79 @@ def letters() -> list[dict]:
         return list(csv.DictReader(fh, delimiter="\t"))
 
 
+OFFICE_PAD = 20  # years beyond an office holder's attested tenure that still count as his
+
+
+def office_tenures() -> dict[str, list[dict]]:
+    """Letter id -> the office holders it names in office (address or signature;
+    registers/offices.json, scripts/offices.py), each with a tenure read from all the
+    letters that name him in office: the years within 20 of their median (a misread year
+    does not stretch it). With fewer than three such years, the list's years are added.
+    The Wikipedia lists' end years are not used alone: the letters show them incomplete
+    (docs/OFFICES.md)."""
+    path = ROOT / "registers" / "offices.json"
+    if not path.exists():
+        return {}
+    data = json.loads(path.read_text(encoding="utf-8"))["offices"]
+    by_letter: dict[str, list[dict]] = {}
+    seen = set()
+    for o, v in data.items():
+        for h in v["holders"]:
+            ev = h.get("letters") or []
+            if not ev or (o, h["name"]) in seen:
+                continue
+            seen.add((o, h["name"]))
+            ys = sorted(e["year"] for e in ev if e.get("year"))
+            listed = [y for y in (h.get("from"), h.get("to")) if y]
+            # the list's years count only if the letters are near them: a list entry 60 years
+            # from every letter is another man of the name (Rudolf von Erlach, Thun 1465 / 1528)
+            if len(ys) < 3 and (not ys or any(abs(y - l) <= 30 for y in ys for l in listed)):
+                ys = sorted(ys + listed)
+            if not ys:
+                continue
+            med = ys[len(ys) // 2]
+            core = [y for y in ys if abs(y - med) <= 20]
+            ten = {"name": h["name"], "office": v["label"], "tenure": [core[0], core[-1]]}
+            for e in ev:
+                by_letter.setdefault(e["letter"], [])
+                if ten not in by_letter[e["letter"]]:
+                    by_letter[e["letter"]].append(ten)
+    return by_letter
+
+
+def office_check(rec: dict, holders: list[dict]) -> None:
+    """The office holders a letter names, against its year. An abbreviated year whose
+    century was taken from the neighbours is confirmed if it falls in a holder's tenure,
+    moved by a century if only that fits (Ludwig Brüggler: 1371 -> 1471; a written-out
+    century misread, "iiic xlo" for 1440, the same), and marked doubtful otherwise. A letter without a
+    year gets the tenure as its range (where several holders are named, the years they
+    share)."""
+    def fits(y: int) -> bool:
+        return any(h["tenure"][0] - OFFICE_PAD <= y <= h["tenure"][1] + OFFICE_PAD for h in holders)
+    info = {"holders": holders}
+    y = rec.get("year")
+    if y is None:
+        lo = max(h["tenure"][0] for h in holders)
+        hi = min(h["tenure"][1] for h in holders)
+        if lo > hi:
+            lo, hi = min(h["tenure"][0] for h in holders), max(h["tenure"][1] for h in holders)
+        info["check"], info["range"] = "range", [lo, hi]
+    elif fits(y):
+        info["check"] = "fits"
+    elif any(fits(y + d) for d in (100, -100)):
+        # the century taken from the neighbours, or misread ("iiic xlo" for 1440), is off by one
+        rec["year_read"] = y
+        rec["year_read_century"] = rec["century"]
+        rec["year"] = next(y + d for d in (100, -100) if fits(y + d))
+        rec["century"] = "office"
+        info["check"] = "century"
+    else:
+        info["check"] = "outside"
+    rec["office"] = info
+
+
 def main() -> None:
+    holders_of = office_tenures()
     drafts = {}
     for line in (ROOT / "regests" / "drafts.jsonl").read_text(encoding="utf-8").splitlines():
         if line.strip():
@@ -453,6 +577,12 @@ def main() -> None:
         d = drafts.get(lt["id"], {}).get("draft") or {}
         text = d.get("date_text") or ""
         y, full = read_year(norm(text)) if text else (None, False)
+        if text and (y is None or not 1 <= y <= 99 and not 1200 <= y <= 1799):
+            # stray letters before an abbreviated year ("anno dm ic xxxix", read as 1139):
+            # the year is the last numeral
+            v = tail_year(norm(text))
+            if v:
+                y, full = v, False
         rows.append({"id": lt["id"], "shelf": lt["shelf"], "nr": lt["nr"], "date_text": text,
                      "y_raw": y, "full": full})
     # century for abbreviated years: the full years nearby in the same volume (shelf)
@@ -475,6 +605,8 @@ def main() -> None:
                 ref = statistics.median([v for _, v in near])
                 cand = min((c + y for c in (cent - 100, cent, cent + 100)), key=lambda v: abs(v - ref))
             rec["year"], rec["century"] = cand, "neighbours" if near else "default"
+        if r["id"] in holders_of:
+            office_check(rec, holders_of[r["id"]])
         if "year" in rec and rec["century"] != "written":
             # a weekday named beside a day fixed otherwise decides the century
             ff = feastform(norm(r["date_text"]))
@@ -524,6 +656,8 @@ def main() -> None:
     from collections import Counter
     wc = Counter(r.get("weekday_check") for r in out if r.get("weekday_check"))
     print(f"weekday named in the line and computed independently: {dict(wc)}")
+    oc = Counter(r["office"]["check"] for r in out if r.get("office"))
+    print(f"office holders named: {dict(oc)}")
     print(f"{n} letters; {sum(1 for r in out if r['date_text'])} with a date line; {yr} with a year "
           f"({Counter(r.get('century') for r in out if 'year' in r)}); {dy} with a day "
           f"({Counter(r.get('how') for r in out if 'date' in r)})")

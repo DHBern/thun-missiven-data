@@ -76,7 +76,7 @@
     return w + T(`${d} ${MON[m - 1]} ${y}`, `${d}.${m}.${y}`);
   }
   /* short date for a list row: the day, else the year, "?" when the century is not written */
-  const shortDate = (l) => (l.d ? dayLabel(l.d) : l.y ? String(l.y) : "") + (l.y && l.yu ? "?" : "");
+  const shortDate = (l) => (l.d ? dayLabel(l.d) : l.y ? String(l.y) : l.yr ? `${l.yr[0]}–${l.yr[1]}?` : "") + (l.y && l.yu ? "?" : "");
   const WD_DE = { Mo: "Montag", Di: "Dienstag", Mi: "Mittwoch", Do: "Donnerstag", Fr: "Freitag", Sa: "Samstag", So: "Sonntag" };
   const WD_EN = { Mo: "Monday", Di: "Tuesday", Mi: "Wednesday", Do: "Thursday", Fr: "Friday", Sa: "Saturday", So: "Sunday" };
   const HOW = {
@@ -92,11 +92,20 @@
     "no day": ["year only: no day could be read from the date line", "nur das Jahr: Aus der Datumszeile liess sich kein Tag lesen"],
     "weekday not read": ["year only: the feast was found, the weekday before or after it was not", "nur das Jahr: Das Fest ist gefunden, der Wochentag davor oder danach nicht"],
   };
+  /* the office holders a letter names (registers/offices.json via dates.py): "Peter Schopfer
+     (Schultheiss von Thun, in office about 1439–1462 by the letters)" */
+  const holderText = (o) => o.holders.map((h) => T(`${esc(h.name)} (${esc(h.office)}, in office about ${h.tenure[0]}–${h.tenure[1]} by the letters)`,
+    `${esc(h.name)} (${esc(h.office)}, nach den Briefen etwa ${h.tenure[0]}–${h.tenure[1]} im Amt)`)).join(", ");
+  /* the year is as good as its century: written out, corrected or confirmed by an office holder */
+  const yearSure = (dt) => dt.century === "written" || dt.century === "office" || (dt.office && dt.office.check === "fits");
   function dateBlock(dt) {
     if (!dt) return "";
     const line = dt.date_text ? `<span class="dline">${T("Date line (machine reading)", "Datumszeile (maschinelle Lesung)")}: <q lang="und">${esc(dt.date_text)}</q></span>` : "";
+    const o = dt.office;
+    if (!dt.year && o && o.check === "range") return `<div class="ldate"><p><b>${o.range[0]}${o.range[1] !== o.range[0] ? "–" + o.range[1] : ""}?</b> <span class="small muted">· ${T("from the office holder named", "nach dem genannten Amtsträger")}</span></p>
+      <p class="small muted">${T(`No year could be read from the date line. The letter names ${holderText(o)} in office; it was written in those years.`, `Aus der Datumszeile liess sich kein Jahr lesen. Der Brief nennt ${holderText(o)} im Amt; er ist in diesen Jahren geschrieben.`)} ${line}</p></div>`;
     if (!dt.year) return `<div class="ldate"><p class="small muted">${T("No year could be read from the date line.", "Aus der Datumszeile liess sich kein Jahr lesen.")} ${line}</p></div>`;
-    const head = dt.date ? `${esc(dayLabel(dt.date, dt.weekday))} <span class="cal">${T("(Julian)", "(julianisch)")}</span>` : esc(dt.year) + (dt.century !== "written" ? "?" : "");
+    const head = dt.date ? `${esc(dayLabel(dt.date, dt.weekday))} <span class="cal">${T("(Julian)", "(julianisch)")}</span>` : esc(dt.year) + (yearSure(dt) ? "" : "?");
     let how = HOW[dt.how] ? T(...HOW[dt.how]) : (dt.how || "");
     if (dt.feast) {  // name the feast the day was counted from
       const f = esc(dt.feast);
@@ -111,11 +120,17 @@
       if (named) how = T(...named);
     }
     const notes = [];
-    if (dt.century === "neighbours") notes.push(T("Only the last digits of the year are written; the century is taken from the dated letters around it in the same volume, so the year is uncertain.",
+    if (o && o.check === "fits" && dt.century !== "written") notes.push(T(`Only the last digits of the year are written; the century, taken from the dated letters around it, fits ${holderText(o)}, whom the letter names in office.`,
+      `Vom Jahr sind nur die letzten Ziffern geschrieben; das Jahrhundert, von den datierten Briefen in der Nähe genommen, passt zu ${holderText(o)}, den der Brief im Amt nennt.`));
+    else if (dt.century === "office") notes.push(T(`The year was read as ${dt.year_read}${dt.year_read_century === "written" ? " (the century written, but misread)" : " (the century from the neighbouring letters)"}; the letter names ${holderText(o)} in office, so the century is corrected to ${dt.year}.`,
+      `Das Jahr wurde als ${dt.year_read} gelesen${dt.year_read_century === "written" ? " (das Jahrhundert ausgeschrieben, aber verlesen)" : " (das Jahrhundert von den benachbarten Briefen)"}; der Brief nennt ${holderText(o)} im Amt, das Jahrhundert ist darum auf ${dt.year} korrigiert.`));
+    else if (dt.century === "neighbours") notes.push(T("Only the last digits of the year are written; the century is taken from the dated letters around it in the same volume, so the year is uncertain.",
       "Vom Jahr sind nur die letzten Ziffern geschrieben; das Jahrhundert ist von den datierten Briefen in der Nähe im selben Band genommen, das Jahr ist darum unsicher."));
     else if (dt.century === "default") notes.push(T("Only the last digits of the year are written; the 15th century is assumed, so the year is uncertain.",
       "Vom Jahr sind nur die letzten Ziffern geschrieben; das 15. Jahrhundert ist angenommen, das Jahr ist darum unsicher."));
     const warn = [];
+    if (o && o.check === "outside") warn.push(T(`The letter names ${o.holders.map((h) => `${h.name} (${h.office})`).join(", ")} in office, in office about ${o.holders.map((h) => h.tenure.join("–")).join(", ")} by the letters: the year ${dt.year} does not fit and may be misread.`,
+      `Der Brief nennt ${o.holders.map((h) => `${h.name} (${h.office})`).join(", ")} im Amt, nach den Briefen etwa ${o.holders.map((h) => h.tenure.join("–")).join(", ")}: Das Jahr ${dt.year} passt nicht dazu und ist vielleicht verlesen.`));
     if (dt.weekday_check === "mismatch") warn.push(T(`The weekday written in the date line does not match the computed day in ${dt.year}${dt.weekday_fits && dt.weekday_fits.length ? ` (it would fit ${dt.weekday_fits.join(", ")})` : ""}: the year or the day may be misread.`,
       `Der Wochentag in der Datumszeile passt nicht zum berechneten Tag im Jahr ${dt.year}${dt.weekday_fits && dt.weekday_fits.length ? ` (er passte ${dt.weekday_fits.join(", ")})` : ""}: Jahr oder Tag sind vielleicht falsch gelesen.`));
     if (dt.year_start) warn.push(T(`Bern began the year at Christmas: a letter of 25–31 December “${dt.year}” may have been written in December ${dt.year - 1} by our count.`,
@@ -124,7 +139,7 @@
     return `<div class="ldate">
       <p><b>${head}</b>${how ? ` <span class="small muted">· ${esc(how)}</span>` : ""}</p>
       ${warn.map((w) => `<p class="caveat">${esc(w)}</p>`).join("")}
-      <p class="small muted">${notes.map(esc).join(" ")} ${line}</p>
+      <p class="small muted">${notes.join(" ")} ${line}</p>
     </div>`;
   }
   /* keywords are terms of the St. Gallen edition's vocabulary, in German in both languages */
@@ -1019,7 +1034,7 @@
       <span class="th">${l.tk ? `<img src="${thumb(l.tk)}" alt="" loading="lazy" width="44" height="60">` : ""}</span>
       <span class="num">${T("No.", "Nr.")} ${esc(l.nr)}</span>
       <span class="body"><a class="who" href="${href}">${esc(titleOf(l))}</a>
-        <span class="small muted">${l.y ? `${esc(shortDate(l))} · ` : ""}${num(l.n)} ${P(l.n, "page", "pages", "Seite", "Seiten")}${l.x ? ` + ${num(l.x)} ${P(l.x, "further scan", "further scans", "weitere Aufnahme", "weitere Aufnahmen")}` : ""}</span>
+        <span class="small muted">${l.y || l.yr ? `${esc(shortDate(l))} · ` : ""}${num(l.n)} ${P(l.n, "page", "pages", "Seite", "Seiten")}${l.x ? ` + ${num(l.x)} ${P(l.x, "further scan", "further scans", "weitere Aufnahme", "weitere Aufnahmen")}` : ""}</span>
         ${l.h ? `<span class="reg">${esc(l.h)} ${draftMark()}</span>` : ""}${extra}</span>
     </div>`;
   }
@@ -1156,7 +1171,7 @@
         <li><b>Überschriften und Regesten sind Maschinenentwürfe.</b> Ein offenes Sprachmodell (Qwen3.8-27B auf dem GPUStack der Universität Bern) entwirft sie aus der besten vorhandenen Lesung eines Briefs, mit Briefen der St. Galler Edition als Stilvorlagen. Niemand hat sie geprüft; Namen und Daten können falsch sein. Briefe ohne Entwurf zeigen keinen.</li>
         <li><b>Lesungen vergleichen</b>: Wo eine Seite mehrere Lesungen hat, zeigt «Vergleichen mit …» Wort für Wort, was die eine Lesung hat und die andere nicht. Die Prozentzahl ist <i>Abweichung, nie Qualität</i>.</li>
         <li><b>Suche</b> im Text einer Lesung, Brief für Brief, mit «Schreibvarianten zulassen» (u/v/w, i/y/j, ſ/s, Doppelbuchstaben, ů/uo/u, ä/ae/a, Worttrennung am Zeilenende) und Facetten nach Signatur, Jahrzehnt und Jahr, Schlagwort, genanntem Ort, genannter Person und Organisation (Register), Absender, Empfänger und Regest.</li>
-        <li><b>Daten.</b> Jahr und Tag jedes Briefs sind nach Regeln aus der Datumszeile gelesen, die der Regestentwurf aus einer maschinellen Lesung zitiert (<code>scripts/dates.py</code>). Ein aus einem Fest berechneter Tag ist julianisch; wo vom Jahr nur die letzten Ziffern geschrieben sind, stammt das Jahrhundert von den benachbarten datierten Briefen und ist unsicher. Schlagwörter vergibt ein Sprachmodell aus den Regestentwürfen, gewählt aus dem Vokabular der St. Galler Edition; ungeprüft.</li>
+        <li><b>Daten.</b> Jahr und Tag jedes Briefs sind nach Regeln aus der Datumszeile gelesen, die der Regestentwurf aus einer maschinellen Lesung zitiert (<code>scripts/dates.py</code>). Ein aus einem Fest berechneter Tag ist julianisch; wo vom Jahr nur die letzten Ziffern geschrieben sind, stammt das Jahrhundert von den benachbarten datierten Briefen und ist unsicher, ausser ein im Brief genannter Amtsträger (Schultheiss von Thun oder Bern, Stadtschreiber von Bern) bestätigt oder korrigiert es; einem Brief ohne lesbares Jahr gibt er seine Amtsjahre (<a href="https://github.com/DHBern/thun-missiven-data/blob/main/docs/OFFICES.md" target="_blank" rel="noopener">docs/OFFICES.md</a>). Schlagwörter vergibt ein Sprachmodell aus den Regestentwürfen, gewählt aus dem Vokabular der St. Galler Edition; ungeprüft.</li>
         <li><b>Register, Karte und Sankey.</b> Personen, Orte und Organisationen sind in der Lesung von Gemini 4 Argon nach dem Verfahren der St. Galler Missiven ausgezeichnet: das Modell der St. Galler Edition (hmBERT) und qwen3.8-27b schlagen vor, gpt-oss-120b entscheidet. An Thun ist das nicht gemessen. Daraus ist ein Register automatisch generiert (<code>scripts/register.py</code>): Schreibungen zusammengeführt, Personen nur innerhalb von 30 Jahren, jeder Eintrag mit dem HLS, der SSRQ, der Königsfelder Edition und den St. Galler Missiven abgeglichen und die Kandidaten nach den Regeln aus St. Gallen als sicher, wahrscheinlich oder möglich eingestuft. Koordinaten stammen nur von einem solchen Kandidaten, nie aus dem Namen allein. Die Übersicht zeigt die Orte auf einer Karte und ein Sankey-Diagramm vom Schlagwort zu seinen Begleitern und deren Jahrzehnten. Die Seite <a href="#/keywords">Schlagwörter</a> zeigt jedes Schlagwort nach zwanzig Jahren (Heatmap, als Anzahl oder Anteil) und ein <a href="#/keywords/network">Netzwerk</a> der Schlagwörter, die oft zusammen vergeben sind, beides nach dem Vorbild der St. Galler Missiven. Nichts davon ist geprüft; eine Stichprobe steht in <a href="https://github.com/DHBern/thun-missiven-data/blob/main/docs/REGISTER.md" target="_blank" rel="noopener">docs/REGISTER.md</a>.</li>
       </ul>
       <h2>Geplant</h2>
@@ -1177,7 +1192,7 @@
         <li><b>Headings and regests are machine drafts.</b> An open language model (Qwen3.8-27B on the University of Bern's GPUStack) drafts them from the best reading a letter has, with letters of the St. Gallen edition as style examples. Nobody has checked them; names and dates may be wrong. Letters without a draft show none.</li>
         <li><b>Compare readings</b>: where a page has more than one reading, "Compare with …" marks word by word what one reading has and the other lacks. The percentage is <i>disagreement, never quality</i>.</li>
         <li><b>Search</b> in the text of one reading, letter by letter, with "tolerant spelling" (u/v/w, i/y/j, ſ/s, doubled letters, ů/uo/u, ä/ae/a, words broken at the line end) and facets for shelfmark, decade and year, keyword, place, person and organisation named (register), sender, recipient and regest.</li>
-        <li><b>Dates.</b> Each letter's year and day are read by rule from the date line that the regest draft quotes from a machine reading (<code>scripts/dates.py</code>). A day computed from a feast is Julian; where only the last digits of the year are written, the century comes from the neighbouring dated letters and is uncertain. Keywords are assigned by a language model from the regest drafts, chosen from the St. Gallen edition's vocabulary; unchecked.</li>
+        <li><b>Dates.</b> Each letter's year and day are read by rule from the date line that the regest draft quotes from a machine reading (<code>scripts/dates.py</code>). A day computed from a feast is Julian; where only the last digits of the year are written, the century comes from the neighbouring dated letters and is uncertain, unless an office holder the letter names (Schultheiss of Thun or Bern, Stadtschreiber of Bern) confirms or corrects it; a letter without a readable year gets his years in office (<a href="https://github.com/DHBern/thun-missiven-data/blob/main/docs/OFFICES.md" target="_blank" rel="noopener">docs/OFFICES.md</a>). Keywords are assigned by a language model from the regest drafts, chosen from the St. Gallen edition's vocabulary; unchecked.</li>
         <li><b>Register, map and Sankey.</b> Persons, places and organisations are tagged on the Gemini 4 Argon reading by the St. Gallen Missives' method: the St. Gallen edition's model (hmBERT) and qwen3.8-27b propose, gpt-oss-120b decides. It is not measured on Thun. A register is generated from the tags (<code>scripts/register.py</code>): spellings joined, persons only within 30 years, every entry matched against HLS, the SSRQ, the Königsfelden edition and the St. Gallen Missives, the candidates graded certain, likely or possible by St. Gallen's rules. Coordinates come only from such a candidate, never from a name alone. The overview shows the places on a map and a Sankey from a keyword to its companions and their decades. The <a href="#/keywords">Keywords</a> page shows each keyword by twenty years (heatmap, as a count or a share) and a <a href="#/keywords/network">network</a> of the keywords often given together, both after the St. Gallen Missives. None of it is checked; a spot check is in <a href="https://github.com/DHBern/thun-missiven-data/blob/main/docs/REGISTER.md" target="_blank" rel="noopener">docs/REGISTER.md</a>.</li>
       </ul>
       <h2>Planned</h2>

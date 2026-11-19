@@ -98,6 +98,38 @@ Schopfer» are readings of Schopfer; «Kachelhofer» (1602) is Dachselhofer (lis
   description; the list has him as Stadtschreiber to 1577.
 - Peter Kistler (Q1379653): born 1500, died 1480 by Wikidata; Schultheiss of Bern 1470–1471.
 
+## Dating letters by their office holders (since 19.11.2026)
+
+`scripts/dates.py` reads the holders a letter names in office (address or signature) from
+`registers/offices.json` and gives each a tenure: the years of all letters that name him in
+office, those within 20 years of their median (a misread year does not stretch it); with
+fewer than three, the list's years are added, unless the list entry lies more than 30
+years from every letter (another man of the name). The year of the letter is then checked
+against these tenures, with 20 years' margin:
+
+| Result | Letters | What happens |
+|---|---:|---|
+| fits | 295 | an abbreviated year whose century came from the neighbouring letters counts as confirmed (no «?» in the viewer) |
+| century corrected | 4 | the year fits only a century earlier or later: BAT 664, Nr. 105 «iiic xlo» read 1340, now 1440; BAT 664.1, Nr. 359 and 665.1, Nr. 285 «xv c xliij», «vc xliiio» read 1543, now 1443; BAT 664.1, Nr. 390 «ccc xliij» read 1343, now 1443 (all Peter Schopfer); the year read is kept (`year_read`) |
+| outside | 3 | the year fits no tenure, not even a century off; the viewer warns that it may be misread (BAT 664, Nr. 135 «liiij xl» and 224 «xv°», BAT 664.1, Nr. 593 «iiiic x lvo», all Schopfer) |
+| range | 10 | no year could be read: the letter gets the tenure as its range (e.g. «1439–1462?» for Schopfer), shown in the letter and the list but not counted in the decades |
+
+On the way, the year reader itself was corrected where the office check showed it wrong
+(the same run, against the dates of 18.11.):
+
+- abbreviated years behind a stray mark, «anno dm ic xxxix», «anno c xlprimo», «anno xc
+  lxxviij», were read as 1139, 1141, 1078 and thrown away; the last numeral after «anno»
+  is now the abbreviated year (`tail_year`), «xc» before units is ninety («anno xc iii» 93);
+- German years: «M cccc fùnfzig und zwez» (1452, was 1400), «vierhundert fùnffīg und dru»
+  (1453, was 1403), «cccc mo fuenffzigisten» (1450), «viertzehenhundert zwentzig und drú»
+  (1423, was none), «vierzechēhundt fùnffzig un zwei» (1452);
+- run-together roman numerals «Moccccoxxxvijo» (1437), «xcmo ccccmo xiiijto» (1414, was
+  1400), and «xciii» read as ninety-three, not ten hundred and three.
+
+Against 18.11., 129 letters changed: 82 had no year and have one now, 41 moved by a
+century because their neighbours are now read right (most of BAT 665 from 13xx to 14xx,
+the time of Brüggler, Laupen and Achshalm), and 6 written years were corrected.
+
 ## A date fixed on the way
 
 BAT 666.1, Nr. 439 a and b (Berchtold Vogt) write the year as «1. 5. 72»: 1572. `dates.py`
@@ -106,5 +138,4 @@ fits the list (Berchtold Vogt 1571).
 
 ## Not done
 
-- Letters whose year is uncertain are not dated by the office holder they name.
 - The suspicious single names above are not checked on the images.
