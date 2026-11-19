@@ -4,8 +4,9 @@ Status 18.11.2026. A Transkribus export (job 32060280, 18.11.2026) of the older 
 collections (one document per letter, uploaded December 2016, e.g. collection 4166
 "BAT_664-00100", plus the documents "GT_Thun-Training" and "GT_Thun-Test") holds hand
 transcriptions of Thun letters. They were never part of collection 2329424, which the
-viewer reads. **The transcriptions are not in this repository yet**; this note records the
-measurement only.
+viewer reads. Since 19.11.2026 they are published as the reader `hand-2017`
+(`readings/hand-2017.jsonl`, with the Transkribus document, page and status of each page)
+and shown first in the viewer on the pages they cover.
 
 ## What the export holds
 
@@ -18,9 +19,9 @@ measurement only.
 
 "GT_Thun-Training" (238 pages) and "GT_Thun-Test" (12) repeat pages of the per-letter
 documents. Taking each page once, the longest hand version: **139 pages of 126 letters,
-136,144 characters**, each mapped to a page of this collection by shelfmark, number and
-side (`readings/images.tsv`); one more page ("U-17_0006") maps to none and is left out. Their Transkribus status: 37 GT,
-45 IN_PROGRESS, 57 NEW; nearly all were last changed in 2017. None is shorter than 0.8 times
+136,078 characters**, each mapped to a page of this collection by shelfmark, number and
+side (`readings/images.tsv`); one more page ("U-17_0006") maps to none and is left out. Their Transkribus status: 31 GT,
+37 IN_PROGRESS, 71 NEW; 134 were last changed in 2017. None is shorter than 0.8 times
 the Argon reading of the page, so none looks partial; one (BAT 663, Nr. 50 verso) is 3.8
 times longer than Argon's.
 
@@ -48,7 +49,6 @@ nothing.
 
 ## Not done
 
-- The transcriptions are not in the repository and not shown in the viewer.
 - The hand transcriptions follow the conventions of a 2017 course, not an edition; they
   are unchecked here beyond the length check.
 - They are a transcription ground truth, not a tagging gold sample: issue #10 (N-1) stays
